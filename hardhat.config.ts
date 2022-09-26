@@ -15,7 +15,7 @@ const config: HardhatUserConfig = {
     circuits: [
       {
         // The name of the main circuit file
-        name: 'dark_pool',
+        name: 'zkKYC',
         // Input path for witness input file, inferred from `name` if unspecified
         input: 'input.json',
       },

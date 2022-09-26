@@ -1,17 +1,19 @@
 # zkKYC
-
 circom circuits and test for private KYC on EVM-compatible chains
 
-# Sample Hardhat Project
+The project is based on:
+- harhat for Solidity development
+- Circom for the zero knowledge part to write SNARK circuits
+- SnarkJS for creating zk proofs
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
+## Install
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+npm install
+```
+
+## Compile
+Compile the SNARK circuit and build the verifyer.sol contract
+Before you can set test input variables in `circuits/init.json`.
+```shell
+npx hardhat circom --verbose
 ```
