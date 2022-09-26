@@ -1,0 +1,23 @@
+{
+  "name": "zkkyc",
+  "version": "1.0.0",
+  "description": "zero knowledge circuits for private KYC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anhdungle93/zkKYC.git"
+  },
+  "author": "OccamFi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anhdungle93/zkKYC/issues"
+  },
+  "homepage": "https://github.com/anhdungle93/zkKYC#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.11.2"
+  }
+}
