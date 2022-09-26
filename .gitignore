@@ -21,3 +21,7 @@ typechain-types
 cache
 artifacts
 
+# circom and snarkjs
+circuits/build
+contracts/*Verifier.sol
+
