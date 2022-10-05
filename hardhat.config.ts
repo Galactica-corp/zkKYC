@@ -18,7 +18,12 @@ const config: HardhatUserConfig = {
         name: 'zkKYC',
         // Input path for witness input file, inferred from `name` if unspecified
         input: 'input.json',
-      },
+        },
+        {
+            name: 'merkleProof',
+            circuit: 'test/test_merkleProof.circom',
+            input: 'input/merkleProof.json',
+        },
     ],
   },
 };
