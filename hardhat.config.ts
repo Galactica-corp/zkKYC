@@ -33,6 +33,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_merkleProof.circom',
         input: 'input/merkleProof.json',
       },
+      {
+        name: 'humanID',
+        circuit: 'test/test_humanID.circom',
+        input: 'input/humanID.json',
+      },
     ],
   },
 };
