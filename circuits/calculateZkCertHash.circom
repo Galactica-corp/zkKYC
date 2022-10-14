@@ -5,7 +5,7 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 /*
 Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
 */
-template calculateZkCertHash(){
+template CalculateZkCertHash(){
     // zkCert infos
     signal input surname;
     signal input forename;
@@ -28,7 +28,7 @@ template calculateZkCertHash(){
     component _zkCertHash = Poseidon(13);
     _zkCertHash.inputs[0] <== surname;
     _zkCertHash.inputs[1] <== forename;
-    _zkCertHash.inputs[2] <== middleName;
+    _zkCertHash.inputs[2] <== middlename;
     _zkCertHash.inputs[3] <== yearOfBirth;
     _zkCertHash.inputs[4] <== monthOfBirth;
     _zkCertHash.inputs[5] <== dayOfBirth;
