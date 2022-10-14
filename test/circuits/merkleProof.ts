@@ -28,7 +28,6 @@ describe('Merkle Proof Circuit Component', () => {
       sampleInput,
       sanityCheck
     );
-    console.log('hey');
     assert.propertyVal(witness, 'main.leaf', '0');
     assert.propertyVal(witness, 'main.pathIndices', '5');
     // check resulting root as output

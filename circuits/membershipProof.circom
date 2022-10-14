@@ -7,7 +7,7 @@ include "./merkleProof.circom";
 /*
 Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
 */
-template membershipProof(){
+template MembershipProof(){
     // zkCert infos
     signal input surname;
     signal input forename;
@@ -28,7 +28,7 @@ template membershipProof(){
     component _zkCertHash = Poseidon(13);
     _zkCertHash.inputs[0] <== surname;
     _zkCertHash.inputs[1] <== forename;
-    _zkCertHash.inputs[2] <== middleName;
+    _zkCertHash.inputs[2] <== middlename;
     _zkCertHash.inputs[3] <== yearOfBirth;
     _zkCertHash.inputs[4] <== monthOfBirth;
     _zkCertHash.inputs[5] <== dayOfBirth;
@@ -49,8 +49,10 @@ template membershipProof(){
 
     // use the merkle proof component to calculate the root
     component _merkleProof = MerkleProof(32);
-    _merkleProof.leaf <== _zkCertHash.zkCertHash;
-    _merkleProof.pathElements <== pathElements;
+    _merkleProof.leaf <== _zkCertHash.out;
+    for (var i = 0; i < 32; i++) {
+        _merkleProof.pathElements[i] <== pathElements[i];
+    }
     _merkleProof.pathIndices <== pathIndices;
 
     // check that the calculated root is equal to the public root
@@ -58,8 +60,8 @@ template membershipProof(){
 
     // check that the time has not expired
     component timeHasntPassed = GreaterThan(128);
-    timeHasntPassed.in[0] <== currentTime;
-    timeHasntPassed.in[1] <== expirationDate;
+    timeHasntPassed.in[0] <== expirationDate;
+    timeHasntPassed.in[1] <== currentTime;
 
     valid <== timeHasntPassed.out;
 
