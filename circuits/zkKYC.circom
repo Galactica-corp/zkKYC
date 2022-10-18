@@ -27,6 +27,13 @@ template ZKKYC(levels){
     signal input region;
     signal input country;
 
+    // variables related to the merkle proof
+    signal input pathElements[levels];
+    signal input pathIndices;
+    signal input root;
+    signal input currentTime;
+    signal output valid;
+
 
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
@@ -47,12 +54,7 @@ template ZKKYC(levels){
     _zkCertHash.region <== region;
     _zkCertHash.country <== country;
 
-    // variables related to the merkle proof
-    signal input pathElements[levels];
-    signal input pathIndices;
-    signal input root;
-    signal input currentTime;
-    signal output valid;
+
 
     // use the merkle proof component to calculate the root
     component _merkleProof = MerkleProof(levels);
