@@ -10,7 +10,8 @@ describe('Membership Proof Circuit Component', () => {
     readFileSync('./circuits/input/membershipProof.json', 'utf8')
   );
 
-  const sanityCheck = true;
+    const sanityCheck = true;
+    
 
   before(async () => {
     circuit = await hre.circuitTest.setup('membershipProof');

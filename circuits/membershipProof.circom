@@ -16,13 +16,16 @@ template MembershipProof(){
     signal input yearOfBirth;
     signal input monthOfBirth;
     signal input dayOfBirth;
-    signal input country;
     signal input verificationLevel;
     signal input expirationDate;
-    signal input residentialAddress;
     signal input holderCommitment;
     signal input providerSignature;
     signal input randomSalt;
+    signal input streetAndNumber;
+    signal input postcode;
+    signal input town;
+    signal input region;
+    signal input country;
 
 
     // calculation using a Poseidon component
@@ -33,13 +36,16 @@ template MembershipProof(){
     _zkCertHash.yearOfBirth <== yearOfBirth;
     _zkCertHash.monthOfBirth <== monthOfBirth;
     _zkCertHash.dayOfBirth <== dayOfBirth;
-    _zkCertHash.country <== country;
     _zkCertHash.verificationLevel <== verificationLevel;
     _zkCertHash.expirationDate <== expirationDate;
-    _zkCertHash.residentialAddress <== residentialAddress;
     _zkCertHash.holderCommitment <== holderCommitment;
     _zkCertHash.providerSignature <== providerSignature;
     _zkCertHash.randomSalt <== randomSalt;
+    _zkCertHash.streetAndNumber <== streetAndNumber;
+    _zkCertHash.postcode <== postcode;
+    _zkCertHash.town <== town;
+    _zkCertHash.region <== region;
+    _zkCertHash.country <== country;
 
     // variables related to the merkle proof
     signal input pathElements[32];
