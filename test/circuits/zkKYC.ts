@@ -3,18 +3,17 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 
-describe('Membership Proof Circuit Component', () => {
+describe('zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/membershipProof.json', 'utf8')
+    readFileSync('./circuits/input/zkKYC.json', 'utf8')
   );
 
-    const sanityCheck = true;
-    
+  const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('membershipProof');
+    circuit = await hre.circuitTest.setup('zkKYC');
   });
 
   it('produces a witness with valid constraints', async () => {

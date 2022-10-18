@@ -8,7 +8,7 @@ include "./calculateZkCertHash.circom";
 /*
 Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
 */
-template MembershipProof(){
+template ZKKYC(){
     // zkCert infos
     signal input surname;
     signal input forename;
