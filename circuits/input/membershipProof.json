@@ -10,7 +10,7 @@
     "verificationLevel": "1",
     "expirationDate": "1669736098",
     "residentialAddress": "23423453234234",
-    "onchainAddress": "0xaf1B4792a5e2FB3f2CB1b97FA2903500f9615A31",
+    "holderCommitment": "0xaf1B4792a5e2FB3f2CB1b97FA2903500f9615A31",
     "providerSignature": "0xd52eD52d3C37b7f62b13dC2a613D3e99bDC47602",
     "randomSalt": "1773",
     "pathElements":[

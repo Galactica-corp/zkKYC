@@ -20,7 +20,7 @@ template MembershipProof(){
     signal input verificationLevel;
     signal input expirationDate;
     signal input residentialAddress;
-    signal input onchainAddress;
+    signal input holderCommitment;
     signal input providerSignature;
     signal input randomSalt;
 
@@ -37,7 +37,7 @@ template MembershipProof(){
     _zkCertHash.verificationLevel <== verificationLevel;
     _zkCertHash.expirationDate <== expirationDate;
     _zkCertHash.residentialAddress <== residentialAddress;
-    _zkCertHash.onchainAddress <== onchainAddress;
+    _zkCertHash.holderCommitment <== holderCommitment;
     _zkCertHash.providerSignature <== providerSignature;
     _zkCertHash.randomSalt <== randomSalt;
 

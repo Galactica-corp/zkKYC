@@ -17,7 +17,7 @@ template CalculateZkCertHash(){
     signal input verificationLevel;
     signal input expirationDate;
     signal input residentialAddress;
-    signal input onchainAddress;
+    signal input holderCommitment;
     signal input providerSignature;
     signal input randomSalt;
 
@@ -36,7 +36,7 @@ template CalculateZkCertHash(){
     _zkCertHash.inputs[7] <== verificationLevel;
     _zkCertHash.inputs[8] <== expirationDate;
     _zkCertHash.inputs[9] <== residentialAddress;
-    _zkCertHash.inputs[10] <== onchainAddress;
+    _zkCertHash.inputs[10] <== holderCommitment;
     _zkCertHash.inputs[11] <== providerSignature;
     _zkCertHash.inputs[12] <== randomSalt;
 
