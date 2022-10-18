@@ -51,6 +51,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_membershipProof.circom',
         input: 'input/membershipProof.json',
       },
+      {
+        name: 'humanID',
+        circuit: 'test/test_humanID.circom',
+        input: 'input/humanID.json',
+      },
     ],
   },
 };
