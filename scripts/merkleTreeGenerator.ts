@@ -1,5 +1,5 @@
 import { buildPoseidon } from "circomlibjs";
-import { MerkleTree } from "../src/merkleTree";
+import { MerkleTree } from "../lib/merkleTree";
 
 
 /**
