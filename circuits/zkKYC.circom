@@ -8,7 +8,7 @@ include "./calculateZkCertHash.circom";
 /*
 Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
 */
-template ZKKYC(){
+template ZKKYC(levels){
     // zkCert infos
     signal input surname;
     signal input forename;
@@ -48,16 +48,16 @@ template ZKKYC(){
     _zkCertHash.country <== country;
 
     // variables related to the merkle proof
-    signal input pathElements[32];
+    signal input pathElements[levels];
     signal input pathIndices;
     signal input root;
     signal input currentTime;
     signal output valid;
 
     // use the merkle proof component to calculate the root
-    component _merkleProof = MerkleProof(32);
+    component _merkleProof = MerkleProof(levels);
     _merkleProof.leaf <== _zkCertHash.zkCertHash;
-    for (var i = 0; i < 32; i++) {
+    for (var i = 0; i < levels; i++) {
         _merkleProof.pathElements[i] <== pathElements[i];
     }
     _merkleProof.pathIndices <== pathIndices;
