@@ -1,3 +1,5 @@
+import { Scalar, utils }  from "ffjavascript";
+
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * @dev specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac
@@ -41,21 +43,25 @@
    * @returns OwnershipProofInput struct
    */
   public getOwnershipProofInput(holderKey: string) : OwnershipProofInput {
-    const hashPubkey = this.fieldPoseidon.toObject(this.poseidon(
+    const hashPubkey : BigInt = this.fieldPoseidon.toObject(this.poseidon(
       [this.holderPubKeyEddsa[0], this.holderPubKeyEddsa[1]]
-    )).toString();
-    console.log("hashPubkey", hashPubkey);
-    const sig = this.eddsa.signPoseidon(holderKey, hashPubkey);
+    ));
+    // take modulo of hash to get it into the mod field supported by eddsa
+    // and convert it into a buffer for eddsa (as done in iden3's unit test; could not find a better way)
+    // TODO: cross check with circom that the comparison into a little endian buffer is correct
+    const hashPubkeyMsg = utils.leInt2Buff(Scalar.mod(hashPubkey, "2736030358979909402780800718157159386076813972158567259200215660948447373040"), 32);
+    const sig = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
+    // TODO: verify that the following are really little endian buffers
     return {
       holderCommitment: this.holderCommitment,
       // public key of the holder
-      Ax: this.holderPubKeyEddsa[0].toString(),
-      Ay: this.holderPubKeyEddsa[1].toString(),
+      Ax: utils.leBuff2int(this.holderPubKeyEddsa[0]).toString(),
+      Ay: utils.leBuff2int(this.holderPubKeyEddsa[1]).toString(),
       // signature of the holder
       S: sig.S.toString(),
-      R8x: sig.R8[0].toString(),
-      R8y: sig.R8[1].toString(),
+      R8x: utils.leBuff2int(sig.R8[0]).toString(),
+      R8y: utils.leBuff2int(sig.R8[1]).toString(),
     }
   }
 
