@@ -76,44 +76,10 @@ template RangeProof(levels){
     root === _merkleProof.root;
 
     // check that user is older than the age threshold
-    /* component validCaseOne = GreaterThan(128);
-    validCaseOne.in[0] <== currentYear;
-    validCaseOne.in[1] <== yearOfBirth + ageThreshold; */
-
-    /* var validCaseTwo = 0;
-    if (currentYear == yearOfBirth + ageThreshold) {
-        if (currentMonth > monthOfBirth) {
-            validCaseTwo = 1;
-        } else {
-            if ((currentMonth == monthOfBirth) && (dayOfBirth >= dayOfBirth)) {
-                validCaseTwo = 1;
-            }
-        }
-    }
-
-    valid <== (validCaseOne.out || validCaseTwo); */
-    /* valid <== validCaseOne.out; */
-
-    component compare1 = GreaterThan(128);
-    compare1.in[0] <== currentYear;
-    compare1.in[1] <== yearOfBirth + ageThreshold;
-    var _valid = 0;
-
-    if (compare1.out) {
-        _valid = 1;
-    }
-    /* if (currentYear > yearOfBirth + ageThreshold) {
-        _valid = 1;
-    } else {
-        if (currentYear == yearOfBirth + ageThreshold) {
-            if (currentMonth > monthOfBirth) {
-                _valid = 1;
-            } else {
-                if ((currentMonth == monthOfBirth) && (dayOfBirth >= dayOfBirth)) {
-                    _valid = 1;
-                }
-            }
-        }
-    } */
-    valid <== _valid;
+    var combinedBirthInfo = yearOfBirth * 10000 + monthOfBirth * 100 + dayOfBirth;
+    var combinedCurrentDate = currentYear * 10000 + currentMonth * 100 + currentDay;
+    component compare = GreaterThan(128);
+    compare.in[0] <== combinedCurrentDate;
+    compare.in[1] <== combinedBirthInfo + ageThreshold * 10000;
+    valid <== compare.out;
 }
