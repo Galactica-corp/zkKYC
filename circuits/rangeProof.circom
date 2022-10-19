@@ -3,11 +3,12 @@ pragma circom 2.0.3;
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "./merkleProof.circom";
+include "./calculateZkCertHash.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
-template MembershipProof(){
+template RangeProof(levels){
     // zkKYC infos
     signal input surname;
     signal input forename;
@@ -34,6 +35,14 @@ template MembershipProof(){
     // age threshold
     signal input ageThreshold
 
+    // variables related to the merkle proof
+    signal input pathElements[levels];
+    signal input pathIndices;
+    signal input root;
+
+    // final result
+    signal output valid;
+
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
     _zkCertHash.surname <== surname;
@@ -53,16 +62,12 @@ template MembershipProof(){
     _zkCertHash.region <== region;
     _zkCertHash.country <== country;
 
-    // variables related to the merkle proof
-    signal input pathElements[32];
-    signal input pathIndices;
-    signal input root;
-    signal output valid;
+    
 
     // use the merkle proof component to calculate the root
-    component _merkleProof = MerkleProof(32);
+    component _merkleProof = MerkleProof(levels);
     _merkleProof.leaf <== _zkCertHash.out;
-    for (var i = 0; i < 32; i++) {
+    for (var i = 0; i < levels; i++) {
         _merkleProof.pathElements[i] <== pathElements[i];
     }
     _merkleProof.pathIndices <== pathIndices;
