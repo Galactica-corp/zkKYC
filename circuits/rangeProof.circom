@@ -33,7 +33,7 @@ template RangeProof(levels){
     signal input currentDay;
 
     // age threshold
-    signal input ageThreshold
+    signal input ageThreshold;
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -66,7 +66,7 @@ template RangeProof(levels){
 
     // use the merkle proof component to calculate the root
     component _merkleProof = MerkleProof(levels);
-    _merkleProof.leaf <== _zkCertHash.out;
+    _merkleProof.leaf <== _zkCertHash.zkCertHash;
     for (var i = 0; i < levels; i++) {
         _merkleProof.pathElements[i] <== pathElements[i];
     }
@@ -76,21 +76,44 @@ template RangeProof(levels){
     root === _merkleProof.root;
 
     // check that user is older than the age threshold
-    component validCaseOne = GreaterThan(128);
-    timeHasntPassed.in[0] <== currentYear;
-    timeHasntPassed.in[1] <== yearOfBirth + ageThreshold;
+    /* component validCaseOne = GreaterThan(128);
+    validCaseOne.in[0] <== currentYear;
+    validCaseOne.in[1] <== yearOfBirth + ageThreshold; */
 
-    var validCaseTwo = false;
+    /* var validCaseTwo = 0;
     if (currentYear == yearOfBirth + ageThreshold) {
         if (currentMonth > monthOfBirth) {
-            validCaseTwo = true;
+            validCaseTwo = 1;
         } else {
             if ((currentMonth == monthOfBirth) && (dayOfBirth >= dayOfBirth)) {
-                validCaseTwo = true;
+                validCaseTwo = 1;
             }
         }
     }
 
-    valid <== (validCaseOne.out || validCaseTwo);
+    valid <== (validCaseOne.out || validCaseTwo); */
+    /* valid <== validCaseOne.out; */
 
+    component compare1 = GreaterThan(128);
+    compare1.in[0] <== currentYear;
+    compare1.in[1] <== yearOfBirth + ageThreshold;
+    var _valid = 0;
+
+    if (compare1.out) {
+        _valid = 1;
+    }
+    /* if (currentYear > yearOfBirth + ageThreshold) {
+        _valid = 1;
+    } else {
+        if (currentYear == yearOfBirth + ageThreshold) {
+            if (currentMonth > monthOfBirth) {
+                _valid = 1;
+            } else {
+                if ((currentMonth == monthOfBirth) && (dayOfBirth >= dayOfBirth)) {
+                    _valid = 1;
+                }
+            }
+        }
+    } */
+    valid <== _valid;
 }

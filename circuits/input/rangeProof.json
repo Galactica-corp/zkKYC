@@ -3,11 +3,11 @@
     "surname": "23742384",
     "forename": "23234234",
     "middlename": "12233937",
-    "yearOfBirth": "1982",
-    "monthOfBirth": "5",
-    "dayOfBirth": "28",
+    "yearOfBirth": 1982,
+    "monthOfBirth": 5,
+    "dayOfBirth": 28,
     "verificationLevel": "1",
-    "expirationDate": "1669736098",
+    "expirationDate": 1669736098,
     "holderCommitment": "0xaf1B4792a5e2FB3f2CB1b97FA2903500f9615A31",
     "providerSignature": "0xd52eD52d3C37b7f62b13dC2a613D3e99bDC47602",
     "randomSalt": "1773",
@@ -52,8 +52,8 @@
     ],
     "pathIndices": 11,
     "root": "17029810224651811805425930092085496299322617147701484775397986650506962045188",
-    "currentYear": "2022",
-    "currentMonth": "10",
-    "currentDay": "19",
-    "ageThreshold": "18"
+    "currentYear": 2022,
+    "currentMonth": 10,
+    "currentDay": 19,
+    "ageThreshold": 18
 }
