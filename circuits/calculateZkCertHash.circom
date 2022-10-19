@@ -3,10 +3,10 @@ pragma circom 2.0.3;
 include "../node_modules/circomlib/circuits/poseidon.circom";
 
 /*
-Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
+Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
 template CalculateZkCertHash(){
-    // zkCert infos
+    // zkKYC infos
     signal input surname;
     signal input forename;
     signal input middlename;

@@ -5,23 +5,26 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "./merkleProof.circom";
 
 /*
-Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
+Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
 template MembershipProof(){
-    // zkCert infos
+    // zkKYC infos
     signal input surname;
     signal input forename;
     signal input middlename;
     signal input yearOfBirth;
     signal input monthOfBirth;
     signal input dayOfBirth;
-    signal input country;
     signal input verificationLevel;
     signal input expirationDate;
-    signal input residentialAddress;
-    signal input onchainAddress;
+    signal input holderCommitment;
     signal input providerSignature;
     signal input randomSalt;
+    signal input streetAndNumber;
+    signal input postcode;
+    signal input town;
+    signal input region;
+    signal input country;
 
     // public time inputs
     signal input currentYear;
@@ -32,20 +35,23 @@ template MembershipProof(){
     signal input ageThreshold
 
     // calculation using a Poseidon component
-    component _zkCertHash = Poseidon(13);
-    _zkCertHash.inputs[0] <== surname;
-    _zkCertHash.inputs[1] <== forename;
-    _zkCertHash.inputs[2] <== middlename;
-    _zkCertHash.inputs[3] <== yearOfBirth;
-    _zkCertHash.inputs[4] <== monthOfBirth;
-    _zkCertHash.inputs[5] <== dayOfBirth;
-    _zkCertHash.inputs[6] <== country;
-    _zkCertHash.inputs[7] <== verificationLevel;
-    _zkCertHash.inputs[8] <== expirationDate;
-    _zkCertHash.inputs[9] <== residentialAddress;
-    _zkCertHash.inputs[10] <== onchainAddress;
-    _zkCertHash.inputs[11] <== providerSignature;
-    _zkCertHash.inputs[12] <== randomSalt;
+    component _zkCertHash = CalculateZkCertHash();
+    _zkCertHash.surname <== surname;
+    _zkCertHash.forename <== forename;
+    _zkCertHash.middlename <== middlename;
+    _zkCertHash.yearOfBirth <== yearOfBirth;
+    _zkCertHash.monthOfBirth <== monthOfBirth;
+    _zkCertHash.dayOfBirth <== dayOfBirth;
+    _zkCertHash.verificationLevel <== verificationLevel;
+    _zkCertHash.expirationDate <== expirationDate;
+    _zkCertHash.holderCommitment <== holderCommitment;
+    _zkCertHash.providerSignature <== providerSignature;
+    _zkCertHash.randomSalt <== randomSalt;
+    _zkCertHash.streetAndNumber <== streetAndNumber;
+    _zkCertHash.postcode <== postcode;
+    _zkCertHash.town <== town;
+    _zkCertHash.region <== region;
+    _zkCertHash.country <== country;
 
     // variables related to the merkle proof
     signal input pathElements[32];
