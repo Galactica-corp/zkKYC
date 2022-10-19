@@ -3,6 +3,9 @@ import '@nomicfoundation/hardhat-toolbox';
 import 'hardhat-circom';
 
 const config: HardhatUserConfig = {
+  mocha: {
+    timeout: 100000000,
+  },
   solidity: {
     compilers: [
       {
@@ -19,7 +22,7 @@ const config: HardhatUserConfig = {
     // Base path for files being output, defaults to `./circuits/`
     outputBasePath: './circuits/build',
     // The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
-    ptau: 'pot12_final.ptau',
+    ptau: 'pot15_final.ptau',
     // Each object in this array refers to a separate circuit
     circuits: [
       /* {
@@ -32,6 +35,21 @@ const config: HardhatUserConfig = {
         name: 'merkleProof',
         circuit: 'test/test_merkleProof.circom',
         input: 'input/merkleProof.json',
+      },
+      {
+        name: 'merkleProof2',
+        circuit: 'test/test_merkleProof_2.circom',
+        input: 'input/merkleProof_2.json',
+      },
+      {
+        name: 'calculateZkCertHash',
+        circuit: 'test/test_calculateZkCertHash.circom',
+        input: 'input/calculateZkCertHash.json',
+      },
+      {
+        name: 'zkKYC',
+        circuit: 'test/test_zkKYC.circom',
+        input: 'input/zkKYC.json',
       },
       {
         name: 'humanID',
