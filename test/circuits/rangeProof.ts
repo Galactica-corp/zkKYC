@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 
-describe.only('Range Proof Circuit Component', () => {
+describe('Range Proof Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
@@ -36,13 +36,39 @@ describe.only('Range Proof Circuit Component', () => {
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');
   });
-  /* it('the proof is not valid if the expiration time has passed', async () => {
+
+  it('the proof is not valid if current year is small', async () => {
     let forgedInput = sampleInput;
-    forgedInput.currentTime = forgedInput.expirationDate + 1;
+    forgedInput.currentYear =
+      forgedInput.yearOfBirth + forgedInput.ageThreshold - 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
       sanityCheck
     );
     assert.propertyVal(witness, 'main.valid', '0');
-  }); */
+  });
+  it('the proof is not valid if current month is small', async () => {
+    let forgedInput = sampleInput;
+    forgedInput.currentYear =
+      forgedInput.yearOfBirth + forgedInput.ageThreshold;
+    forgedInput.currentDay = forgedInput.dayOfBirth;
+    forgedInput.currentMonth = forgedInput.monthOfBirth - 1;
+    const witness = await circuit.calculateLabeledWitness(
+      forgedInput,
+      sanityCheck
+    );
+    assert.propertyVal(witness, 'main.valid', '0');
+  });
+  it('the proof is not valid if current day is small', async () => {
+    let forgedInput = sampleInput;
+    forgedInput.currentYear =
+      forgedInput.yearOfBirth + forgedInput.ageThreshold;
+    forgedInput.currentDay = forgedInput.dayOfBirth - 1;
+    forgedInput.currentMonth = forgedInput.monthOfBirth;
+    const witness = await circuit.calculateLabeledWitness(
+      forgedInput,
+      sanityCheck
+    );
+    assert.propertyVal(witness, 'main.valid', '0');
+  });
 });
