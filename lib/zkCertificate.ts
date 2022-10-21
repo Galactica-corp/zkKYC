@@ -50,7 +50,10 @@ import { Scalar, utils }  from "ffjavascript";
     const hashPubkeyMsg = this.fieldPoseidon.e(Scalar.mod(hashPubkey, "2736030358979909402780800718157159386076813972158567259200215660948447373040"));
     const sig = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
-    console.log("selfcheck", this.eddsa.verifyPoseidon(hashPubkeyMsg, sig, this.holderPubKeyEddsa));
+    // selfcheck
+    if(!this.eddsa.verifyPoseidon(hashPubkeyMsg, sig, this.holderPubKeyEddsa)){
+      throw new Error("Self check on EdDSA signature failed");
+    }
 
     return {
       holderCommitment: this.holderCommitment,
