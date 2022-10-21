@@ -47,21 +47,20 @@ import { Scalar, utils }  from "ffjavascript";
       [this.holderPubKeyEddsa[0], this.holderPubKeyEddsa[1]]
     ));
     // take modulo of hash to get it into the mod field supported by eddsa
-    // and convert it into a buffer for eddsa (as done in iden3's unit test; could not find a better way)
-    // TODO: cross check with circom that the comparison into a little endian buffer is correct
-    const hashPubkeyMsg = utils.leInt2Buff(Scalar.mod(hashPubkey, "2736030358979909402780800718157159386076813972158567259200215660948447373040"), 32);
+    const hashPubkeyMsg = this.fieldPoseidon.e(Scalar.mod(hashPubkey, "2736030358979909402780800718157159386076813972158567259200215660948447373040"));
     const sig = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
-    // TODO: verify that the following are really little endian buffers
+    console.log("selfcheck", this.eddsa.verifyPoseidon(hashPubkeyMsg, sig, this.holderPubKeyEddsa));
+
     return {
       holderCommitment: this.holderCommitment,
       // public key of the holder
-      Ax: utils.leBuff2int(this.holderPubKeyEddsa[0]).toString(),
-      Ay: utils.leBuff2int(this.holderPubKeyEddsa[1]).toString(),
+      Ax: this.fieldPoseidon.toObject(this.holderPubKeyEddsa[0]).toString(),
+      Ay: this.fieldPoseidon.toObject(this.holderPubKeyEddsa[1]).toString(),
       // signature of the holder
       S: sig.S.toString(),
-      R8x: utils.leBuff2int(sig.R8[0]).toString(),
-      R8y: utils.leBuff2int(sig.R8[1]).toString(),
+      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     }
   }
 
@@ -77,7 +76,7 @@ import { Scalar, utils }  from "ffjavascript";
     const ownershipProof = this.getOwnershipProofInput(privateKey);
 
     return this.fieldPoseidon.toObject(this.poseidon(
-      [ownershipProof.S, ownershipProof.R8x[0], ownershipProof.R8y[1]]
+      [ownershipProof.S, ownershipProof.R8x, ownershipProof.R8y]
     )).toString();
   }
 }
