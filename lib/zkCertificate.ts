@@ -1,5 +1,7 @@
 import { Scalar, utils }  from "ffjavascript";
 
+import { eddsaPrimeFieldMod } from "./keyManagement";
+
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * @dev specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac
@@ -47,7 +49,7 @@ import { Scalar, utils }  from "ffjavascript";
       [this.holderPubKeyEddsa[0], this.holderPubKeyEddsa[1]]
     ));
     // take modulo of hash to get it into the mod field supported by eddsa
-    const hashPubkeyMsg = this.fieldPoseidon.e(Scalar.mod(hashPubkey, "2736030358979909402780800718157159386076813972158567259200215660948447373040"));
+    const hashPubkeyMsg = this.fieldPoseidon.e(Scalar.mod(hashPubkey, eddsaPrimeFieldMod));
     const sig = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
     // selfcheck
