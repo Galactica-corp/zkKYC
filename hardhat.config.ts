@@ -52,6 +52,11 @@ const config: HardhatUserConfig = {
         input: 'input/membershipProof.json',
       },
       {
+        name: 'zkKYC',
+        circuit: 'test/test_zkKYC.circom',
+        input: 'input/zkKYC.json',
+      },
+      {
         name: 'humanID',
         circuit: 'test/test_humanID.circom',
         input: 'input/humanID.json',

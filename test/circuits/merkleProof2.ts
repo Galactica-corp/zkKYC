@@ -9,10 +9,10 @@ describe('Merkle Proof 2 Circuit Component', () => {
   const sampleInput = JSON.parse(
     readFileSync('./circuits/input/merkleProof_2.json', 'utf8')
   );
-  const expectedRoot =
-    '13279458920664938636312831934678353064136952143172930344736897756651772527484';
 
   const sanityCheck = true;
+  let expectedRoot =
+    '17029810224651811805425930092085496299322617147701484775397986650506962045188';
 
   before(async () => {
     circuit = await hre.circuitTest.setup('merkleProof2');
