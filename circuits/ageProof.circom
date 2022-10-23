@@ -25,7 +25,7 @@ template AgeProof(){
     // check that user is older than the age threshold
     var combinedBirthInfo = yearOfBirth * 10000 + monthOfBirth * 100 + dayOfBirth;
     var combinedCurrentDate = currentYear * 10000 + currentMonth * 100 + currentDay;
-    component compare = GreaterThan(128);
+    component compare = GreaterEqThan(128);
     compare.in[0] <== combinedCurrentDate;
     compare.in[1] <== combinedBirthInfo + ageThreshold * 10000;
     valid <== compare.out;
