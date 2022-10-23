@@ -1,9 +1,6 @@
 pragma circom 2.0.3;
 
-include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
-include "./merkleProof.circom";
-include "./calculateZkCertHash.circom";
 
 /*
 Circuit checks that user corresponding to certain zkKYC record has reached age threshold
