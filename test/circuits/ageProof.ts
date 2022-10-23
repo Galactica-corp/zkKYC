@@ -3,17 +3,17 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 
-describe('Range Proof Circuit Component', () => {
+describe('Age Proof Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/rangeProof.json', 'utf8')
+    readFileSync('./circuits/input/ageProof.json', 'utf8')
   );
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('rangeProof');
+    circuit = await hre.circuitTest.setup('ageProof');
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -27,11 +27,10 @@ describe('Range Proof Circuit Component', () => {
       sanityCheck
     );
 
-    assert.propertyVal(witness, 'main.randomSalt', sampleInput.randomSalt);
     assert.propertyVal(
       witness,
-      'main.pathIndices',
-      BigInt(sampleInput.pathIndices).toString()
+      'main.ageThreshold',
+      sampleInput.ageThreshold.toString()
     );
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');

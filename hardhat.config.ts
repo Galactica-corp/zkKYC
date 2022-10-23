@@ -52,9 +52,9 @@ const config: HardhatUserConfig = {
         input: 'input/zkKYC.json',
       },
       {
-        name: 'rangeProof',
-        circuit: 'test/test_rangeProof.circom',
-        input: 'input/rangeProof.json',
+        name: 'ageProof',
+        circuit: 'test/test_ageProof.circom',
+        input: 'input/ageProof.json',
       },
     ],
   },
