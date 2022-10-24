@@ -25,12 +25,11 @@ const config: HardhatUserConfig = {
     ptau: 'pot15_final.ptau',
     // Each object in this array refers to a separate circuit
     circuits: [
-      /* {
-        // The name of the main circuit file
+      {
         name: 'zkKYC',
-        // Input path for witness input file, inferred from `name` if unspecified
-        input: 'input.json',
-        }, */
+        circuit: 'test/test_zkKYC.circom',
+        input: 'input/zkKYC.json',
+      },
       {
         name: 'merkleProof',
         circuit: 'test/test_merkleProof.circom',
@@ -47,14 +46,14 @@ const config: HardhatUserConfig = {
         input: 'input/calculateZkCertHash.json',
       },
       {
-        name: 'zkKYC',
-        circuit: 'test/test_zkKYC.circom',
-        input: 'input/zkKYC.json',
-      },
-      {
         name: 'humanID',
         circuit: 'test/test_humanID.circom',
         input: 'input/humanID.json',
+      },
+      {
+        name: 'ageProof',
+        circuit: 'test/test_ageProof.circom',
+        input: 'input/ageProof.json',
       },
     ],
   },
