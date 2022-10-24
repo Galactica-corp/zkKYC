@@ -6,10 +6,10 @@ include "./merkleProof.circom";
 include "./calculateZkCertHash.circom";
 
 /*
-Circuit to check that, given zkCert infos we calculate the corresponding leaf hash
+Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
 template ZKKYC(levels){
-    // zkCert infos
+    // zkKYC infos
     signal input surname;
     signal input forename;
     signal input middlename;
