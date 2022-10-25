@@ -21,6 +21,7 @@ export async function getEddsaKeyFromEthSigner(signer: SignerWithAddress): Promi
 /**
  * @description Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman
  *   It is symmetric and can be produced by both parties using their private key and the other party's public key.
+ *   Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/crypto/ts/index.ts#L328
  * 
  * @param privKey EdDSA private key of Alice
  * @param pubKey EdDSA public key of Bob

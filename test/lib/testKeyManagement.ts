@@ -30,19 +30,24 @@ describe.only('Key Management', () => {
       .to.equal(holder.address);
   });
 
-  it('generates the same shared ECDH key for alice and bob', async () => {
-    const [ alice, bob ] = await ethers.getSigners();
+  it('generates unique shared ECDH key for alice and bob', async () => {
+    const [ alice, bob, charlie ] = await ethers.getSigners();
 
     const alicePriv = await getEddsaKeyFromEthSigner(alice);
     const bobPriv = await getEddsaKeyFromEthSigner(bob);
+    const charliePriv = await getEddsaKeyFromEthSigner(charlie);
     
     const alicePub = eddsa.prv2pub(alicePriv);
     const bobPub = eddsa.prv2pub(bobPriv);
+    const charliePub = eddsa.prv2pub(charliePriv);
 
-    const sharedKeyComputedByAlice = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
-    const sharedKeyComputedByBob = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
-    console.log(sharedKeyComputedByAlice);
+    // same key for alice and bob
+    const sharedKeyAB = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
+    const sharedKeyBA = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
+    expect(sharedKeyAB).to.equal(sharedKeyBA);
 
-    expect(sharedKeyComputedByAlice).to.equal(sharedKeyComputedByAlice);
+    // different keys for different participants
+    const sharedKeyAC = generateEcdhSharedKey(alicePriv, charliePub, eddsa);
+    expect(sharedKeyAB).to.not.equal(sharedKeyAC);
   });
 });
