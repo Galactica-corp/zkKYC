@@ -1,30 +1,27 @@
-const chai = require("chai");
-const assert = chai.assert;
+import { assert, expect } from 'chai';
+import { ethers, circuitTest } from "hardhat";
+import { readFileSync } from 'fs';
+import { CircuitTestUtils } from 'hardhat-circom';
 
-const buildMimcSponge = require('../../lib/mimcEncrypt').buildMimcSponge;
-
-const hre = require("hardhat");
-const utils = require("ethers").utils;
-const readFileSync = require("fs").readFileSync;
-
+import { buildMimcSponge } from '../../lib/mimcEncrypt';
 
 
 describe.only("MiMC Sponge Encryption test", function () {
 	const sanityCheck = true;
 
 	describe("JS code", function () {
-		let xL, xR, key, keyW;
-		let mimcjs;
-		let F;
+		let xL: any, xR: any, key: any, keyW: any;
+		let mimcjs: any;
+		let F: any;
 	
 		before(async () => {
 			mimcjs = await buildMimcSponge();
 			F = mimcjs.F;
 	
-			xL = F.e(utils.id("left").toString())
-			xR = F.e(utils.id("right").toString())
-			key = F.e(utils.id("key").toString())
-			keyW = F.e(utils.id("keyW").toString())
+			xL = F.e(ethers.utils.id("left").toString())
+			xR = F.e(ethers.utils.id("right").toString())
+			key = F.e(ethers.utils.id("key").toString())
+			keyW = F.e(ethers.utils.id("keyW").toString())
 		})
 	
 		it("Should encrypt and decrypt with same key", async () => {
@@ -43,11 +40,11 @@ describe.only("MiMC Sponge Encryption test", function () {
 	});
 
 	describe("Circuit Encrypt+Decrypt", function () {
-		let circuit;
-		let sampleInput;
+		let circuit: CircuitTestUtils;
+		let sampleInput: any;
 
 		before(async () => {
-			circuit = await hre.circuitTest.setup("mimcEnDecrypt");
+			circuit = await circuitTest.setup("mimcEnDecrypt");
 			sampleInput = JSON.parse(
 				readFileSync("./circuits/input/mimcEnDecrypt.json", "utf8")
 			);
@@ -65,7 +62,7 @@ describe.only("MiMC Sponge Encryption test", function () {
 		});
 	
 		it("Should fail decrypt with wrong key", async () => {
-			wrongInput = sampleInput;
+			let wrongInput = sampleInput;
 			wrongInput["k_two"] = "32547";
 	
 			const witness = await circuit.calculateLabeledWitness(
@@ -80,15 +77,15 @@ describe.only("MiMC Sponge Encryption test", function () {
 	});
 
 	describe("Circuit Encrypt", function () {
-		let circuit;
-		let sampleInput;
-		let xL, xR, key;
-		let mimcjs;
-		let F;
+		let circuit: CircuitTestUtils;
+		let sampleInput: any;
+		let xL: any, xR: any, key: any;
+		let mimcjs: any;
+		let F: any;
 	
 		before(async () => {
 			// setup mimc circuit
-			circuit = await hre.circuitTest.setup("mimcEncrypt");
+			circuit = await circuitTest.setup("mimcEncrypt");
 			sampleInput = JSON.parse(
 				readFileSync("./circuits/input/mimcEncrypt.json", "utf8")
 			);

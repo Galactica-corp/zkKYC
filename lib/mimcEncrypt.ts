@@ -5,31 +5,32 @@
  * TODO: This should be audited before using in production with real user data.
  * The MimcEncrypt only encrypts a single field element. If we need to encrypt more
  *  it might make sense in the future to take a look at Poseidon encryption:
- *    - spec: https://drive.google.com/file/d/1EVrP3DzoGbmzkRmYnyEDcIQcXVU7GlOd/view
- *    - implementation (not audited and not compatible as is): https://github.com/iden3/circomlib/pull/60
+ *  - spec: https://drive.google.com/file/d/1EVrP3DzoGbmzkRmYnyEDcIQcXVU7GlOd/view
+ *  - implementation (not audited and not compatible as is): https://github.com/iden3/circomlib/pull/60
  */
 
-const Scalar = require("ffjavascript").Scalar;
-const getCurveFromName = require("ffjavascript").getCurveFromName;
+import { Scalar, getCurveFromName } from "ffjavascript";
+import { ethers } from "hardhat";
 
-const ethers = require("ethers");
 
 const SEED = "mimcsponge";
 const NROUNDS = 220;
 
-async function buildMimcSponge() {
+export async function buildMimcSponge() {
     const bn128 = await getCurveFromName("bn128", true);
     return new MimcEncrypt(bn128.Fr);
 }
 
-class MimcEncrypt {
+export class MimcEncrypt {
+    F: any;
+    cts: any[];
 
-    constructor (F) {
+    constructor (F: any) {
         this.F = F;
         this.cts = this.getConstants(SEED, NROUNDS);
     }
 
-    getIV (seed)  {
+    getIV (seed: any)  {
         const F = this.F;
         if (typeof seed === "undefined") seed = SEED;
         const c = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(seed+"_iv"));
@@ -38,7 +39,7 @@ class MimcEncrypt {
         return iv;
     }
 
-    getConstants (seed, nRounds)  {
+    getConstants (seed: any, nRounds: number)  {
         const F = this.F;
         if (typeof seed === "undefined") seed = SEED;
         if (typeof nRounds === "undefined") nRounds = NROUNDS;
@@ -55,7 +56,7 @@ class MimcEncrypt {
     }
 
 
-    hash(_xL_in, _xR_in, _k) {
+    hash(_xL_in: any, _xR_in: any, _k: any) {
         return this.permutation(_xL_in, _xR_in, _k, false)
     }
     
@@ -64,7 +65,7 @@ class MimcEncrypt {
     //      hashing with minimal multiplicative complexity." International 
     //      Conference on the Theory and Application of Cryptology and Information
     //      Security. Springer, Berlin, Heidelberg, 2016.
-    permutation (_xL_in, _xR_in, _k, _rev) {
+    permutation (_xL_in: any, _xR_in: any, _k: any, _rev: any) {
         const F = this.F;
         let xL = F.e(_xL_in);
         let xR = F.e(_xR_in);
@@ -96,15 +97,15 @@ class MimcEncrypt {
         };
     }
 
-    encrypt(_xL_in, _xR_in, _k) {
+    encrypt(_xL_in: any, _xR_in: any, _k: any) {
         return this.hash(_xL_in, _xR_in, _k);
     }
     
-    decrypt (_xL_in, _xR_in, _k) {
+    decrypt (_xL_in: any, _xR_in: any, _k: any) {
         return this.permutation(_xL_in, _xR_in, _k, true);
     }
 
-    multiHash(arr, key, numOutputs)  {
+    multiHash(arr: any[], key: any, numOutputs: number)  {
         const F = this.F;
         if (typeof(numOutputs) === "undefined") {
             numOutputs = 1;
@@ -136,6 +137,3 @@ class MimcEncrypt {
         }
     }
 }
-
-module.exports = { MimcEncrypt, buildMimcSponge };
-exports.defaults = { MimcEncrypt, buildMimcSponge };
