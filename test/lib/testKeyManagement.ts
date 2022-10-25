@@ -5,10 +5,10 @@ import { CircuitTestUtils } from 'hardhat-circom';
 import { buildEddsa } from "circomlibjs";
 import { ethers } from "hardhat";
 
-import { getEddsaKeyFromEthSigner, eddsaKeyGenerationMessage } from "../../lib/keyManagement";
+import { getEddsaKeyFromEthSigner, eddsaKeyGenerationMessage, generateEcdhSharedKey } from "../../lib/keyManagement";
 
 describe.only('Key Management', () => {
-  let circuit: CircuitTestUtils;
+  let babyjub, eddsa: any;
 
   const sampleInput = JSON.parse(
     readFileSync('./circuits/input/ownership.json', 'utf8')
@@ -17,11 +17,11 @@ describe.only('Key Management', () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('ownership');
+    eddsa = await buildEddsa();
+    babyjub = await eddsa.babyJub;
   });
 
   it('can generate EdDSA key from signature', async () => {
-    const eddsa = await buildEddsa();
     const holder = (await ethers.getSigners())[6];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
@@ -30,13 +30,19 @@ describe.only('Key Management', () => {
       .to.equal(holder.address);
   });
 
-  it('can generate EdDSA key from signature', async () => {
-    const eddsa = await buildEddsa();
-    const holder = (await ethers.getSigners())[6];
+  it('generates the same shared ECDH key for alice and bob', async () => {
+    const [ alice, bob ] = await ethers.getSigners();
 
-    const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
+    const alicePriv = await getEddsaKeyFromEthSigner(alice);
+    const bobPriv = await getEddsaKeyFromEthSigner(bob);
     
-    expect(ethers.utils.recoverAddress(ethers.utils.hashMessage(eddsaKeyGenerationMessage), holderEdDSAKey))
-      .to.equal(holder.address);
+    const alicePub = eddsa.prv2pub(alicePriv);
+    const bobPub = eddsa.prv2pub(bobPriv);
+
+    const sharedKeyComputedByAlice = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
+    const sharedKeyComputedByBob = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
+    console.log(sharedKeyComputedByAlice);
+
+    expect(sharedKeyComputedByAlice).to.equal(sharedKeyComputedByAlice);
   });
 });
