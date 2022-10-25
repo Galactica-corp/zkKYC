@@ -51,6 +51,11 @@ const config: HardhatUserConfig = {
         input: 'input/humanID.json',
       },
       {
+        name: 'ownership',
+        circuit: 'test/test_ownership.circom',
+        input: 'input/ownership.json',
+      },
+      {
         name: 'ageProof',
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
