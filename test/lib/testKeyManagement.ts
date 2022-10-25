@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 
 import { getEddsaKeyFromEthSigner, eddsaKeyGenerationMessage, generateEcdhSharedKey } from "../../lib/keyManagement";
 
-describe.only('Key Management', () => {
+describe('Key Management', () => {
   let babyjub, eddsa: any;
 
   const sampleInput = JSON.parse(

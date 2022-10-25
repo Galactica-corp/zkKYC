@@ -60,6 +60,16 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
       },
+      {
+        name: 'mimcEncrypt',
+        circuit: 'test/test_mimcEncrypt.circom',
+        input: 'input/mimcEncrypt.json',
+      },
+      {
+        name: 'mimcEnDecrypt',
+        circuit: 'test/test_mimcEnDecrypt.circom',
+        input: 'input/mimcEnDecrypt.json',
+      },
     ],
   },
 };
