@@ -70,6 +70,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_mimcEnDecrypt.circom',
         input: 'input/mimcEnDecrypt.json',
       },
+      {
+        name: 'privToPubKey',
+        circuit: 'test/test_privToPubKey.circom',
+        input: 'input/privToPubKey.json',
+      },
     ],
   },
 };

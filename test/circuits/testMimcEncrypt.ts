@@ -6,7 +6,7 @@ import { CircuitTestUtils } from 'hardhat-circom';
 import { buildMimcSponge } from '../../lib/mimcEncrypt';
 
 
-describe.only("MiMC Sponge Encryption test", function () {
+describe("MiMC Sponge Encryption test", function () {
 	const sanityCheck = true;
 
 	describe("JS code", function () {
