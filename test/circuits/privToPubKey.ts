@@ -5,7 +5,7 @@ import { CircuitTestUtils } from 'hardhat-circom';
 import { buildEddsa } from "circomlibjs";
 import { ethers } from "hardhat";
 
-import { getEddsaKeyFromEthSigner } from "../../lib/keyManagement";
+import { getEddsaKeyFromEthSigner, formatPrivKeyForBabyJub } from "../../lib/keyManagement";
 
 describe.only('Private to public key derivation', () => {
   let circuit: CircuitTestUtils;
@@ -31,41 +31,23 @@ describe.only('Private to public key derivation', () => {
     const [ alice ] = await ethers.getSigners();
 
     const privKey = await getEddsaKeyFromEthSigner(alice);    
-    const pubKey = eddsa.prv2pub(privKey);
-
+    const privKeyConverted = BigInt(privKey).toString();
+    const privKeyField = formatPrivKeyForBabyJub(privKeyConverted, eddsa);
+  
+    const pubKey = eddsa.prv2pub(privKeyConverted.toString());
+  
     // const privKey = formatPrivKeyForBabyJub(sampleInput.private_key, eddsa).toString()
     const witness = await circuit.calculateLabeledWitness(
-      {"private_key": privKey.toString()},
+      {"private_key": privKeyField},
       sanityCheck
     );
-    console.log('privKey', privKey);
-    console.log('privKeyTS', eddsa.F.toObject(privKey.toString()));
-    console.log('privKeyTS', eddsa.F.toObject(privKey.toString()).toString());
 
-    assert.propertyVal(witness, 'main.private_key', privKey.toString());
+    assert.propertyVal(witness, 'main.private_key', privKeyField.toString());
 
-    // const expectedPubKey = eddsa.prv2pub(Buffer.from((BigInt(privKey)).toString(16), 'hex'));
-    console.log('expectedPubKey', pubKey);
-    console.log('w', witness['main.public_key[0]']);
     // check resulting output
-    assert.propertyVal(witness, 'main.public_key[0]', eddsa.F.toObject(pubKey[0]));
+    for(let i in [0, 1]){
+      assert.propertyVal(witness, `main.public_key[${i}]`,
+       eddsa.poseidon.F.toObject(pubKey[i]).toString());
+    }
   });
-
-  // it('has verified the signature successfully', async () => {
-  //   const expected = { valid: 1 };
-  //   const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
-  //   await circuit.assertOut(witness, expected);
-  // });
-
-  // it('identifies invalid signatures correctly', async () => {
-  //   const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'holderCommitment'];
-  //   for (let field of fieldsToChange) {
-  //     let forgedInput = sampleInput;
-  //     forgedInput[field] += 1;
-  //     await expect(circuit.calculateLabeledWitness(forgedInput, sanityCheck))
-  //       .to.be.rejectedWith("Error: Assert Failed.");
-  //   }
-  // });
-
-  // it.skip('TODO: test integration in zkKYC', async () => {});
 });
