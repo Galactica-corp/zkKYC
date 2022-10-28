@@ -21,6 +21,7 @@ template Authorization(){
     signal input R8x;
     signal input R8y;
 
+
     // circuit has no output, because adding constraints is enough to verify the signature
 
     // using the standard EdDSA circuit from circomlib to verify the signature
@@ -32,4 +33,5 @@ template Authorization(){
     eddsa.S <== S;
     eddsa.R8x <== R8x;
     eddsa.R8y <== R8y;
+
 }

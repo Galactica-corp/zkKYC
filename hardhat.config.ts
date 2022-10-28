@@ -60,6 +60,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
       },
+      {
+        name: 'authorization',
+        circuit: 'test/test_authorization.circom',
+        input: 'input/authorization.json',
+      },
     ],
   },
 };

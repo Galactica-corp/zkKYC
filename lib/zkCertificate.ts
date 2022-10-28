@@ -77,32 +77,32 @@ export class ZKCertificate {
   }
 
   /**
-   * @description Create the input for the ownership proof of this zkCert
+   * @description Create the input for the authorization proof of this zkCert
    *
    * @param holderKey EdDSA Private key of the holder
    * @param userAddress user address to be signed
-   * @returns OwnershipProofInput struct, we use this interface because the holder commitment can be any message
+   * @returns AuthorizationProofInput struct
    */
   public getAuthorizationProofInput(
     holderKey: string,
     userAddress: string
-  ): OwnershipProofInput {
-    // we omit the 0x prefix so the address has length 40 in hexadecimal
-    if (userAddress.length !== 40) {
+  ): AuthorizationProofInput {
+    // we include the 0x prefix so the address has length 42 in hexadecimal
+    if (userAddress.length !== 42) {
       throw new Error('Incorrect address length');
     }
+
     // we don't need to hash the user address because of the length making it less than 2**160, hence less than the field prime value.
-    const sig = this.eddsa.signPoseidon(holderKey, userAddress);
+    const userAddress_ = this.fieldPoseidon.e(userAddress);
+    const sig = this.eddsa.signPoseidon(holderKey, userAddress_);
 
     // selfcheck
-    if (
-      !this.eddsa.verifyPoseidon(userAddressMod, sig, this.holderPubKeyEddsa)
-    ) {
+    if (!this.eddsa.verifyPoseidon(userAddress, sig, this.holderPubKeyEddsa)) {
       throw new Error('Self check on EdDSA signature failed');
     }
 
     return {
-      holderCommitment: userAddress,
+      userAddress: userAddress,
       // public key of the holder
       Ax: this.fieldPoseidon.toObject(this.holderPubKeyEddsa[0]).toString(),
       Ay: this.fieldPoseidon.toObject(this.holderPubKeyEddsa[1]).toString(),
@@ -138,6 +138,17 @@ export class ZKCertificate {
 
 export interface OwnershipProofInput {
   holderCommitment: string;
+  // public key
+  Ax: string;
+  Ay: string;
+  // signature
+  S: string;
+  R8x: string;
+  R8y: string;
+}
+
+export interface AuthorizationProofInput {
+  userAddress: string;
   // public key
   Ax: string;
   Ay: string;
