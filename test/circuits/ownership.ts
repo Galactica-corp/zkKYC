@@ -2,11 +2,11 @@ import { assert, expect } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
-import { buildEddsa } from "circomlibjs";
-import { ethers } from "hardhat";
+import { buildEddsa } from 'circomlibjs';
+import { ethers } from 'hardhat';
 
-import { ZKCertificate } from "../../lib/zkCertificate";
-import { getEddsaKeyFromEthSigner } from "../../lib/keyManagement";
+import { ZKCertificate } from '../../lib/zkCertificate';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
 describe('Ownership Component', () => {
   let circuit: CircuitTestUtils;
@@ -33,7 +33,7 @@ describe('Ownership Component', () => {
     );
     assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
     // check resulting output
-    assert.propertyVal(witness, 'main.valid', "1");
+    assert.propertyVal(witness, 'main.valid', '1');
   });
 
   it('has verified the signature successfully', async () => {
@@ -45,10 +45,11 @@ describe('Ownership Component', () => {
   it('identifies invalid signatures correctly', async () => {
     const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'holderCommitment'];
     for (let field of fieldsToChange) {
-      let forgedInput = sampleInput;
+      let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;
-      await expect(circuit.calculateLabeledWitness(forgedInput, sanityCheck))
-        .to.be.rejectedWith("Error: Assert Failed.");
+      await expect(
+        circuit.calculateLabeledWitness(forgedInput, sanityCheck)
+      ).to.be.rejectedWith('Error: Assert Failed.');
     }
   });
 

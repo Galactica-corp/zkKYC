@@ -46,7 +46,7 @@ describe('Merkle Proof 2 Circuit Component', () => {
   });
 
   it('output changes on having a different leaf', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.leaf += 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
@@ -56,7 +56,7 @@ describe('Merkle Proof 2 Circuit Component', () => {
   });
 
   it('output changes on having a different path', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.pathIndices -= 1; // flip some bits to have a different path
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
@@ -66,7 +66,7 @@ describe('Merkle Proof 2 Circuit Component', () => {
   });
 
   it('output changes on having a different neighbor hashes', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.pathElements[1] = forgedInput.pathElements[2];
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,

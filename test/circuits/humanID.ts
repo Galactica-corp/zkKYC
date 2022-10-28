@@ -57,7 +57,7 @@ describe('HumanID Component', () => {
 
   it('output changes on any difference', async () => {
     for (let field of fieldOrder) {
-      let forgedInput = sampleInput;
+      let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;
       const witness = await circuit.calculateLabeledWitness(
         forgedInput,
