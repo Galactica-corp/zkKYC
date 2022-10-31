@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 
 import { getEddsaKeyFromEthSigner, generateEcdhSharedKey, formatPrivKeyForBabyJub } from "../../lib/keyManagement";
 
-describe('Private to public key derivation', () => {
+describe('ECDH shared key derivation', () => {
   let circuit: CircuitTestUtils;
   let eddsa: any;
 

@@ -80,6 +80,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_ecdh.circom',
         input: 'input/ecdh.json',
       },
+      {
+        name: 'encryptionProof',
+        circuit: 'test/test_encryptionProof.circom',
+        input: 'input/encryptionProof.json',
+      },
     ],
   },
 };

@@ -7,14 +7,14 @@ include "../node_modules/circomlib/circuits/escalarmulfix.circom";
   * Circut for deriving the public key of a private key
   * Based on https://github.com/privacy-scaling-explorations/maci/blob/v1/circuits/circom/privToPubKey.circom
   */
-template Priv2PubKey() {
+template PrivToPubKey() {
   // Note: private key needs to be hashed, and then pruned before (see lib/keyManagement/formatPrivKeyForBabyJub)
   // supplying it to the circuit
-  signal input private_key;
-  signal output public_key[2];
+  signal input privKey;
+  signal output pubKey[2];
 
   component privBits = Num2Bits(253);
-  privBits.in <== private_key;
+  privBits.in <== privKey;
 
   var BASE8[2] = [
     5299619240641551281634865583518297030282874472190772894086521144482721001553,
@@ -26,6 +26,6 @@ template Priv2PubKey() {
     mulFix.e[i] <== privBits.out[i];
   }
 
-  public_key[0] <== mulFix.out[0];
-  public_key[1] <== mulFix.out[1];
+  pubKey[0] <== mulFix.out[0];
+  pubKey[1] <== mulFix.out[1];
 }

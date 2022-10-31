@@ -37,15 +37,15 @@ describe('Private to public key derivation', () => {
     const pubKey = eddsa.prv2pub(privKeyConverted);
   
     const witness = await circuit.calculateLabeledWitness(
-      {"private_key": privKeyField},
+      {"privKey": privKeyField},
       sanityCheck
     );
 
-    assert.propertyVal(witness, 'main.private_key', privKeyField.toString());
+    assert.propertyVal(witness, 'main.privKey', privKeyField.toString());
 
     // check resulting output
     for(let i in [0, 1]){
-      assert.propertyVal(witness, `main.public_key[${i}]`,
+      assert.propertyVal(witness, `main.pubKey[${i}]`,
        eddsa.poseidon.F.toObject(pubKey[i]).toString());
     }
   });
