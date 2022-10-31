@@ -37,7 +37,7 @@ describe('Age Proof Circuit Component', () => {
   });
 
   it('the proof is not valid if current year is small', async () => {
-    let forgedInput = sampleInput;
+      let forgedInput = {...sampleInput };
     forgedInput.currentYear =
       forgedInput.yearOfBirth + forgedInput.ageThreshold - 1;
     const witness = await circuit.calculateLabeledWitness(
@@ -47,7 +47,7 @@ describe('Age Proof Circuit Component', () => {
     assert.propertyVal(witness, 'main.valid', '0');
   });
   it('the proof is not valid if current month is small', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.currentYear =
       forgedInput.yearOfBirth + forgedInput.ageThreshold;
     forgedInput.currentDay = forgedInput.dayOfBirth;
@@ -59,7 +59,7 @@ describe('Age Proof Circuit Component', () => {
     assert.propertyVal(witness, 'main.valid', '0');
   });
   it('the proof is not valid if current day is small', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.currentYear =
       forgedInput.yearOfBirth + forgedInput.ageThreshold;
     forgedInput.currentDay = forgedInput.dayOfBirth - 1;

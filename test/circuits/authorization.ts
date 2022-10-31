@@ -8,17 +8,17 @@ import { ethers } from 'hardhat';
 import { ZKCertificate } from '../../lib/zkCertificate';
 import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
-describe('Ownership Component', () => {
+describe('Authorization Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/ownership.json', 'utf8')
+    readFileSync('./circuits/input/authorization.json', 'utf8')
   );
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('ownership');
+    circuit = await hre.circuitTest.setup('authorization');
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -32,20 +32,16 @@ describe('Ownership Component', () => {
       sanityCheck
     );
     assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
-    // check resulting output
-    assert.propertyVal(witness, 'main.valid', '1');
   });
 
   it('has verified the signature successfully', async () => {
-    const expected = { valid: 1 };
     const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
-    await circuit.assertOut(witness, expected);
   });
 
   it('identifies invalid signatures correctly', async () => {
-    const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'holderCommitment'];
+    const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'userAddress'];
     for (let field of fieldsToChange) {
-      let forgedInput = { ...sampleInput };
+      let forgedInput = {...sampleInput};
       forgedInput[field] += 1;
       await expect(
         circuit.calculateLabeledWitness(forgedInput, sanityCheck)
@@ -53,17 +49,19 @@ describe('Ownership Component', () => {
     }
   });
 
-  it('can validate ownership commitments generated in our front-end', async () => {
+  it('can validate authorization generated in our front-end', async () => {
     const eddsa = await buildEddsa();
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
+    const userAddress = sampleInput.userAddress;
     let zkKYC = new ZKCertificate(holderEdDSAKey, eddsa.poseidon, eddsa);
-    const ownershipProof = zkKYC.getOwnershipProofInput(holderEdDSAKey);
+    const authorizationProof = zkKYC.getAuthorizationProofInput(
+      holderEdDSAKey,
+      userAddress
+    );
 
-    const expected = { valid: 1 };
-    const witness = await circuit.calculateWitness(ownershipProof, sanityCheck);
-    await circuit.assertOut(witness, expected);
+    await circuit.calculateWitness(authorizationProof, sanityCheck);
   });
 
   it.skip('TODO: test integration in zkKYC', async () => {});

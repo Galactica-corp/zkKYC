@@ -37,7 +37,7 @@ describe('zkKYC Circuit Component', () => {
     assert.propertyVal(witness, 'main.valid', '1');
   });
   it('the proof is not valid if the expiration time has passed', async () => {
-    let forgedInput = sampleInput;
+    let forgedInput = { ...sampleInput };
     forgedInput.currentTime = forgedInput.expirationDate + 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
