@@ -8,7 +8,7 @@ import { ethers } from "hardhat";
 import { getEddsaKeyFromEthSigner, generateEcdhSharedKey, formatPrivKeyForBabyJub } from "../../lib/keyManagement";
 import { buildMimcSponge } from '../../lib/mimcEncrypt';
 
-describe.only('Encryption Proof', () => {
+describe('Encryption Proof', () => {
   let circuit: CircuitTestUtils;
   let eddsa: any;
   let mimcjs: any;

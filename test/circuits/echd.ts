@@ -50,10 +50,6 @@ describe('ECDH shared key derivation', () => {
       },
       sanityCheck
     );
-    console.log({
-      "privKey": formatPrivKeyForBabyJub(alicePriv, eddsa),
-      "pubKey": bobPub.map((p: any) => eddsa.poseidon.F.toObject(p).toString())
-    })
     
     for(let i in [0, 1]){
       assert.propertyVal(witness, `main.sharedKey[${i}]`, sharedKeyAB[i]);
