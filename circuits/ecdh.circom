@@ -2,6 +2,11 @@ pragma circom 2.0.3;
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/escalarmulany.circom";
 
+/**
+ *   Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman
+ *   It is symmetric and can be produced by both parties using their private key and the other party's public key.
+ *   Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/circuits/circom/ecdh.circom#L5
+ */
 template Ecdh() {
     // Note: the private key needs to be hashed and pruned first (see lib/keyManagement/formatPrivKeyForBabyJub)
     signal input privKey;
