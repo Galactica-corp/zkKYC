@@ -75,6 +75,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_privToPubKey.circom',
         input: 'input/privToPubKey.json',
       },
+      {
+        name: 'ecdh',
+        circuit: 'test/test_ecdh.circom',
+        input: 'input/ecdh.json',
+      },
     ],
   },
 };

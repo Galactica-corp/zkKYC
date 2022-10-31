@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 
 import { getEddsaKeyFromEthSigner, eddsaKeyGenerationMessage, generateEcdhSharedKey } from "../../lib/keyManagement";
 
-describe('Key Management', () => {
+describe.only('Key Management', () => {
   let babyjub, eddsa: any;
 
   const sampleInput = JSON.parse(
@@ -44,10 +44,14 @@ describe('Key Management', () => {
     // same key for alice and bob
     const sharedKeyAB = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
     const sharedKeyBA = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
-    expect(sharedKeyAB).to.equal(sharedKeyBA);
+    for(let i in [0, 1]){
+      expect(sharedKeyAB[i]).to.equal(sharedKeyBA[i]);
+    }
 
     // different keys for different participants
     const sharedKeyAC = generateEcdhSharedKey(alicePriv, charliePub, eddsa);
-    expect(sharedKeyAB).to.not.equal(sharedKeyAC);
+    for(let i in [0, 1]){
+      expect(sharedKeyAB[i]).to.not.equal(sharedKeyAC[i]);
+    }
   });
 });

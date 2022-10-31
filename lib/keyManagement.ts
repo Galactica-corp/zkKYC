@@ -28,9 +28,9 @@ export async function getEddsaKeyFromEthSigner(signer: SignerWithAddress): Promi
  * @param eddsa eddsa instance from circomlibjs
  * @return The ECDH shared key.
  */
- export function generateEcdhSharedKey(privKey: string, pubKey: string[], eddsa: any): BigInt {
-  const keyBuffer = eddsa.babyJub.mulPointEscalar(pubKey, formatPrivKeyForBabyJub(privKey, eddsa))[0];
-  return eddsa.F.toObject(keyBuffer);
+ export function generateEcdhSharedKey(privKey: string, pubKey: string[], eddsa: any): string[] {
+  const keyBuffers = eddsa.babyJub.mulPointEscalar(pubKey, formatPrivKeyForBabyJub(privKey, eddsa));
+  return keyBuffers.map((buffer: any) => eddsa.F.toObject(buffer).toString());
 }
 
 /**

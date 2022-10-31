@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 
 import { getEddsaKeyFromEthSigner, formatPrivKeyForBabyJub } from "../../lib/keyManagement";
 
-describe.only('Private to public key derivation', () => {
+describe('Private to public key derivation', () => {
   let circuit: CircuitTestUtils;
   let eddsa: any;
 
@@ -34,9 +34,8 @@ describe.only('Private to public key derivation', () => {
     const privKeyConverted = BigInt(privKey).toString();
     const privKeyField = formatPrivKeyForBabyJub(privKeyConverted, eddsa);
   
-    const pubKey = eddsa.prv2pub(privKeyConverted.toString());
+    const pubKey = eddsa.prv2pub(privKeyConverted);
   
-    // const privKey = formatPrivKeyForBabyJub(sampleInput.private_key, eddsa).toString()
     const witness = await circuit.calculateLabeledWitness(
       {"private_key": privKeyField},
       sanityCheck
