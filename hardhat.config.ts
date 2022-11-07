@@ -65,6 +65,31 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_authorization.circom',
         input: 'input/authorization.json',
       },
+      {
+        name: 'mimcEncrypt',
+        circuit: 'test/test_mimcEncrypt.circom',
+        input: 'input/mimcEncrypt.json',
+      },
+      {
+        name: 'mimcEnDecrypt',
+        circuit: 'test/test_mimcEnDecrypt.circom',
+        input: 'input/mimcEnDecrypt.json',
+      },
+      {
+        name: 'privToPubKey',
+        circuit: 'test/test_privToPubKey.circom',
+        input: 'input/privToPubKey.json',
+      },
+      {
+        name: 'ecdh',
+        circuit: 'test/test_ecdh.circom',
+        input: 'input/ecdh.json',
+      },
+      {
+        name: 'encryptionProof',
+        circuit: 'test/test_encryptionProof.circom',
+        input: 'input/encryptionProof.json',
+      },
     ],
   },
 };
