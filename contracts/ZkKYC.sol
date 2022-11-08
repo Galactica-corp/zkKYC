@@ -15,11 +15,11 @@ contract ZkKYC is Ownable{
         KYCRegistry = IKYCRegistry(_KYCRegistry);
     }
 
-    function setVerifier(address newVerifier) public onlyOwner {
-        verifer = newVerifier;
+    function setVerifier(IVerifier newVerifier) public onlyOwner {
+        verifier = newVerifier;
     }
 
-    function setKYCRegistry(address newKYCRegistry) public onlyOwner {
+    function setKYCRegistry(IKYCRegistry newKYCRegistry) public onlyOwner {
         KYCRegistry = newKYCRegistry;
     }
 
@@ -39,7 +39,7 @@ contract ZkKYC is Ownable{
         
         uint proofCurrentTime = input[2];
         uint timeDiff;
-        if proofCurrentTime > block.timestamp {
+        if (proofCurrentTime > block.timestamp) {
             timeDiff = proofCurrentTime - block.timestamp;
         } else {
             timeDiff = block.timestamp - proofCurrentTime;

@@ -18,7 +18,7 @@ const hre = require('hardhat');
 chai.use(solidity);
 const { expect } = chai;
 
-describe.skip('zkKYC', () => {
+describe.only('zkKYC', () => {
   let zkKYC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -43,16 +43,45 @@ describe.skip('zkKYC', () => {
     );
     zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
-    const zkKYCFactory = await ethers.getContractFactory('zkKYC', deployer);
+    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
     zkKYC = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockKYCRegistry.address
     )) as ZkKYCVerifier;
-
   });
 
-  it.only('only owner can change KYCRegistry and Verifier addresses', async () => {
+  it('only owner can change KYCRegistry and Verifier addresses', async () => {
+    // random user cannot change the addresses
+    await expect(
+      zkKYC.connect(user).setVerifier(user.address)
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+    await expect(
+      zkKYC.connect(user).setKYCRegistry(user.address)
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+
+    //owner can change addresses
+    await zkKYC.connect(deployer).setVerifier(user.address);
+    await zkKYC.connect(deployer).setKYCRegistry(user.address);
+
+    expect(await zkKYC.verifier()).to.be.equal(user.address);
+    expect(await zkKYC.KYCRegistry()).to.be.equal(user.address);
+  });
     
-  });
+    it('only owner can change KYCRegistry and Verifier addresses', async () => {
+      // random user cannot change the addresses
+      await expect(
+        zkKYC.connect(user).setVerifier(user.address)
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(
+        zkKYC.connect(user).setKYCRegistry(user.address)
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+
+      //owner can change addresses
+      await zkKYC.connect(deployer).setVerifier(user.address);
+      await zkKYC.connect(deployer).setKYCRegistry(user.address);
+
+      expect(await zkKYC.verifier()).to.be.equal(user.address);
+      expect(await zkKYC.KYCRegistry()).to.be.equal(user.address);
+    });
 });
