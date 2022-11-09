@@ -8,7 +8,6 @@ import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
 import { ZkKYC } from '../../typechain-types/ZkKYC';
 import { ZkKYCVerifier } from '../../typechain-types/ZkKYCVerifier';
 
-import { BigNumber, ContractTransaction, providers, utils } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const snarkjs = require('snarkjs');
@@ -20,7 +19,9 @@ const fs = require('fs');
 chai.use(solidity);
 const { expect } = chai;
 
-describe('zkKYC SC', () => {
+describe('zkKYC SC', async () => {
+  // reset the testing chain so we can perform time related tests
+  await hre.network.provider.send('hardhat_reset');
   let zkKYC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -32,6 +33,7 @@ describe('zkKYC SC', () => {
   // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
   function processProof(proof: any) {
     const a = proof.pi_a.slice(0, 2).map((x) => fromDecToHex(x, true));
+    // for some reason the order of coordinate is reverse
     const b = [
       [proof.pi_b[0][1], proof.pi_b[0][0]].map((x) => fromDecToHex(x, true)),
       [proof.pi_b[1][1], proof.pi_b[1][0]].map((x) => fromDecToHex(x, true)),
@@ -182,7 +184,7 @@ describe('zkKYC SC', () => {
     );
   });
 
-  it.only('revert if time is too far from current time', async () => {
+  it('revert if time is too far from current time', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
       sampleInput,
       circuitWasmPath,
