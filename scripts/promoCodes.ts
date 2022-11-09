@@ -14,8 +14,11 @@ async function main() {
         const base = basePrefix + i.toString();
         const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(base));
         const promoCode = hash.toUpperCase().slice(2, 2 + length);
-        const verificationHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(promoCode));
-        console.log(`${base}\t${promoCode}\t${verificationHash}`);
+
+        // to prevent frontrunning, we need to do a bit more than putting the verification code on chain.
+        // Options are using a zk proof including the recipients address or redeeming the code off chain.
+        // const verificationHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(promoCode));
+        // console.log(`${base}\t${promoCode}\t${verificationHash}`);
     }
 }
   
