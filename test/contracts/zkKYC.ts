@@ -20,7 +20,7 @@ const fs = require('fs');
 chai.use(solidity);
 const { expect } = chai;
 
-describe.only('zkKYC SC', () => {
+describe('zkKYC SC', () => {
   let zkKYC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -138,7 +138,51 @@ describe.only('zkKYC SC', () => {
     await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.reverted;
   });
 
-  it('correct proof can be verified onchain', async () => {
+  it('revert if proof output is invalid', async () => {
+    let forgedInput = { ...sampleInput };
+    // make the zkKYC record expire leading to invalid proof output
+    forgedInput.currentTime = forgedInput.expirationDate + 1;
+
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      forgedInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+    expect(publicSignals[0]).to.be.equal('0');
+    const publicRoot = publicSignals[1];
+    // set the merkle root to the correct one
+
+    await mockKYCRegistry.setMerkleRoot(
+      Buffer.from(fromDecToHex(publicRoot), 'hex')
+    );
+    // set time to the public time
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
+      'the proof output is not valid'
+    );
+  });
+
+  it('revert if public output merkle root does not match with the one onchain', async () => {
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    // we don't set the merkle root to the correct one
+
+    // set time to the public time
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
+      "the root in the proof doesn't match"
+    );
+  });
+
+  it.only('revert if time is too far from current time', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
       sampleInput,
       circuitWasmPath,
@@ -153,10 +197,14 @@ describe.only('zkKYC SC', () => {
       Buffer.from(fromDecToHex(publicRoot), 'hex')
     );
     // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      pulicTime + 200,
+    ]);
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await zkKYC.verifyProof(a, b, c, publicInputs);
+    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
+      'the current time is incorrect'
+    );
   });
 });
