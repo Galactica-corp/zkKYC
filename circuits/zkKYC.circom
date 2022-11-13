@@ -61,7 +61,7 @@ template ZKKYC(levels){
     ownership.R8x <== R8x;
     ownership.R8y <== R8y;
 
-    signal output valid;
+    ownership.valid === 1;
 
     component authorization = Authorization();
     authorization.userAddress <== userAddress;
