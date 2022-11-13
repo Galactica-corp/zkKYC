@@ -4,6 +4,7 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "./merkleProof.circom";
 include "./calculateZkCertHash.circom";
+include "./authorization.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
@@ -34,6 +35,24 @@ template ZKKYC(levels){
     signal input currentTime;
     signal output valid;
 
+    // verify that tx sender is authorized to use the proof
+    // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
+    signal input userAddress;
+    // pubkey of the account behind holder commitment
+    signal input Ax;
+    signal input Ay;
+    // EdDSA signature
+    signal input S;
+    signal input R8x;
+    signal input R8y;
+
+    component authorization = Authorization();
+    authorization.userAddress <== userAddress;
+    authorization.Ax <== Ax;
+    authorization.Ay <== Ay;
+    authorization.S <== S;
+    authorization.R8x <== R8x;
+    authorization.R8y <== R8y;
 
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
