@@ -22,11 +22,15 @@ export class ZKCertificate {
    * @param holderKey EdDSA Private key of the holder. Used to derive pubkey and sign holder commitment.
    *   TODO: move private key out of this class into Metamaks callback or something similar
    * @param poseidon Poseidon instance to use for hashing
+   * 
+   * @param fields ZKCertificate parameters, can be set later
    */
   constructor(
     private holderKey: string,
     protected poseidon: any,
-    protected eddsa: any
+    protected eddsa: any,
+
+    private fields = {}
   ) {
     this.poseidon = poseidon;
     this.eddsa = eddsa;
@@ -35,10 +39,16 @@ export class ZKCertificate {
     this.holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
 
     this.holderCommitment = this.createHolderCommitment(holderKey);
+
+    this.fields = fields;
   }
 
   get leafHash(): string {
     throw new Error('To be implemented');
+  }
+
+  public setFields(fields: any[]) {
+    this.fields = fields;
   }
 
   /**
