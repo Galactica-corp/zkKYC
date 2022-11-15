@@ -17,6 +17,14 @@ export function fromDecToHex(dec: string, withPrefix: boolean = false): string {
   }
 }
 
+export function fromHexToBytes32(hex: string): string {
+  if (hex.length <= 64) {
+    return '0x' + new Array(64 - hex.length + 1).join(`0`) + hex;
+  } else {
+    throw new Error('hex string too long');
+  }
+}
+
 export function generateRandomBytes32Array(length: number): Uint8Array[] {
   const result = [];
   for (let i = 0; i < length; i++) {

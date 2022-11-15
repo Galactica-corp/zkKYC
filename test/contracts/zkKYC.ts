@@ -17,6 +17,7 @@ import {
   fromDecToHex,
   processProof,
   processPublicSignals,
+  fromHexToBytes32,
 } from '../../lib/helpers';
 
 chai.use(solidity);
@@ -24,7 +25,7 @@ const { expect } = chai;
 
 describe.only('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
-  await hre.network.provider.send('hardhat_reset');
+  /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -35,6 +36,9 @@ describe.only('zkKYC SC', async () => {
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
+    // reset the testing chain so we can perform time related tests
+    await hre.network.provider.send('hardhat_reset');
+
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
@@ -95,16 +99,19 @@ describe.only('zkKYC SC', async () => {
     );
 
     const publicRoot = publicSignals[1];
-    const pulicTime = parseInt(publicSignals[2], 10);
+    const publicTime = parseInt(publicSignals[2], 10);
     // set the merkle root to the correct one
-
-    await mockKYCRegistry.setMerkleRoot(fromDecToHex(publicRoot, true));
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
     // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await zkKYC.verifyProof(a, b, c, publicInputs);
+    await zkKYC.connect(user).verifyProof(a, b, c, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
@@ -118,7 +125,7 @@ describe.only('zkKYC SC', async () => {
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
-      Buffer.from(fromDecToHex(publicRoot), 'hex')
+      fromHexToBytes32(fromDecToHex(publicRoot))
     );
     let [a, b, c] = processProof(proof);
 
@@ -126,7 +133,8 @@ describe.only('zkKYC SC', async () => {
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
-    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.reverted;
+    await expect(zkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
+      .reverted;
   });
 
   it('revert if proof output is invalid', async () => {
@@ -144,15 +152,15 @@ describe.only('zkKYC SC', async () => {
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
-      Buffer.from(fromDecToHex(publicRoot), 'hex')
+      fromHexToBytes32(fromDecToHex(publicRoot))
     );
     // set time to the public time
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
-      'the proof output is not valid'
-    );
+    await expect(
+      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith('the proof output is not valid');
   });
 
   it('revert if public output merkle root does not match with the one onchain', async () => {
@@ -168,9 +176,9 @@ describe.only('zkKYC SC', async () => {
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
-      "the root in the proof doesn't match"
-    );
+    await expect(
+      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith("the root in the proof doesn't match");
   });
 
   it('revert if time is too far from current time', async () => {
@@ -185,17 +193,19 @@ describe.only('zkKYC SC', async () => {
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
-      Buffer.from(fromDecToHex(publicRoot), 'hex')
+      fromHexToBytes32(fromDecToHex(publicRoot))
     );
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
       pulicTime + 200,
     ]);
+
+    await hre.network.provider.send('evm_mine');
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await expect(zkKYC.verifyProof(c, b, a, publicInputs)).to.be.revertedWith(
-      'the current time is incorrect'
-    );
+    await expect(
+      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith('the current time is incorrect');
   });
 });

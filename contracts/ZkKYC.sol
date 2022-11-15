@@ -46,7 +46,7 @@ contract ZkKYC is Ownable{
         }
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
-        require(msg.sender == address(input[2]), "sender is not authorized to use this proof");
+        require(msg.sender == address(input[3]), "sender is not authorized to use this proof");
 
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
