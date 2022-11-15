@@ -3,6 +3,7 @@ import { ZKCertificate } from '../lib/zkCertificate';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
+import fs from 'fs';
 
 /**
  * @description Script for creating a zkKYC certificate
@@ -84,17 +85,13 @@ async function main() {
   zkKYCInput.R8y2 = authorizationProofInput.R8y;
 
   console.log(zkKYCInput);
+
+  fs.writeFileSync(
+    './circuits/input/zkKYC.json',
+    JSON.stringify(zkKYCInput),
+    'utf8'
+  );
 }
-
-/* 
-
-    // verify that tx sender is authorized to use the proof
-    // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
-    signal input userAddress;
-    // EdDSA signature of the user address
-    signal input S2;
-    signal input R8x2;
-    signal input R8y2; */
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
