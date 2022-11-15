@@ -17,11 +17,12 @@ export function fromDecToHex(dec: string, withPrefix: boolean = false): string {
   }
 }
 
-export function generateRandomBytes32Array(length: number): string[] {
+export function generateRandomBytes32Array(length: number): Uint8Array[] {
   const result = [];
   for (let i = 0; i < length; i++) {
     result.push(ethers.utils.randomBytes(32));
   }
+  return result;
 }
 
 export const zkCertificateFieldOrder = [

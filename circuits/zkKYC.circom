@@ -34,7 +34,6 @@ template ZKKYC(levels){
     signal input pathIndices;
     signal input root;
     signal input currentTime;
-    signal output valid;
 
     // verify that proof creator indeed owns the pubkey behind the holdercommitment
     // public key of the signer
@@ -52,6 +51,8 @@ template ZKKYC(levels){
     signal input S2;
     signal input R8x2;
     signal input R8y2;
+
+    signal output valid;
 
     component ownership = Ownership();
     ownership.holderCommitment <== holderCommitment;

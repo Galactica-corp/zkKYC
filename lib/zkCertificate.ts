@@ -1,6 +1,7 @@
 import { Scalar, utils } from 'ffjavascript';
 
 import { eddsaPrimeFieldMod } from './keyManagement';
+import { zkCertificateFieldOrder } from './helpers';
 
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -22,7 +23,7 @@ export class ZKCertificate {
    * @param holderKey EdDSA Private key of the holder. Used to derive pubkey and sign holder commitment.
    *   TODO: move private key out of this class into Metamaks callback or something similar
    * @param poseidon Poseidon instance to use for hashing
-   * 
+   *
    * @param fields ZKCertificate parameters, can be set later
    */
   constructor(
@@ -30,7 +31,7 @@ export class ZKCertificate {
     protected poseidon: any,
     protected eddsa: any,
 
-    private fields = {}
+    private fields: Record<string, any> = {}
   ) {
     this.poseidon = poseidon;
     this.eddsa = eddsa;
@@ -44,10 +45,16 @@ export class ZKCertificate {
   }
 
   get leafHash(): string {
-    throw new Error('To be implemented');
+    return this.poseidon.F.toObject(
+      this.poseidon(
+        zkCertificateFieldOrder.map((field) => this.fields[field]),
+        undefined,
+        1
+      )
+    ).toString();
   }
 
-  public setFields(fields: any[]) {
+  public setFields(fields: Record<string, any>) {
     this.fields = fields;
   }
 
