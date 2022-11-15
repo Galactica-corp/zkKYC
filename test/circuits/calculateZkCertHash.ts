@@ -5,7 +5,7 @@ import { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
 import { zkCertificateFieldOrder } from '../../lib/helpers';
 
-describe.only('Calculate zkCert Hash Circuit Component', () => {
+describe('Calculate zkCert Hash Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(

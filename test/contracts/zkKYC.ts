@@ -13,13 +13,16 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const snarkjs = require('snarkjs');
 import { readFileSync } from 'fs';
 const hre = require('hardhat');
-import { fromDecToHex } from '../../lib/helpers';
-const fs = require('fs');
+import {
+  fromDecToHex,
+  processProof,
+  processPublicSignals,
+} from '../../lib/helpers';
 
 chai.use(solidity);
 const { expect } = chai;
 
-describe('zkKYC SC', async () => {
+describe.only('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   await hre.network.provider.send('hardhat_reset');
   let zkKYC: ZkKYC;
@@ -28,27 +31,11 @@ describe('zkKYC SC', async () => {
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
+  let randomUser: SignerWithAddress;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
-  // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
-  function processProof(proof: any) {
-    const a = proof.pi_a.slice(0, 2).map((x) => fromDecToHex(x, true));
-    // for some reason the order of coordinate is reverse
-    const b = [
-      [proof.pi_b[0][1], proof.pi_b[0][0]].map((x) => fromDecToHex(x, true)),
-      [proof.pi_b[1][1], proof.pi_b[1][0]].map((x) => fromDecToHex(x, true)),
-    ];
-
-    const c = proof.pi_c.slice(0, 2).map((x) => fromDecToHex(x, true));
-    return [a, b, c];
-  }
-
-  function processPublicSignals(publicSignals: any) {
-    return publicSignals.map((x) => fromDecToHex(x, true));
-  }
-
-  beforeEach(async function () {
-    [deployer, user] = await ethers.getSigners();
+  beforeEach(async () => {
+    [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
@@ -75,6 +62,10 @@ describe('zkKYC SC', async () => {
     sampleInput = JSON.parse(
       readFileSync('./circuits/input/zkKYC.json', 'utf8')
     );
+
+    // get signer object authorized to use the zkKYC record
+    user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
+
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
   });
@@ -107,9 +98,7 @@ describe('zkKYC SC', async () => {
     const pulicTime = parseInt(publicSignals[2], 10);
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
-      Buffer.from(fromDecToHex(publicRoot), 'hex')
-    );
+    await mockKYCRegistry.setMerkleRoot(fromDecToHex(publicRoot, true));
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
     let [a, b, c] = processProof(proof);

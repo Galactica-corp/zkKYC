@@ -54,6 +54,7 @@ template ZKKYC(levels){
 
     signal output valid;
 
+    // we don't need to check the output 'valid' of the ownership circuit because it is always 1
     component ownership = Ownership();
     ownership.holderCommitment <== holderCommitment;
     ownership.Ax <== Ax;
@@ -70,7 +71,7 @@ template ZKKYC(levels){
     authorization.Ay <== Ay;
     authorization.S <== S2;
     authorization.R8x <== R8x2;
-    authorization.R8y <== R8y2;
+    authorization.R8y <== R8y2; 
 
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();

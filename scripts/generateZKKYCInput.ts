@@ -75,11 +75,11 @@ async function main() {
   zkKYCInput.Ax = ownershipProofInput.Ax;
   zkKYCInput.Ay = ownershipProofInput.Ay;
   zkKYCInput.S = ownershipProofInput.S;
-  zkKYCInput.R8x = ownershipProofInput.R8y;
+  zkKYCInput.R8x = ownershipProofInput.R8x;
   zkKYCInput.R8y = ownershipProofInput.R8y;
 
   // add authorization proof inputs
-
+  zkKYCInput.userAddress = authorizationProofInput.userAddress;
   zkKYCInput.S2 = authorizationProofInput.S;
   zkKYCInput.R8x2 = authorizationProofInput.R8x;
   zkKYCInput.R8y2 = authorizationProofInput.R8y;

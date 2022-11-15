@@ -25,6 +25,24 @@ export function generateRandomBytes32Array(length: number): Uint8Array[] {
   return result;
 }
 
+// this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
+export function processProof(proof: any) {
+  const a = proof.pi_a.slice(0, 2).map((x) => fromDecToHex(x, true));
+  // for some reason the order of coordinate is reverse
+  const b = [
+    [proof.pi_b[0][1], proof.pi_b[0][0]].map((x) => fromDecToHex(x, true)),
+    [proof.pi_b[1][1], proof.pi_b[1][0]].map((x) => fromDecToHex(x, true)),
+  ];
+
+  const c = proof.pi_c.slice(0, 2).map((x) => fromDecToHex(x, true));
+  return [a, b, c];
+}
+
+// this function processes the public inputs
+export function processPublicSignals(publicSignals: any) {
+  return publicSignals.map((x) => fromDecToHex(x, true));
+}
+
 export const zkCertificateFieldOrder = [
   'surname',
   'forename',
