@@ -23,7 +23,7 @@ import {
 chai.use(solidity);
 const { expect } = chai;
 
-describe.only('zkKYC SC', async () => {
+describe('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYC: ZkKYC;
@@ -207,5 +207,30 @@ describe.only('zkKYC SC', async () => {
     await expect(
       zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('the current time is incorrect');
+  });
+
+  it('unauthorized user cannot use the proof', async () => {
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    const publicRoot = publicSignals[1];
+    const publicTime = parseInt(publicSignals[2], 10);
+    // set the merkle root to the correct one
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      zkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith('sender is not authorized to use this proof');
   });
 });
