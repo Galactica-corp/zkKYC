@@ -1,10 +1,7 @@
 pragma circom 2.0.3;
 
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "./merkleProof.circom";
-include "./calculateZkCertHash.circom";
-include "./authorization.circom";
+include "../node_modules/circomlib/circuits/gates.circom";
+include "./ageProof.circom";
 include "./zkKYC.circom";
 
 /*
@@ -105,5 +102,9 @@ template AgeProofZkKYC(levels){
     ageProof.currentDay <== currentDay;
     ageProof.ageThreshold <== ageThreshold;
 
-    valid = zkKYC.valid & ageProof.valid;
+    component and = AND();
+    and.a <== zkKYC.valid;
+    and.b <== ageProof.valid;
+
+    valid <== and.out;
 }
