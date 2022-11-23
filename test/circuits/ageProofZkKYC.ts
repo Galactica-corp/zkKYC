@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 
-describe.only('Age Proof combined with zkKYC Circuit Component', () => {
+describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(

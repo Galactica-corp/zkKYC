@@ -29,7 +29,7 @@ contract ZkKYC is Ownable{
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[8] memory input
+            uint[4] memory input
         ) public view {
         
         require(input[0] == 1, "the proof output is not valid");

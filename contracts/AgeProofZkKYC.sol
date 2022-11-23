@@ -6,7 +6,7 @@ import "./interfaces/IAgeProofZkKYCVerifier.sol";
 import "./interfaces/IKYCRegistry.sol";
 import "./libraries/BokkyPooBahsDateTimeLibrary.sol";
 
-contract ZkKYC is Ownable{
+contract AgeProofZkKYC is Ownable{
     IAgeProofZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
@@ -30,7 +30,7 @@ contract ZkKYC is Ownable{
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[4] memory input
+            uint[8] memory input
         ) public view {
         
         require(input[0] == 1, "the proof output is not valid");
@@ -50,7 +50,7 @@ contract ZkKYC is Ownable{
 
         require(msg.sender == address(input[3]), "sender is not authorized to use this proof");
 
-        uint onchainYear, uint onchainMonth, uint onchainDay = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
+        (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
         require(onchainYear == input[4], "the current year is incorrect");
         require(onchainMonth == input[5], "the current month is incorrect");
         require(onchainDay == input[6], "the current day is incorrect");

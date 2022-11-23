@@ -5,8 +5,8 @@ import { solidity } from 'ethereum-waffle';
 chai.config.includeStack = true;
 
 import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
-import { ZkKYC } from '../../typechain-types/ZkKYC';
-import { ZkKYCVerifier } from '../../typechain-types/ZkKYCVerifier';
+import { AgeProofZkKYC } from '../../typechain-types/AgeProofZkKYC';
+import { AgeProofZkKYCVerifier } from '../../typechain-types/AgeProofZkKYCVerifier';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -23,11 +23,11 @@ import {
 chai.use(solidity);
 const { expect } = chai;
 
-describe('zkKYC SC', async () => {
+describe.only('ageProofZkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
-  let zkKYC: ZkKYC;
-  let zkKYCVerifier: ZkKYCVerifier;
+  let ageProofZkKYC: AgeProofZkKYC;
+  let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
 
   let deployer: SignerWithAddress;
@@ -49,46 +49,46 @@ describe('zkKYC SC', async () => {
     mockKYCRegistry =
       (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
-    const zkKYCVerifierFactory = await ethers.getContractFactory(
-      'ZkKYCVerifier',
+    const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
+      'AgeProofZkKYCVerifier',
       deployer
     );
-    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
+    ageProofZkKYCVerifier = (await ageProofZkKYCVerifierFactory.deploy()) as AgeProofZkKYCVerifier;
 
-    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYC = (await zkKYCFactory.deploy(
+    const ageProofZkKYCFactory = await ethers.getContractFactory('AgeProofZkKYC', deployer);
+    ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
-      zkKYCVerifier.address,
+      ageProofZkKYCVerifier.address,
       mockKYCRegistry.address
-    )) as ZkKYC;
+    )) as AgeProofZkKYC;
 
     // inputs to create proof
     sampleInput = JSON.parse(
-      readFileSync('./circuits/input/zkKYC.json', 'utf8')
+      readFileSync('./circuits/input/ageProofZkKYC.json', 'utf8')
     );
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
-    circuitWasmPath = './circuits/build/zkKYC.wasm';
-    circuitZkeyPath = './circuits/build/zkKYC.zkey';
+    circuitWasmPath = './circuits/build/ageProofZkKYC.wasm';
+    circuitZkeyPath = './circuits/build/ageProofZkKYC.zkey';
   });
 
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      zkKYC.connect(user).setVerifier(user.address)
+      ageProofZkKYC.connect(user).setVerifier(user.address)
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
-      zkKYC.connect(user).setKYCRegistry(user.address)
+      ageProofZkKYC.connect(user).setKYCRegistry(user.address)
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     //owner can change addresses
-    await zkKYC.connect(deployer).setVerifier(user.address);
-    await zkKYC.connect(deployer).setKYCRegistry(user.address);
+    await ageProofZkKYC.connect(deployer).setVerifier(user.address);
+    await ageProofZkKYC.connect(deployer).setKYCRegistry(user.address);
 
-    expect(await zkKYC.verifier()).to.be.equal(user.address);
-    expect(await zkKYC.KYCRegistry()).to.be.equal(user.address);
+    expect(await ageProofZkKYC.verifier()).to.be.equal(user.address);
+    expect(await ageProofZkKYC.KYCRegistry()).to.be.equal(user.address);
   });
 
   it('correct proof can be verified onchain', async () => {
@@ -111,7 +111,7 @@ describe('zkKYC SC', async () => {
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await zkKYC.connect(user).verifyProof(a, b, c, publicInputs);
+    await ageProofZkKYC.connect(user).verifyProof(a, b, c, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
@@ -133,7 +133,7 @@ describe('zkKYC SC', async () => {
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
-    await expect(zkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
+    await expect(ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
       .reverted;
   });
 
@@ -159,7 +159,7 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('the proof output is not valid');
   });
 
@@ -177,7 +177,7 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith("the root in the proof doesn't match");
   });
 
@@ -205,7 +205,7 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('the current time is incorrect');
   });
 
@@ -230,7 +230,7 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
+      ageProofZkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('sender is not authorized to use this proof');
   });
 });
