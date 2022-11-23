@@ -233,4 +233,37 @@ describe.only('ageProofZkKYC SC', async () => {
       ageProofZkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('sender is not authorized to use this proof');
   });
+
+  it('revert if public input for year is incorrect', async () => {
+
+      let forgedInput = { ...sampleInput };
+    // make the zkKYC record expire leading to invalid proof output
+    forgedInput.currentYear = forgedInput.currentYear + 1;
+
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      forgedInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    const publicRoot = publicSignals[1];
+    const pulicTime = parseInt(publicSignals[2], 10);
+    // set the merkle root to the correct one
+
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      pulicTime,
+    ]);
+
+    await hre.network.provider.send('evm_mine');
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith('the current year is incorrect');
+  });
 });
