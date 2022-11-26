@@ -1,5 +1,5 @@
 
-pragma solidity ^0.6.11;
+pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
 import "./interfaces/IZkKYCVerifier.sol";
@@ -46,7 +46,8 @@ contract ZkKYC is Ownable{
         }
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
-        require(msg.sender == address(input[3]), "sender is not authorized to use this proof");
+        // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
+        require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
 
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
