@@ -1,9 +1,10 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import '@nomiclabs/hardhat-waffle';
+import "@nomicfoundation/hardhat-chai-matchers";
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
+
 
 const config: HardhatUserConfig = {
   mocha: {
