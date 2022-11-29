@@ -1,3 +1,7 @@
+const keccak256 = require('keccak256');
+import { SNARK_SCALAR_FIELD, arrayToBigInt, bigIntToArray } from './helpers';
+
+
 /**
  * @description Class for managing and constructing merkle trees.
  */
@@ -24,7 +28,7 @@ export class MerkleTree {
         this.poseidon = poseidon;
         this.F = poseidon.F;
 
-        this.emptyLeaf = this.F.toObject(this.poseidon(["0"])).toString();
+        this.emptyLeaf = arrayToBigInt(keccak256("Galactica")) % SNARK_SCALAR_FIELD;
 
         // create empty tree
         this.emptyBranchLevels = this.calculateEmptyBranchHashes(depth);

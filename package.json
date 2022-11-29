@@ -33,6 +33,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/truffle-v5": "^8.0.2",
     "@typechain/web3-v1": "^6.0.2",
@@ -40,6 +41,7 @@
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "hardhat-circom": "^3.3.1",
+    "keccak256": "^1.0.6",
     "snarkit2": "^0.2.0"
   }
 }

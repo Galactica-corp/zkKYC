@@ -4,6 +4,8 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
+import { poseidonContract } from 'circomlibjs';
+
 
 
 const config: HardhatUserConfig = {
