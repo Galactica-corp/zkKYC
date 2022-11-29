@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat';
 import chai, { use } from 'chai';
-import { solidity } from 'ethereum-waffle';
 
 chai.config.includeStack = true;
 
@@ -20,7 +19,6 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 
-chai.use(solidity);
 const { expect } = chai;
 
 describe('zkKYC SC', async () => {
