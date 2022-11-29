@@ -11,9 +11,9 @@ import { SNARK_SCALAR_FIELD } from "./helpers/Globals.sol";
 import { PoseidonT3 } from "./helpers/Poseidon.sol";
 
 /**
- * @title Commitments
- * @author Railgun Contributors
- * @notice Batch Incremental Merkle Tree for commitments
+ * @title KYCRecordRegistry
+ * @author modified from Railgun Contributors
+ * @notice Batch Incremental Merkle Tree for zkKYC records
  * @dev Publicly accessible functions to be put in RailgunLogic
  * Relevant external contract calls should be in those functions, not here
  */
@@ -61,7 +61,7 @@ contract KYCRecordRegistry is Initializable {
    * @notice Calculates initial values for Merkle Tree
    * @dev OpenZeppelin initializer ensures this can only be called once
    */
-  function initializeCommitments() internal onlyInitializing {
+  function initializeKYCRecordRegistry() internal onlyInitializing {
     /*
     To initialize the Merkle tree, we need to calculate the Merkle root
     assuming that each leaf is the zero value.
@@ -240,17 +240,17 @@ contract KYCRecordRegistry is Initializable {
   }
 
   /**
-   * @notice Gets tree number that new commitments will get inserted to
-   * @param _newCommitments - number of new commitments
+   * @notice Gets tree number that new zkKYC record will get inserted to
+   * @param _newZkKYCRecords - number of new zkKYC records
    * @return treeNumber, startingIndex
    */
-  function getInsertionTreeNumberAndStartingIndex(uint256 _newCommitments)
+  function getInsertionTreeNumberAndStartingIndex(uint256 _newZkKYCRecords)
     public
     view
     returns (uint256, uint256)
   {
     // New tree will be created if current one can't contain new leaves
-    if ((nextLeafIndex + _newCommitments) > (2**TREE_DEPTH)) return (treeNumber + 1, 0);
+    if ((nextLeafIndex + _newZkKYCRecords) > (2**TREE_DEPTH)) return (treeNumber + 1, 0);
 
     // Else return current state
     return (treeNumber, nextLeafIndex);
