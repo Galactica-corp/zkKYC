@@ -1,5 +1,8 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomiclabs/hardhat-waffle';
+import '@nomiclabs/hardhat-ethers';
+import '@typechain/hardhat';
 import 'hardhat-circom';
 
 const config: HardhatUserConfig = {
@@ -37,6 +40,12 @@ const config: HardhatUserConfig = {
         input: 'input/zkKYC.json',
       },
       {
+        name: 'zkKYC_plonk',
+        circuit: 'test/test_zkKYC.circom',
+        input: 'input/zkKYC.json',
+        protocol: 'plonk',
+      },
+      {
         name: 'merkleProof',
         circuit: 'test/test_merkleProof.circom',
         input: 'input/merkleProof.json',
@@ -52,6 +61,12 @@ const config: HardhatUserConfig = {
         input: 'input/calculateZkCertHash.json',
       },
       {
+        name: 'calculateZkCertHash_plonk',
+        circuit: 'test/test_calculateZkCertHash.circom',
+        input: 'input/calculateZkCertHash.json',
+        protocol: 'plonk',
+      },
+      {
         name: 'humanID',
         circuit: 'test/test_humanID.circom',
         input: 'input/humanID.json',
@@ -65,6 +80,11 @@ const config: HardhatUserConfig = {
         name: 'ageProof',
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
+      },
+      {
+        name: 'ageProofZkKYC',
+        circuit: 'test/test_ageProofZkKYC.circom',
+        input: 'input/ageProofZkKYC.json',
       },
       {
         name: 'authorization',
