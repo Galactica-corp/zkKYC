@@ -22,6 +22,12 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  networks: {
+    galaTestnet: {
+      url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
+      accounts: [ process.env.GalaTestnetDeployerPrivateKey],
+    }
+  },
   circom: {
     // Base path for input files
     inputBasePath: './circuits',
@@ -35,6 +41,12 @@ const config: HardhatUserConfig = {
         name: 'zkKYC',
         circuit: 'test/test_zkKYC.circom',
         input: 'input/zkKYC.json',
+      },
+      {
+        name: 'zkKYC_plonk',
+        circuit: 'test/test_zkKYC.circom',
+        input: 'input/zkKYC.json',
+        protocol: 'plonk',
       },
       {
         name: 'merkleProof',
@@ -52,6 +64,12 @@ const config: HardhatUserConfig = {
         input: 'input/calculateZkCertHash.json',
       },
       {
+        name: 'calculateZkCertHash_plonk',
+        circuit: 'test/test_calculateZkCertHash.circom',
+        input: 'input/calculateZkCertHash.json',
+        protocol: 'plonk',
+      },
+      {
         name: 'humanID',
         circuit: 'test/test_humanID.circom',
         input: 'input/humanID.json',
@@ -65,6 +83,11 @@ const config: HardhatUserConfig = {
         name: 'ageProof',
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
+      },
+      {
+        name: 'ageProofZkKYC',
+        circuit: 'test/test_ageProofZkKYC.circom',
+        input: 'input/ageProofZkKYC.json',
       },
       {
         name: 'authorization',
