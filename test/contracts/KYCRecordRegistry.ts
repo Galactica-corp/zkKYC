@@ -74,7 +74,7 @@ describe('KYCRecordRegistry', () => {
   });
 
 
-  it.only('Should incrementally insert elements', async function () {
+  it('Should incrementally insert elements', async function () {
     let loops = 5;
 
 
@@ -107,42 +107,43 @@ describe('KYCRecordRegistry', () => {
   });
 
   it('Should roll over to new tree', async function () {
-    const { commitments } = await loadFixture(deploy);
+    const { KYCRecordRegistry } = await loadFixture(deploy);
 
     // Check tree number is 0
-    expect(await commitments.treeNumber()).to.equal(0);
+    expect(await KYCRecordRegistry.treeNumber()).to.equal(0);
 
     // Set next leaf index to one less than filled tree
-    await commitments.setNextLeafIndex(2 ** 16 - 2);
+    const treeDepth = 32;
+    await KYCRecordRegistry.setNextLeafIndex(2 ** treeDepth - 2);
 
     // Check the insertion numbers
-    expect(await commitments.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([
+    expect(await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([
       0,
-      2 ** 16 - 2,
+      2 ** treeDepth - 2,
     ]);
 
     // Insert leaf hash
-    await commitments.insertLeavesStub([randomBytes(32)]);
+    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
 
     // Check the insertion numbers
-    expect(await commitments.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([
+    expect(await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([
       0,
-      2 ** 16 - 1,
+      2 ** treeDepth - 1,
     ]);
 
     // Check tree number is 0
-    expect(await commitments.treeNumber()).to.equal(0);
+    expect(await KYCRecordRegistry.treeNumber()).to.equal(0);
 
     // Insert leaf hash
-    await commitments.insertLeavesStub([randomBytes(32)]);
+    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
 
     // Check the insertion numbers
-    expect(await commitments.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([1, 0]);
+    expect(await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)).to.deep.equal([1, 0]);
 
     // Insert leaf hash
-    await commitments.insertLeavesStub([randomBytes(32)]);
+    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
 
     // Check tree number is 1
-    expect(await commitments.treeNumber()).to.equal(1);
+    expect(await KYCRecordRegistry.treeNumber()).to.equal(1);
   });
 });
