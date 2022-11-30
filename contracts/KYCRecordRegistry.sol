@@ -51,7 +51,7 @@ contract KYCRecordRegistry is Initializable {
 
   // Right-most elements at each level
   // Used for efficient updates of the merkle tree
-  bytes32[TREE_DEPTH] private filledSubTrees;
+  bytes32[TREE_DEPTH] public filledSubTrees;
 
   // Whether the contract has already seen a particular Merkle tree root
   // treeNumber -> root -> seen

@@ -82,8 +82,10 @@ export class MerkleTree {
      * @param leaves Array of leaf hashes to insert
      */
     insertleaves(leaves : string[]) : void {
+        if (leaves.length == 0) {return;}
         // insert leaves into new tree
         this.tree[0].push(...leaves);
+        
 
         // rebuild tree.
         for (let level = 0; level < this.depth; level += 1) {
