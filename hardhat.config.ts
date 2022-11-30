@@ -23,7 +23,7 @@ const config: HardhatUserConfig = {
   networks: {
     galaTestnet: {
       url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
-      accounts: [ process.env.GalaTestnetDeployerPrivateKey],
+      accounts: [ process.env.GalaTestnetDeployerPrivateKey!],
     }
   },
   circom: {
