@@ -4,7 +4,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { buildEddsa } from 'circomlibjs';
 
 import { MerkleTree } from '../../lib/merkleTree';
-import { overwriteArtifact } from '../../lib/helpers';
+import { overwriteArtifact, fromDecToHex, fromHexToBytes32 } from '../../lib/helpers';
 import { poseidonContract } from 'circomlibjs';
 
 /* import { arrayToBigInt, arrayToHexString } from '../../helpers/global/bytes';
@@ -59,8 +59,7 @@ describe('KYCRecordRegistry', () => {
 
     // Each value in the zero values array should be the same
     for (let i = 0; i < treeDepth; i++) {
-        console.log(`level ${i}`);
-        expect(await KYCRecordRegistry.zeros(i)).to.equal(merkleTree.emptyBranchLevels[i]);
+        expect(await KYCRecordRegistry.zeros(i)).to.equal(fromHexToBytes32(fromDecToHex(merkleTree.emptyBranchLevels[i])));
     }
 
   });

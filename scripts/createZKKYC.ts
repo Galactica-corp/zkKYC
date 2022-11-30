@@ -1,4 +1,4 @@
-import { buildEddsa } from "circomlibjs";
+import { buildEddsa, buildPoseidonOpt } from "circomlibjs";
 import { ZKCertificate } from "../lib/zkCertificate";
 import { getEddsaKeyFromEthSigner } from "../lib/keyManagement";
 import { ethers } from "hardhat";

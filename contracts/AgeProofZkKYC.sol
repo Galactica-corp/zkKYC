@@ -1,5 +1,5 @@
 
-pragma solidity ^0.6.11;
+pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
 import "./interfaces/IAgeProofZkKYCVerifier.sol";
@@ -48,7 +48,7 @@ contract AgeProofZkKYC is Ownable{
         }
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
-        require(msg.sender == address(input[3]), "sender is not authorized to use this proof");
+        require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
 
         (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
         require(onchainYear == input[4], "the current year is incorrect");
