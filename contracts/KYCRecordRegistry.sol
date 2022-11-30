@@ -14,7 +14,6 @@ import { PoseidonT3 } from "./helpers/Poseidon.sol";
  * @title KYCRecordRegistry
  * @author modified from Railgun Contributors
  * @notice Batch Incremental Merkle Tree for zkKYC records
- * @dev Publicly accessible functions to be put in RailgunLogic
  * Relevant external contract calls should be in those functions, not here
  */
 contract KYCRecordRegistry is Initializable {
