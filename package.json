@@ -41,6 +41,7 @@
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/truffle-v5": "^8.0.2",
     "@typechain/web3-v1": "^6.0.2",
+    "bignumber.js": "^9.0.1",
     "circom2": "^0.2.5",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
