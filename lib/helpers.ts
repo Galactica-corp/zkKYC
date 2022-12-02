@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { ethers } from 'hardhat';
+import { utils } from 'ethers';
 
 export function fromHexToDec(hex: string): string {
   if (hex.slice(0, 2) === '0x') {

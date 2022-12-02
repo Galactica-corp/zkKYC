@@ -10,7 +10,7 @@
  */
 
 import { Scalar, getCurveFromName } from "ffjavascript";
-import { ethers } from "hardhat";
+import { utils } from "ethers";
 
 
 const SEED = "mimcsponge";
@@ -33,7 +33,7 @@ export class MimcEncrypt {
     getIV (seed: any)  {
         const F = this.F;
         if (typeof seed === "undefined") seed = SEED;
-        const c = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(seed+"_iv"));
+        const c = utils.keccak256(utils.toUtf8Bytes(seed+"_iv"));
         const cn = Scalar.e(c);
         const iv = cn.mod(F.p);
         return iv;
@@ -44,9 +44,9 @@ export class MimcEncrypt {
         if (typeof seed === "undefined") seed = SEED;
         if (typeof nRounds === "undefined") nRounds = NROUNDS;
         const cts = new Array(nRounds);
-        let c = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(SEED));;
+        let c = utils.keccak256(utils.toUtf8Bytes(SEED));;
         for (let i=1; i<nRounds; i++) {
-            c = ethers.utils.keccak256(c);
+            c = utils.keccak256(c);
 
             cts[i] = F.e(c);
         }

@@ -1,4 +1,4 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Signer } from "ethers";
 import createBlakeHash from "blake-hash";
 import { Scalar, utils }  from "ffjavascript";
 
@@ -14,7 +14,7 @@ export const eddsaPrimeFieldMod = "273603035897990940278080071815715938607681397
  * @param signer Ethers signer
  * @return The eddsa private key.
  */
-export async function getEddsaKeyFromEthSigner(signer: SignerWithAddress): Promise<string> {
+export async function getEddsaKeyFromEthSigner(signer: Signer): Promise<string> {
   return signer.signMessage(eddsaKeyGenerationMessage);
 }
 
