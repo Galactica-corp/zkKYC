@@ -15,7 +15,8 @@
   },
   "include": [
     "./hardhat.config.ts",
+    "./index.ts",
     "./lib/*",
     "./types/*"
-  ],
+, "index.ts"  ],
 }
