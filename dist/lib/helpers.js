@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.zkCertificateFieldOrder = exports.processPublicSignals = exports.processProof = exports.generateRandomBytes32Array = exports.fromHexToBytes32 = exports.fromDecToHex = exports.fromHexToDec = void 0;
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
-const hardhat_1 = require("hardhat");
+const ethers_1 = require("ethers");
 function fromHexToDec(hex) {
     if (hex.slice(0, 2) === '0x') {
         return new bignumber_js_1.default(hex.slice(2).toUpperCase(), 16).toString(10);
@@ -36,7 +36,7 @@ exports.fromHexToBytes32 = fromHexToBytes32;
 function generateRandomBytes32Array(length) {
     const result = [];
     for (let i = 0; i < length; i++) {
-        result.push(hardhat_1.ethers.utils.randomBytes(32));
+        result.push(ethers_1.utils.randomBytes(32));
     }
     return result;
 }

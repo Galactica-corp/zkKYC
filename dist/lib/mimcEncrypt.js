@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MimcEncrypt = exports.buildMimcSponge = void 0;
 const ffjavascript_1 = require("ffjavascript");
-const hardhat_1 = require("hardhat");
+const ethers_1 = require("ethers");
 const SEED = "mimcsponge";
 const NROUNDS = 220;
 async function buildMimcSponge() {
@@ -29,7 +29,7 @@ class MimcEncrypt {
         const F = this.F;
         if (typeof seed === "undefined")
             seed = SEED;
-        const c = hardhat_1.ethers.utils.keccak256(hardhat_1.ethers.utils.toUtf8Bytes(seed + "_iv"));
+        const c = ethers_1.utils.keccak256(ethers_1.utils.toUtf8Bytes(seed + "_iv"));
         const cn = ffjavascript_1.Scalar.e(c);
         const iv = cn.mod(F.p);
         return iv;
@@ -41,10 +41,10 @@ class MimcEncrypt {
         if (typeof nRounds === "undefined")
             nRounds = NROUNDS;
         const cts = new Array(nRounds);
-        let c = hardhat_1.ethers.utils.keccak256(hardhat_1.ethers.utils.toUtf8Bytes(SEED));
+        let c = ethers_1.utils.keccak256(ethers_1.utils.toUtf8Bytes(SEED));
         ;
         for (let i = 1; i < nRounds; i++) {
-            c = hardhat_1.ethers.utils.keccak256(c);
+            c = ethers_1.utils.keccak256(c);
             cts[i] = F.e(c);
         }
         cts[0] = F.e(0);

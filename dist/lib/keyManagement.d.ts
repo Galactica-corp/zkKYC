@@ -1,4 +1,4 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Signer } from "ethers";
 export declare const eddsaKeyGenerationMessage = "Signing this message generates your EdDSA private key. Only do this on pages you trust to manage your zkCertificates.";
 export declare const eddsaPrimeFieldMod = "2736030358979909402780800718157159386076813972158567259200215660948447373040";
 /**
@@ -7,7 +7,7 @@ export declare const eddsaPrimeFieldMod = "2736030358979909402780800718157159386
  * @param signer Ethers signer
  * @return The eddsa private key.
  */
-export declare function getEddsaKeyFromEthSigner(signer: SignerWithAddress): Promise<string>;
+export declare function getEddsaKeyFromEthSigner(signer: Signer): Promise<string>;
 /**
  * @description Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman
  *   It is symmetric and can be produced by both parties using their private key and the other party's public key.

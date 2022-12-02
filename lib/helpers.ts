@@ -28,7 +28,7 @@ export function fromHexToBytes32(hex: string): string {
 export function generateRandomBytes32Array(length: number): Uint8Array[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(ethers.utils.randomBytes(32));
+    result.push(utils.randomBytes(32));
   }
   return result;
 }
