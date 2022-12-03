@@ -17,6 +17,10 @@
     "./hardhat.config.ts",
     "./index.ts",
     "./lib/*",
-    "./types/*"
-, "index.ts"  ],
+    "./types/*",
+    "./scripts/*",
+    "./test/contracts/*",
+    "./test/circuits/*",
+    "index.ts"
+  ],
 }
