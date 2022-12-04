@@ -104,10 +104,10 @@ contract KYCRecordRegistry is Initializable {
     _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
   }
 
-  function addZkKYCRecord(bytes zkKYCRecordLeafHash) public {
+  function addZkKYCRecord(bytes32 zkKYCRecordLeafHash) public {
       require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
-      bytes32[] memory _leafHashes;
-      _leafHashes.push(zkKYCRecordLeafHash);
+      bytes32[] memory _leafHashes = new bytes32[](1);
+      _leafHashes[0] = zkKYCRecordLeafHash;
       insertLeaves(_leafHashes);
       emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
 >>>>>>> d796a92 (add administration to KYCRecordRegistry)

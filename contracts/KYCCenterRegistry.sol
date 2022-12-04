@@ -17,7 +17,7 @@ contract KYCCenterRegistry is Ownable {
 
     function _checkKYCCenter(address account) internal view {
         if (!KYCCenters[account]) {
-            revert("KYCCenterRegistry: not a KYC Center")
+            revert("KYCCenterRegistry: not a KYC Center");
         }
     }
 
