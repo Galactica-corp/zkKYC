@@ -51,9 +51,13 @@ describe('ageProofZkKYC SC', async () => {
       'AgeProofZkKYCVerifier',
       deployer
     );
-    ageProofZkKYCVerifier = (await ageProofZkKYCVerifierFactory.deploy()) as AgeProofZkKYCVerifier;
+    ageProofZkKYCVerifier =
+      (await ageProofZkKYCVerifierFactory.deploy()) as AgeProofZkKYCVerifier;
 
-    const ageProofZkKYCFactory = await ethers.getContractFactory('AgeProofZkKYC', deployer);
+    const ageProofZkKYCFactory = await ethers.getContractFactory(
+      'AgeProofZkKYC',
+      deployer
+    );
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       ageProofZkKYCVerifier.address,
@@ -131,8 +135,8 @@ describe('ageProofZkKYC SC', async () => {
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
-    await expect(ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
-      .reverted;
+    await expect(ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs))
+      .to.be.reverted;
   });
 
   it('revert if proof output is invalid', async () => {
@@ -233,8 +237,7 @@ describe('ageProofZkKYC SC', async () => {
   });
 
   it('revert if public input for year is incorrect', async () => {
-
-      let forgedInput = { ...sampleInput };
+    let forgedInput = { ...sampleInput };
     // make the zkKYC record expire leading to invalid proof output
     forgedInput.currentYear = forgedInput.currentYear + 1;
 
@@ -252,9 +255,7 @@ describe('ageProofZkKYC SC', async () => {
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
     // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      pulicTime,
-    ]);
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
 
     await hre.network.provider.send('evm_mine');
     let [a, b, c] = processProof(proof);

@@ -13,7 +13,7 @@ contract KYCCenterRegistry is Ownable {
         _;
     }
 
-    constructor(address _owner) Ownable(_owner) public {}
+    constructor() Ownable(msg.sender) public {}
 
     function _checkKYCCenter(address account) internal view {
         if (!KYCCenters[account]) {

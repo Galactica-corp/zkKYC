@@ -9,6 +9,9 @@ import fs from 'fs';
  * @description Script for creating a zkKYC certificate
  */
 async function main() {
+  BigInt.prototype.toJSON = function () {
+    return this.toString();
+  };
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -36,7 +39,7 @@ async function main() {
     monthOfBirth: 5,
     dayOfBirth: 28,
     verificationLevel: '1',
-    expirationDate: 1669736098,
+    expirationDate: 1769736098,
     holderCommitment: zkKYC.holderCommitment,
     providerSignature: '0xd52eD52d3C37b7f62b13dC2a613D3e99bDC47602',
     randomSalt: '1773',
