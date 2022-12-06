@@ -7,3 +7,4 @@ export * from './helpers';
 export * from './zkCertificate';
 export * from './mimcEncrypt';
 export * from './merkleTree';
+export * from './zkCertStandards';

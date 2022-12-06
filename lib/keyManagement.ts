@@ -46,3 +46,40 @@ export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
   const s = utils.leBuff2int(sBuff)
   return Scalar.shr(s, 3)
 }
+
+/**
+ * @description Create the holder commitment for a zkCert
+ * @dev holder commitment = poseidon(sign_eddsa(poseidon(pubkey)))
+ *
+ * @param eddsa EdDSA instance to use for signing (passed to avoid making this function async)
+ * @param privateKey EdDSA Private key of the holder
+ * @returns holder commitment
+ */
+export function createHolderCommitment(eddsa: any, privateKey: string): string {
+  const poseidon = eddsa.poseidon;
+  const pubKey = eddsa.prv2pub(privateKey);
+
+  const hashPubkey: BigInt = poseidon.F.toObject(
+    poseidon([pubKey[0], pubKey[1]])
+  );
+  // take modulo of hash to get it into the mod field supported by eddsa
+  const hashPubkeyMsg = poseidon.F.e(
+    Scalar.mod(hashPubkey, eddsaPrimeFieldMod)
+  );
+  const sig = eddsa.signPoseidon(privateKey, hashPubkeyMsg);
+
+  // selfcheck
+  if (!eddsa.verifyPoseidon(hashPubkeyMsg, sig, pubKey)) {
+    throw new Error('Self check on EdDSA signature failed');
+  }
+  
+  return poseidon.F
+    .toObject(
+      poseidon([
+        sig.S.toString(),
+        poseidon.F.toObject(sig.R8[0]).toString(),
+        poseidon.F.toObject(sig.R8[1]).toString(),
+      ])
+    )
+    .toString();
+}
