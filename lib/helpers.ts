@@ -33,6 +33,44 @@ export function generateRandomBytes32Array(length: number): Uint8Array[] {
   return result;
 }
 
+/**
+ * Hashes string to field number using poseidon. This is needed to break down the string into field elements that can be used in the circuit.
+ * @param input string to be hashed
+ * @param poseidon poseidon object for hashing (passed to avoid rebuilding with await)
+ * @returns field number as BigNumber
+ */
+export function hashStringToFieldNumber(input: string, poseidon: any): BigNumber {
+  // prepare string for hashing (poseidon requires an array of 1 to 16 numbers
+  // to allow strings longer than 16, we compress 4 characters into one 32 bit number
+  const maxLength = 16 * 4;
+  if (input.length > maxLength) {
+    throw new Error(`Input string too long (max ${maxLength} characters)`);
+  }
+  
+  let inputArray: number[] = [];
+  if (input.length == 0) {
+    inputArray = [0];
+  }
+  for (let i = 0; i < input.length; i += 4) {
+    let charCode = 0;
+    for (let j = 0; j < 4; j++) {
+      if (i + j < input.length) {
+        const char = input.charCodeAt(i + j);
+        if (char > 255) {
+          throw new Error(`Input string ${input} contains non-ascii character '${char}'`);
+        }
+        // shift bits into position (first character is in the most significant bits)
+        charCode |= char << (8 * (3-j));
+      }
+    } 
+    inputArray.push(charCode);
+  }
+  
+  return poseidon.F.toObject(
+    poseidon(inputArray, undefined, 1)
+  ).toString();
+}
+
 // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
 export function processProof(proof: any) {
   const a = proof.pi_a.slice(0, 2).map((x: any) => fromDecToHex(x, true));
