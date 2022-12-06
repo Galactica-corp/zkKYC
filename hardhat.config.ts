@@ -5,6 +5,8 @@ import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 
+import './tasks/createZKKYC';
+
 
 const config: HardhatUserConfig = {
   mocha: {
