@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
-import { zkCertificateFieldOrder } from '../../lib/helpers';
+import { zkCertCommonFields } from '../../lib/zkCertStandards';
 
 describe('Calculate zkCert Hash Circuit Component', () => {
   let circuit: CircuitTestUtils;
@@ -20,7 +20,7 @@ describe('Calculate zkCert Hash Circuit Component', () => {
     let poseidon = await buildPoseidon();
     expectedHash = poseidon.F.toObject(
       poseidon(
-        zkCertificateFieldOrder.map((field) => sampleInput[field]),
+        zkCertCommonFields.map((field) => sampleInput[field]),
         undefined,
         1
       )
@@ -37,8 +37,8 @@ describe('Calculate zkCert Hash Circuit Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.surname', sampleInput.surname);
-    assert.propertyVal(witness, 'main.country', sampleInput.country);
+    assert.propertyVal(witness, 'main.holderCommitment', sampleInput.holderCommitment);
+    assert.propertyVal(witness, 'main.contentHash', sampleInput.contentHash);
     // check resulting root as output
     assert.propertyVal(witness, 'main.zkCertHash', expectedHash);
   });

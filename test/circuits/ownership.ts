@@ -6,7 +6,7 @@ import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
 import { ZKCertificate } from '../../lib/zkCertificate';
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
 describe('Ownership Component', () => {
   let circuit: CircuitTestUtils;
@@ -58,7 +58,8 @@ describe('Ownership Component', () => {
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
-    let zkKYC = new ZKCertificate(holderEdDSAKey, eddsa.poseidon, eddsa);
+    const holderCommitment = await createHolderCommitment(eddsa, holderEdDSAKey);
+    let zkKYC = new ZKCertificate(holderCommitment, eddsa);
     const ownershipProof = zkKYC.getOwnershipProofInput(holderEdDSAKey);
 
     const expected = { valid: 1 };

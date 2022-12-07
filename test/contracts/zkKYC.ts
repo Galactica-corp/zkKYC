@@ -18,6 +18,7 @@ import {
   processPublicSignals,
   fromHexToBytes32,
 } from '../../lib/helpers';
+import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
 
 const { expect } = chai;
 

@@ -88,19 +88,3 @@ export function processProof(proof: any) {
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((x: any) => fromDecToHex(x, true));
 }
-
-export const zkCertificateFieldOrder = [
-  'surname',
-  'forename',
-  'middlename',
-  'yearOfBirth',
-  'monthOfBirth',
-  'dayOfBirth',
-  'verificationLevel',
-  'expirationDate',
-  'streetAndNumber',
-  'postcode',
-  'town',
-  'region',
-  'country',
-];

@@ -1,7 +1,7 @@
 import { Scalar, utils } from 'ffjavascript';
 
 import { eddsaPrimeFieldMod } from './keyManagement';
-import { zkCertificateFieldOrder } from './helpers';
+import { zkKYCContentFields } from './zkCertStandards';
 import { ZkCertStandard } from './zkCertStandards';
 
 /**
@@ -43,7 +43,7 @@ export class ZKCertificate {
   get contentHash(): string {
     return this.poseidon.F.toObject(
       this.poseidon(
-        zkCertificateFieldOrder.map((field) => this.fields[field]),
+        zkKYCContentFields.map((field) => this.fields[field]),
         undefined,
         1
       )

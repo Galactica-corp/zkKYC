@@ -6,7 +6,7 @@ import { getEddsaKeyFromEthSigner, createHolderCommitment } from "../lib/keyMana
 import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { hashStringToFieldNumber, zkCertificateFieldOrder, ZkCertStandard } from '../lib';
+import { hashStringToFieldNumber, zkKYCContentFields, ZkCertStandard } from '../lib';
 
 
 
@@ -40,7 +40,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       "country",
     ];
     const zkKYCFields: Record<string, any> = {};
-    for (let field of zkCertificateFieldOrder.filter((field) => !exceptions.includes(field))) {
+    for (let field of zkKYCContentFields.filter((field) => !exceptions.includes(field))) {
       if (data[field] === undefined) {
         throw new Error(`Field ${field} missing in KYC data`);
       }
