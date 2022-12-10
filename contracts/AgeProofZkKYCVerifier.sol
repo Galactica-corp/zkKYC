@@ -162,7 +162,7 @@ library Pairing {
         return pairing(p1, p2);
     }
 }
-contract Verifier {
+contract AgeProofZkKYCVerifier {
     using Pairing for *;
     struct VerifyingKey {
         Pairing.G1Point alfa1;

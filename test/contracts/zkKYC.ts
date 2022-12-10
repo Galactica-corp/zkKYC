@@ -61,10 +61,7 @@ describe('zkKYC SC', async () => {
       mockKYCRegistry.address
     )) as ZkKYC;
 
-    // inputs to create proof
-    sampleInput = JSON.parse(
-      readFileSync('./circuits/input/zkKYC.json', 'utf8')
-    );
+    sampleInput = await generateZKKYCInput();
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);

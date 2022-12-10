@@ -7,6 +7,7 @@ import { ethers } from 'hardhat';
 
 import { ZKCertificate } from '../../lib/zkCertificate';
 import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { ZkCertStandard } from '../../lib';
 
 describe('Ownership Component', () => {
   let circuit: CircuitTestUtils;
@@ -59,7 +60,7 @@ describe('Ownership Component', () => {
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
     const holderCommitment = await createHolderCommitment(eddsa, holderEdDSAKey);
-    let zkKYC = new ZKCertificate(holderCommitment, eddsa);
+    let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 0);
     const ownershipProof = zkKYC.getOwnershipProofInput(holderEdDSAKey);
 
     const expected = { valid: 1 };

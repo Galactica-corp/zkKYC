@@ -99,7 +99,7 @@ export async function generateZKKYCInput() {
 /**
  * @description Script for creating proof input for a zkKYC certificate
  */
- async function main() {
+async function main() {
   const zkKYCInput = await generateZKKYCInput();
 
   console.log(zkKYCInput);

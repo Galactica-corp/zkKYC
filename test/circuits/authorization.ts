@@ -7,6 +7,7 @@ import { ethers } from 'hardhat';
 
 import { ZKCertificate } from '../../lib/zkCertificate';
 import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { ZkCertStandard } from '../../lib';
 
 describe('Authorization Component', () => {
   let circuit: CircuitTestUtils;
@@ -56,7 +57,7 @@ describe('Authorization Component', () => {
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
     const holderCommitment = await createHolderCommitment(eddsa, holderEdDSAKey);
     const userAddress = sampleInput.userAddress;
-    let zkKYC = new ZKCertificate(holderCommitment, eddsa);
+    let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 0);
     const authorizationProof = zkKYC.getAuthorizationProofInput(
       holderEdDSAKey,
       userAddress
