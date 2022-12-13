@@ -36,7 +36,7 @@ contract AgeProofZkKYC is Ownable{
         require(input[0] == 1, "the proof output is not valid");
 
         bytes32 proofRoot = bytes32(input[1]);
-        require(proofRoot == KYCRegistry.getMerkleRoot(), "the root in the proof doesn't match");
+        require(KYCRegistry.rootHistory(proofRoot), "the root in the proof doesn't match");
         
         uint proofCurrentTime = input[2];
         uint onchainTime = block.timestamp;

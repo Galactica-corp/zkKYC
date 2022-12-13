@@ -7,10 +7,6 @@ import { MerkleTree } from '../../lib/merkleTree';
 import { overwriteArtifact, fromDecToHex, fromHexToBytes32, generateRandomBytes32Array, arrayToBigInt } from '../../lib/helpers';
 import { poseidonContract } from 'circomlibjs';
 
-/* import { arrayToBigInt, arrayToHexString } from '../../helpers/global/bytes';
-import { hash } from '../../helpers/global/crypto';
-import { MerkleTree } from '../../helpers/logic/merkletree';
-import { randomBytes } from 'crypto'; */
 
 describe('KYCRecordRegistry', () => {
   /**

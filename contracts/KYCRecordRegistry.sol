@@ -53,8 +53,8 @@ contract KYCRecordRegistry is Initializable {
   bytes32[TREE_DEPTH] public filledSubTrees;
 
   // Whether the contract has already seen a particular Merkle tree root
-  // treeNumber -> root -> seen
-  mapping(uint256 => mapping(bytes32 => bool)) public rootHistory;
+  // root -> seen
+  mapping(bytes32 => bool) public rootHistory;
 
   /**
    * @notice Calculates initial values for Merkle Tree
@@ -95,7 +95,7 @@ contract KYCRecordRegistry is Initializable {
 
     // Set merkle root and store root to quickly retrieve later
     newTreeRoot = merkleRoot = currentZero;
-    rootHistory[treeNumber][currentZero] = true;
+    rootHistory[currentZero] = true;
   }
 
   /**
@@ -219,7 +219,7 @@ contract KYCRecordRegistry is Initializable {
 
     // Update the Merkle tree root
     merkleRoot = _leafHashes[0];
-    rootHistory[treeNumber][merkleRoot] = true;
+    rootHistory[merkleRoot] = true;
   }
 
   /**
