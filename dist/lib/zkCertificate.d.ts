@@ -1,27 +1,42 @@
+import { ZkCertStandard } from './zkCertStandards';
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * @dev specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac
  */
 export declare class ZKCertificate {
-    private holderKey;
-    protected poseidon: any;
-    protected eddsa: any;
-    private fields;
-    protected fieldPoseidon: any;
     readonly holderCommitment: string;
-    holderPubKeyEddsa: any;
+    zkCertStandard: ZkCertStandard;
+    protected eddsa: any;
+    randomSalt: number;
+    fields: Record<string, any>;
+    providerData: ProviderData;
+    protected poseidon: any;
+    protected fieldPoseidon: any;
     /**
      * @description Create a ZKCertificate
      *
-     * @param holderKey EdDSA Private key of the holder. Used to derive pubkey and sign holder commitment.
-     *   TODO: move private key out of this class into Metamaks callback or something similar
-     * @param poseidon Poseidon instance to use for hashing
+     * @param holderCommitment commitment fixing the holder eddsa key without revealing it to the provider
+     * @param zkCertStandard zkCert standard to use
+     * @param eddsa eddsa instance to use for signing
+     * @param randomSalt random salt randomizing the zkCert
+     * @param fields ZKCertificate parameters, can be set later
+     * @param providerData provider data, can be set later
      *
      * @param fields ZKCertificate parameters, can be set later
      */
-    constructor(holderKey: string, poseidon: any, eddsa: any, fields?: Record<string, any>);
+    constructor(holderCommitment: string, zkCertStandard: ZkCertStandard, // TODO: move enum from snap here
+    eddsa: any, randomSalt: number, fields?: Record<string, any>, // standardize field definitions
+    providerData?: ProviderData);
+    get contentHash(): string;
     get leafHash(): string;
+    get did(): string;
     setFields(fields: Record<string, any>): void;
+    /**
+     * Export the zkCert as a JSON string that can be imported in the Galactica Snap for Metamask
+     * TODO: add encryption option
+     * @returns JSON string
+     */
+    exportJson(): string;
     /**
      * @description Create the input for the ownership proof of this zkCert
      *
@@ -37,14 +52,6 @@ export declare class ZKCertificate {
      * @returns AuthorizationProofInput struct
      */
     getAuthorizationProofInput(holderKey: string, userAddress: string): AuthorizationProofInput;
-    /**
-     * @description Create the holder commitment according to the spec to fix the ownership of the zkCert
-     * @dev holder commitment = poseidon(sign_eddsa(poseidon(pubkey)))
-     *
-     * @param privateKey EdDSA Private key of the holder
-     * @returns holder commitment
-     */
-    private createHolderCommitment;
 }
 export interface OwnershipProofInput {
     holderCommitment: string;
@@ -56,6 +63,13 @@ export interface OwnershipProofInput {
 }
 export interface AuthorizationProofInput {
     userAddress: string;
+    Ax: string;
+    Ay: string;
+    S: string;
+    R8x: string;
+    R8y: string;
+}
+export interface ProviderData {
     Ax: string;
     Ay: string;
     S: string;

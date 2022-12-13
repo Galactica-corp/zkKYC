@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatPrivKeyForBabyJub = exports.generateEcdhSharedKey = exports.getEddsaKeyFromEthSigner = exports.eddsaPrimeFieldMod = exports.eddsaKeyGenerationMessage = void 0;
+exports.createHolderCommitment = exports.formatPrivKeyForBabyJub = exports.generateEcdhSharedKey = exports.getEddsaKeyFromEthSigner = exports.eddsaPrimeFieldMod = exports.eddsaKeyGenerationMessage = void 0;
 const blake_hash_1 = __importDefault(require("blake-hash"));
 const ffjavascript_1 = require("ffjavascript");
 exports.eddsaKeyGenerationMessage = "Signing this message generates your EdDSA private key. Only do this on pages you trust to manage your zkCertificates.";
@@ -43,3 +43,31 @@ function formatPrivKeyForBabyJub(privKey, eddsa) {
     return ffjavascript_1.Scalar.shr(s, 3);
 }
 exports.formatPrivKeyForBabyJub = formatPrivKeyForBabyJub;
+/**
+ * @description Create the holder commitment for a zkCert
+ * @dev holder commitment = poseidon(sign_eddsa(poseidon(pubkey)))
+ *
+ * @param eddsa EdDSA instance to use for signing (passed to avoid making this function async)
+ * @param privateKey EdDSA Private key of the holder
+ * @returns holder commitment
+ */
+function createHolderCommitment(eddsa, privateKey) {
+    const poseidon = eddsa.poseidon;
+    const pubKey = eddsa.prv2pub(privateKey);
+    const hashPubkey = poseidon.F.toObject(poseidon([pubKey[0], pubKey[1]]));
+    // take modulo of hash to get it into the mod field supported by eddsa
+    const hashPubkeyMsg = poseidon.F.e(ffjavascript_1.Scalar.mod(hashPubkey, exports.eddsaPrimeFieldMod));
+    const sig = eddsa.signPoseidon(privateKey, hashPubkeyMsg);
+    // selfcheck
+    if (!eddsa.verifyPoseidon(hashPubkeyMsg, sig, pubKey)) {
+        throw new Error('Self check on EdDSA signature failed');
+    }
+    return poseidon.F
+        .toObject(poseidon([
+        sig.S.toString(),
+        poseidon.F.toObject(sig.R8[0]).toString(),
+        poseidon.F.toObject(sig.R8[1]).toString(),
+    ]))
+        .toString();
+}
+exports.createHolderCommitment = createHolderCommitment;

@@ -24,3 +24,12 @@ export declare function generateEcdhSharedKey(privKey: string, pubKey: string[],
  *  This is the format which should be passed into the PublicKey and other circuits.
  */
 export declare function formatPrivKeyForBabyJub(privKey: string, eddsa: any): any;
+/**
+ * @description Create the holder commitment for a zkCert
+ * @dev holder commitment = poseidon(sign_eddsa(poseidon(pubkey)))
+ *
+ * @param eddsa EdDSA instance to use for signing (passed to avoid making this function async)
+ * @param privateKey EdDSA Private key of the holder
+ * @returns holder commitment
+ */
+export declare function createHolderCommitment(eddsa: any, privateKey: string): string;

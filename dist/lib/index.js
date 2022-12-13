@@ -22,3 +22,4 @@ __exportStar(require("./helpers"), exports);
 __exportStar(require("./zkCertificate"), exports);
 __exportStar(require("./mimcEncrypt"), exports);
 __exportStar(require("./merkleTree"), exports);
+__exportStar(require("./zkCertStandards"), exports);

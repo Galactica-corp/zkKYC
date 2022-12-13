@@ -20,8 +20,8 @@
     "./types/*",
     "./scripts/*",
     "./tasks/*",
-    "./test/contracts/*",
-    "./test/circuits/*",
+    // "./test/contracts/*",
+    // "./test/circuits/*",
     "index.ts"
   ],
 }

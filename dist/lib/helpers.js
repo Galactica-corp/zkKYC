@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.zkCertificateFieldOrder = exports.processPublicSignals = exports.processProof = exports.generateRandomBytes32Array = exports.fromHexToBytes32 = exports.fromDecToHex = exports.fromHexToDec = void 0;
+exports.processPublicSignals = exports.processProof = exports.hashStringToFieldNumber = exports.generateRandomBytes32Array = exports.fromHexToBytes32 = exports.fromDecToHex = exports.fromHexToDec = void 0;
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const ethers_1 = require("ethers");
 function fromHexToDec(hex) {
@@ -41,6 +41,40 @@ function generateRandomBytes32Array(length) {
     return result;
 }
 exports.generateRandomBytes32Array = generateRandomBytes32Array;
+/**
+ * Hashes string to field number using poseidon. This is needed to break down the string into field elements that can be used in the circuit.
+ * @param input string to be hashed
+ * @param poseidon poseidon object for hashing (passed to avoid rebuilding with await)
+ * @returns field number as BigNumber
+ */
+function hashStringToFieldNumber(input, poseidon) {
+    // prepare string for hashing (poseidon requires an array of 1 to 16 numbers
+    // to allow strings longer than 16, we compress 4 characters into one 32 bit number
+    const maxLength = 16 * 4;
+    if (input.length > maxLength) {
+        throw new Error(`Input string too long (max ${maxLength} characters)`);
+    }
+    let inputArray = [];
+    if (input.length == 0) {
+        inputArray = [0];
+    }
+    for (let i = 0; i < input.length; i += 4) {
+        let charCode = 0;
+        for (let j = 0; j < 4; j++) {
+            if (i + j < input.length) {
+                const char = input.charCodeAt(i + j);
+                if (char > 255) {
+                    throw new Error(`Input string ${input} contains non-ascii character '${char}'`);
+                }
+                // shift bits into position (first character is in the most significant bits)
+                charCode |= char << (8 * (3 - j));
+            }
+        }
+        inputArray.push(charCode);
+    }
+    return poseidon.F.toObject(poseidon(inputArray, undefined, 1)).toString();
+}
+exports.hashStringToFieldNumber = hashStringToFieldNumber;
 // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
 function processProof(proof) {
     const a = proof.pi_a.slice(0, 2).map((x) => fromDecToHex(x, true));
@@ -58,21 +92,3 @@ function processPublicSignals(publicSignals) {
     return publicSignals.map((x) => fromDecToHex(x, true));
 }
 exports.processPublicSignals = processPublicSignals;
-exports.zkCertificateFieldOrder = [
-    'surname',
-    'forename',
-    'middlename',
-    'yearOfBirth',
-    'monthOfBirth',
-    'dayOfBirth',
-    'verificationLevel',
-    'expirationDate',
-    'holderCommitment',
-    'providerSignature',
-    'randomSalt',
-    'streetAndNumber',
-    'postcode',
-    'town',
-    'region',
-    'country',
-];
