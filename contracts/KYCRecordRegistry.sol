@@ -55,8 +55,11 @@ contract KYCRecordRegistry is Initializable {
   bytes32[TREE_DEPTH] public filledSubTrees;
 
   // Whether the contract has already seen a particular Merkle tree root
-  // treeNumber -> root -> seen
-  mapping(uint256 => mapping(bytes32 => bool)) public rootHistory;
+  // root -> seen
+  mapping(bytes32 => bool) public rootHistory;
+
+  KYCCenterRegistry public _KYCCenterRegistry;
+  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
 
   KYCCenterRegistry public _KYCCenterRegistry;
   event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
@@ -100,7 +103,7 @@ contract KYCRecordRegistry is Initializable {
 
     // Set merkle root and store root to quickly retrieve later
     newTreeRoot = merkleRoot = currentZero;
-    rootHistory[treeNumber][currentZero] = true;
+    rootHistory[currentZero] = true;
     _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
   }
 
@@ -110,6 +113,10 @@ contract KYCRecordRegistry is Initializable {
       _leafHashes[0] = zkKYCRecordLeafHash;
       insertLeaves(_leafHashes);
       emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
+<<<<<<< HEAD
+=======
+>>>>>>> d796a92 (add administration to KYCRecordRegistry)
+>>>>>>> main
   }
 
   /**
@@ -233,7 +240,7 @@ contract KYCRecordRegistry is Initializable {
 
     // Update the Merkle tree root
     merkleRoot = _leafHashes[0];
-    rootHistory[treeNumber][merkleRoot] = true;
+    rootHistory[merkleRoot] = true;
   }
 
   /**
