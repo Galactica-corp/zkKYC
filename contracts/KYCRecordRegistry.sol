@@ -61,9 +61,6 @@ contract KYCRecordRegistry is Initializable {
   KYCCenterRegistry public _KYCCenterRegistry;
   event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
 
-  KYCCenterRegistry public _KYCCenterRegistry;
-  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
-
   /**
    * @notice Calculates initial values for Merkle Tree
    * @dev OpenZeppelin initializer ensures this can only be called once
@@ -113,10 +110,6 @@ contract KYCRecordRegistry is Initializable {
       _leafHashes[0] = zkKYCRecordLeafHash;
       insertLeaves(_leafHashes);
       emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
-<<<<<<< HEAD
-=======
->>>>>>> d796a92 (add administration to KYCRecordRegistry)
->>>>>>> main
   }
 
   /**
