@@ -10,6 +10,8 @@ import { SNARK_SCALAR_FIELD } from "./helpers/Globals.sol";
 
 import { PoseidonT3 } from "./helpers/Poseidon.sol";
 
+import { KYCCenterRegistry } from "./KYCCenterRegistry.sol";
+
 /**
  * @title KYCRecordRegistry
  * @author modified from Railgun Contributors
@@ -56,11 +58,14 @@ contract KYCRecordRegistry is Initializable {
   // root -> seen
   mapping(bytes32 => bool) public rootHistory;
 
+  KYCCenterRegistry public _KYCCenterRegistry;
+  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
+
   /**
    * @notice Calculates initial values for Merkle Tree
    * @dev OpenZeppelin initializer ensures this can only be called once
    */
-  function initializeKYCRecordRegistry() internal onlyInitializing {
+  function initializeKYCRecordRegistry(address KYCCenterRegistry_) internal onlyInitializing {
     /*
     To initialize the Merkle tree, we need to calculate the Merkle root
     assuming that each leaf is the zero value.
@@ -96,6 +101,15 @@ contract KYCRecordRegistry is Initializable {
     // Set merkle root and store root to quickly retrieve later
     newTreeRoot = merkleRoot = currentZero;
     rootHistory[currentZero] = true;
+    _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
+  }
+
+  function addZkKYCRecord(bytes32 zkKYCRecordLeafHash) public {
+      require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
+      bytes32[] memory _leafHashes = new bytes32[](1);
+      _leafHashes[0] = zkKYCRecordLeafHash;
+      insertLeaves(_leafHashes);
+      emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
   }
 
   /**

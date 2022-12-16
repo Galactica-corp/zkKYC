@@ -5,16 +5,16 @@ pragma abicoder v2;
 import { KYCRecordRegistry } from "../KYCRecordRegistry.sol";
 
 contract KYCRecordRegistryTest is KYCRecordRegistry {
-  constructor() {
-    initializeKYCRecordRegistryTest();
+  constructor(address KYCCenterRegistry) {
+    initializeKYCRecordRegistryTest(KYCCenterRegistry);
   }
 
-  function doubleInit() external {
-    KYCRecordRegistry.initializeKYCRecordRegistry();
+  function doubleInit(address KYCCenterRegistry) external {
+    KYCRecordRegistry.initializeKYCRecordRegistry(KYCCenterRegistry);
   }
 
-  function initializeKYCRecordRegistryTest() internal initializer {
-    KYCRecordRegistry.initializeKYCRecordRegistry();
+  function initializeKYCRecordRegistryTest(address KYCCenterRegistry) internal initializer {
+    KYCRecordRegistry.initializeKYCRecordRegistry(KYCCenterRegistry);
   }
 
   function insertLeavesTest(bytes32[] memory _leafHashes) external {
