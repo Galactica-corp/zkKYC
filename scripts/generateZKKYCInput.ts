@@ -37,7 +37,7 @@ export async function generateZKKYCInput() {
     monthOfBirth: 5,
     dayOfBirth: 28,
     verificationLevel: '1',
-    expirationDate: currentTimestamp + 60 * 60 * 24 * 30,
+    expirationDate: 1769736098,
     holderCommitment: zkKYC.holderCommitment,
     streetAndNumber: '23423453234234',
     postcode: '23423453234234',
@@ -101,8 +101,6 @@ export async function generateZKKYCInput() {
  */
 async function main() {
   const zkKYCInput = await generateZKKYCInput();
-
-  console.log(zkKYCInput);
 
   fs.writeFileSync(
     './circuits/input/zkKYC.json',
