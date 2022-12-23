@@ -69,6 +69,9 @@ describe('ageProofZkKYC SC', async () => {
     sampleInput.currentDay = today.getUTCDate();
     sampleInput.ageThreshold = 18;
 
+    // advance time a bit to set it later in the test
+    sampleInput.currentTime += 100;
+
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
