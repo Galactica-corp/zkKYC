@@ -24,14 +24,14 @@ async function deploySC(name: string, verify?: boolean, signerOrOptions?: Signer
   if (verify) {
     try {
       // verify contract
-      await hre.run("verify:verify", {
+      await run("verify:verify", {
         address: contract.address,
         constructorArguments: constructorArgs,
         ...signerOrOptions
       });
     } catch (error: any) {
-      console.log(`Verification failed: ${error.message}`)
-      console.log(`If you get a file not found error, try running 'npx hardhat clean' first`)
+      console.error(`Verification failed: ${error.message}`)
+      console.error(`If you get a file not found error, try running 'npx hardhat clean' first`)
     }
   }
 
@@ -48,9 +48,10 @@ async function main() {
   console.log(`Using account ${deployer.address} to deploy contracts`);
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  // deploying everything
+  // get poseidon from library
   await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
   
+  // deploying everything
   const poseidonT3 = await deploySC('PoseidonT3', false);
   const centerRegistry = await deploySC('KYCCenterRegistry', true);
   const recordRegistry = await deploySC(
