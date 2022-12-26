@@ -62,7 +62,13 @@ async function main() {
         PoseidonT3: poseidonT3.address,
       },
     },
-    [poseidonT3.address]
+    [centerRegistry.address]
+  );
+  const ageProofZkKYCVerifier = await deploySC('AgeProofZkKYCVerifier', true);
+  const ageProofZkKYC = await deploySC('AgeProofZkKYC',
+    true,
+    {},
+    [deployer.address, ageProofZkKYCVerifier.address, recordRegistry.address]
   );
 }
 
