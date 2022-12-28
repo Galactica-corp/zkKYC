@@ -34,7 +34,7 @@ async function generateZKKYCInput() {
         monthOfBirth: 5,
         dayOfBirth: 28,
         verificationLevel: '1',
-        expirationDate: currentTimestamp + 60 * 60 * 24 * 30,
+        expirationDate: 1769736098,
         holderCommitment: zkKYC.holderCommitment,
         streetAndNumber: '23423453234234',
         postcode: '23423453234234',
@@ -85,7 +85,6 @@ exports.generateZKKYCInput = generateZKKYCInput;
  */
 async function main() {
     const zkKYCInput = await generateZKKYCInput();
-    console.log(zkKYCInput);
     fs_1.default.writeFileSync('./circuits/input/zkKYC.json', JSON.stringify(zkKYCInput, null, 2), 'utf8');
 }
 // We recommend this pattern to be able to use async/await everywhere

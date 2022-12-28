@@ -9,12 +9,10 @@ async function main() {
     // Create a new poseidon instance for hashing
     const poseidon = await (0, circomlibjs_1.buildPoseidon)();
     // input
-    const merkleDepth = 3;
-    const leaveToProof = "15646194932191706495862906095406754101147480025603658888861721911217238705165";
+    const merkleDepth = 32;
+    const leaveToProof = "3117336777051834855540872560265552874773137464163281414505601608025080702835";
     const leaves = [
-        "16515646194932191706495862906095406754101147480025603658888861721911217238705",
         leaveToProof,
-        "06095406754101147480025603658888861721911217238705165156461949321917064958629",
     ];
     // calculate merkle tree
     const merkleTree = new merkleTree_1.MerkleTree(merkleDepth, poseidon);

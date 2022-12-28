@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MerkleTree = void 0;
+const keccak256 = require('keccak256');
+const helpers_1 = require("./helpers");
 /**
  * @description Class for managing and constructing merkle trees.
  */
@@ -17,7 +19,7 @@ class MerkleTree {
         this.depth = depth;
         this.poseidon = poseidon;
         this.F = poseidon.F;
-        this.emptyLeaf = this.F.toObject(this.poseidon(["0"])).toString();
+        this.emptyLeaf = ((0, helpers_1.arrayToBigInt)(keccak256("Galactica")) % helpers_1.SNARK_SCALAR_FIELD).toString();
         // create empty tree
         this.emptyBranchLevels = this.calculateEmptyBranchHashes(depth);
         // initialize tree arrays. Because the tree is sparse, non zero nodes can be ommitted
@@ -63,6 +65,9 @@ class MerkleTree {
      * @param leaves Array of leaf hashes to insert
      */
     insertleaves(leaves) {
+        if (leaves.length == 0) {
+            return;
+        }
         // insert leaves into new tree
         this.tree[0].push(...leaves);
         // rebuild tree.

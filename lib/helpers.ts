@@ -119,10 +119,9 @@ export function arrayToBigInt(array: Uint8Array): bigint {
  * Convert bigint to byte array
  *
  * @param bn - bigint
- * @param length - length of resulting byte array, 0 to return byte length of integer
  * @returns byte array
  */
-export function bigIntToArray(bn: bigint, length: number): Uint8Array {
+export function bigIntToArray(bn: bigint): Uint8Array {
   // Convert bigint to hex string
   let hex = BigInt(bn).toString(16);
 
@@ -135,7 +134,7 @@ export function bigIntToArray(bn: bigint, length: number): Uint8Array {
   // Convert hex array to uint8 byte array
   const byteArray = new Uint8Array(hexArray.map((byte) => parseInt(byte, 16)));
 
-  return arrayToByteLength(byteArray, length);
+  return byteArray;
 }
 
 // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
