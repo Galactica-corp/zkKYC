@@ -10,6 +10,8 @@ contract AgeProofZkKYC is Ownable{
     IKYCRegistry public KYCRegistry;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
 
+    mapping (address => bool) public verifiedAddresses;
+
     constructor(address _owner, address _verifier, address _KYCRegistry) Ownable(_owner) public {
         verifier = IAgeProofZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
@@ -55,5 +57,17 @@ contract AgeProofZkKYC is Ownable{
         require(onchainDay == input[6], "the current day is incorrect");
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+    }
+
+    //a, b, c are the proof
+    // input array contains the public parameters: isValid, root, currentTime, currentYear, currentMonth, currentDay, ageThreshold
+    function registerAddress(
+            uint[2] memory a,
+            uint[2][2] memory b,
+            uint[2] memory c,
+            uint[8] memory input
+        ) public {
+        verifyProof(a, b, c, input);
+        verifiedAddresses[msg.sender] = true;
     }
 }
