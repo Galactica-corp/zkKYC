@@ -1,4 +1,3 @@
-import hre from "hardhat";
 import { ethers } from "hardhat";
 import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
