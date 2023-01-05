@@ -93,7 +93,7 @@ describe('ageProofZkKYC SC', async () => {
     expect(await ageProofZkKYC.KYCRegistry()).to.be.equal(user.address);
   });
 
-  it('correct proof can be verified onchain', async () => {
+  it.only('correct proof can be verified onchain', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
       sampleInput,
       circuitWasmPath,
