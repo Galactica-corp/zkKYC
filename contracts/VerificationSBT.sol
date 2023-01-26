@@ -12,7 +12,7 @@ contract VerificationSBT {
         address dApp;
         IVerifierWrapper verifierWrapper;
         uint256 expirationTime;
-        bytes verifierCodeHash;
+        bytes32 verifierCodehash;
         bytes encryptedData;
     }
 
@@ -24,23 +24,23 @@ contract VerificationSBT {
     event VerificationSBTMinted(address dApp, address user);
 
     // function to mint verification SBT
-    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes _encryptedData) public {
-        VerificationSBTMapping[keccak256(encodePacked(user, msg.sender))] = VerificationSBTInfo{
+    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes calldata _encryptedData) public {
+        VerificationSBTMapping[keccak256(abi.encode(user, msg.sender))] = VerificationSBTInfo({
             dApp: msg.sender,
-            verificationWrapper: _verifierWrapper, 
+            verifierWrapper: _verifierWrapper, 
             expirationTime: _expirationTime,
             verifierCodehash: _verifierWrapper.verifier().codehash,
             encryptedData: _encryptedData
-        };
-        emit VerificationSBTMinted(msg.sender, humanID);
+        });
+        emit VerificationSBTMinted(msg.sender, user);
     }
 
     // function to check the validity of verification SBT
-    function isVerificationSBTValid(address user, address dApp) view public {
-        VerificationSBTInfo storage verificationSBTInfo = VerificationSBTMapping[keccak256(encodePacked(user, dApp))];
+    function isVerificationSBTValid(address user, address dApp) view public returns(bool) {
+        VerificationSBTInfo storage verificationSBTInfo = VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
         // we check 2 conditions
         // 1. the codehash of the verifier is still the same as the one referred to in the verification wrapper
         // 2. the expiration time hasn't happened yet
-        return (verificationSBTInfo.verificationWrapper.verifier().codehash == verificationSBTInfo.verifierCodehash) && (verificationSBTInfo.expirationTime > block.timestamp);
+        return (verificationSBTInfo.verifierWrapper.verifier().codehash == verificationSBTInfo.verifierCodehash) && (verificationSBTInfo.expirationTime > block.timestamp);
     }
 }
