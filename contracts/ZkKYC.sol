@@ -56,6 +56,9 @@ contract ZkKYC is Ownable{
         // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
         require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
 
+        // check that the institution public key corresponds to the onchain one;
+        require(galacticaInstituion.institutionPubKey(0) == input[6], "the first part of institution pubkey is incorrect");
+        require(galacticaInstituion.institutionPubKey(1) == input[7], "the second part of institution pubkey is incorrect");
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
     }
