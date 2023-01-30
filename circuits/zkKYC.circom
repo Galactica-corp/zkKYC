@@ -123,10 +123,6 @@ template ZKKYC(levels){
     _encryptionProof.msg[0] <== providerSignature;
     _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
 
-    log("encrypted data");
-    log(_encryptionProof.encryptedMsg[0]);
-    log(_encryptionProof.encryptedMsg[1]);
-
     _encryptionProof.encryptedMsg[0] === encryptedData[0];
     _encryptionProof.encryptedMsg[1] === encryptedData[1];
 
