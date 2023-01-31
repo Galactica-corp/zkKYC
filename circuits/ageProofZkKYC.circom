@@ -49,11 +49,7 @@ template AgeProofZkKYC(levels){
     signal input R8x2;
     signal input R8y2;
 
-    //inputs for encryption of fraud investigation data
-    signal input userPrivKey;
-    signal input userPubKey[2]; // should be public to check that it corresponds to user address
-    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+
 
     // public variables related to age proof circuit
     signal input currentYear;
@@ -62,6 +58,12 @@ template AgeProofZkKYC(levels){
 
     // age threshold
     signal input ageThreshold;
+
+    //inputs for encryption of fraud investigation data
+    signal input userPrivKey;
+    signal input userPubKey[2]; // should be public to check that it corresponds to user address
+    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal input encryptedData[2]; // should be public to be stored in the verification SBT
 
     // final result
     signal output valid;

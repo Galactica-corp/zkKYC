@@ -6,6 +6,7 @@ import "./interfaces/IAgeProofZkKYCVerifier.sol";
 import "./interfaces/IKYCRegistry.sol";
 import "./libraries/BokkyPooBahsDateTimeLibrary.sol";
 import "./interfaces/IGalacticaInstitution.sol";
+import "hardhat/console.sol";
 
 contract AgeProofZkKYC is Ownable{
     IAgeProofZkKYCVerifier public verifier;
@@ -58,6 +59,7 @@ contract AgeProofZkKYC is Ownable{
         require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
 
         (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
+
         require(onchainYear == input[4], "the current year is incorrect");
         require(onchainMonth == input[5], "the current month is incorrect");
         require(onchainDay == input[6], "the current day is incorrect");
