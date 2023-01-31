@@ -41,10 +41,10 @@ describe('HumanID Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.surname', '46465');
-    assert.propertyVal(witness, 'main.yearOfBirth', '2022');
-    assert.propertyVal(witness, 'main.passportID', '3095472098');
-    assert.propertyVal(witness, 'main.dAppID', '2093684589645');
+    assert.propertyVal(witness, 'main.surname', sampleInput.surname);
+    assert.propertyVal(witness, 'main.yearOfBirth', sampleInput.yearOfBirth.toString());
+    assert.propertyVal(witness, 'main.passportID', sampleInput.passportID);
+    assert.propertyVal(witness, 'main.dAppID', sampleInput.dAppID);
     // check resulting output
     assert.propertyVal(witness, 'main.humanID', expectedID);
   });
