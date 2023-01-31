@@ -4,6 +4,7 @@ import chai, { use } from 'chai';
 chai.config.includeStack = true;
 
 import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
+import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacticaInstitution';
 import { ZkKYC } from '../../typechain-types/ZkKYC';
 import { ZkKYCVerifier } from '../../typechain-types/ZkKYCVerifier';
 
@@ -27,6 +28,7 @@ describe('zkKYC SC', async () => {
   let zkKYC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
+  let mockGalacticaInstitution: MockGalacticaInstitution;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -39,13 +41,20 @@ describe('zkKYC SC', async () => {
 
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
-    // set up KYCRegistry, ZkKYCVerifier, ZkKYC
+    // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
       'MockKYCRegistry',
       deployer
     );
     mockKYCRegistry =
       (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+
+    const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
+      'MockGalacticaInstitution',
+      deployer
+    );
+    mockGalacticaInstitution =
+      (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution;
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -57,7 +66,8 @@ describe('zkKYC SC', async () => {
     zkKYC = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
-      mockKYCRegistry.address
+      mockKYCRegistry.address,
+      mockGalacticaInstitution.address
     )) as ZkKYC;
 
     // inputs to create proof
@@ -102,6 +112,10 @@ describe('zkKYC SC', async () => {
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
+    // set the galactica institution pub key
+    const galacticaInstitutionPubKey = [publicSignals[6], publicSignals[7]];
+    await mockGalacticaInstitution.setInstitutionPubkey(galacticaInstitutionPubKey);
+
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
@@ -121,7 +135,6 @@ describe('zkKYC SC', async () => {
 
     const publicRoot = publicSignals[1];
     // set the merkle root to the correct one
-
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
@@ -130,7 +143,6 @@ describe('zkKYC SC', async () => {
     let publicInputs = processPublicSignals(publicSignals);
 
     // switch c, a to get an incorrect proof
-    // it doesn't fail on time because the time change remains from the previous test
     await expect(zkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
       .reverted;
   });
@@ -230,5 +242,36 @@ describe('zkKYC SC', async () => {
     await expect(
       zkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('sender is not authorized to use this proof');
+  });
+
+  it('revert if the institution pub key is incorrect', async () => {
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    const publicRoot = publicSignals[1];
+    const publicTime = parseInt(publicSignals[2], 10);
+    // set the merkle root to the correct one
+
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    // set the incorrect galactica institution pub key
+    const galacticaInstitutionPubKey = [publicSignals[6] + 1, publicSignals[7]];
+    await mockGalacticaInstitution.setInstitutionPubkey(galacticaInstitutionPubKey);
+
+    
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.revertedWith("the first part of institution pubkey is incorrect");
   });
 });
