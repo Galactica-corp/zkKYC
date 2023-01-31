@@ -49,6 +49,12 @@ template AgeProofZkKYC(levels){
     signal input R8x2;
     signal input R8y2;
 
+    //inputs for encryption of fraud investigation data
+    signal input userPrivKey;
+    signal input userPubKey[2]; // should be public to check that it corresponds to user address
+    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+
     // public variables related to age proof circuit
     signal input currentYear;
     signal input currentMonth;
@@ -77,6 +83,14 @@ template AgeProofZkKYC(levels){
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
+    zkKYC.userPrivKey <== userPrivKey;
+    zkKYC.userPubKey[0] <== userPubKey[0];
+    zkKYC.userPubKey[1] <== userPubKey[1];
+    zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
+    zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
+    zkKYC.encryptedData[0] <== encryptedData[0];
+    zkKYC.encryptedData[1] <== encryptedData[1];
+    
     for (var i = 0; i < levels; i++) {
         zkKYC.pathElements[i] <== pathElements[i];
     }

@@ -15,7 +15,7 @@ contract ZkKYC is Ownable{
     constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) public {
         verifier = IZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
-        galacticaInstituion = IGalacticaInstitution(_galacticaInstitution);
+        galacticaInstitution = IGalacticaInstitution(_galacticaInstitution);
     }
 
     function setVerifier(IZkKYCVerifier newVerifier) public onlyOwner {
@@ -27,7 +27,7 @@ contract ZkKYC is Ownable{
     }
 
     function setGalacticaInstituion(IGalacticaInstitution newGalacticaInstitution) public onlyOwner {
-        galacticaInstituion = newGalacticaInstitution;
+        galacticaInstitution = newGalacticaInstitution;
     }
 
     //a, b, c are the proof
@@ -57,8 +57,8 @@ contract ZkKYC is Ownable{
         require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
 
         // check that the institution public key corresponds to the onchain one;
-        require(galacticaInstituion.institutionPubKey(0) == input[6], "the first part of institution pubkey is incorrect");
-        require(galacticaInstituion.institutionPubKey(1) == input[7], "the second part of institution pubkey is incorrect");
+        require(galacticaInstitution.institutionPubKey(0) == input[6], "the first part of institution pubkey is incorrect");
+        require(galacticaInstitution.institutionPubKey(1) == input[7], "the second part of institution pubkey is incorrect");
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
     }
