@@ -7,6 +7,7 @@ include "./calculateZkCertHash.circom";
 include "./authorization.circom";
 include "./ownership.circom";
 include "./encryptionProof.circom";
+include "./humanID.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
@@ -58,6 +59,13 @@ template ZKKYC(levels){
     signal input userPubKey[2]; // should be public to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
     signal input encryptedData[2]; // should be public to be stored in the verification SBT
+
+    //humanID related variable
+    //humanID as public input, so dApp can use it
+    signal input humanID;
+    signal input passportID;
+    //dAppID is public so it can be checked by the dApp
+    signal input dAppID;
 
     signal output valid;
 
@@ -125,6 +133,18 @@ template ZKKYC(levels){
 
     _encryptionProof.encryptedMsg[0] === encryptedData[0];
     _encryptionProof.encryptedMsg[1] === encryptedData[1];
+
+    component calculateHumanId = HumanID();
+    calculateHumanId.surname <== surname;
+    calculateHumanId.forename <== forename;
+    calculateHumanId.middlename <== middlename;
+    calculateHumanId.yearOfBirth <== yearOfBirth;
+    calculateHumanId.monthOfBirth <== monthOfBirth;
+    calculateHumanId.dayOfBirth <== dayOfBirth;
+    calculateHumanId.passportID <== passportID;
+    calculateHumanId.dAppID <== dAppID;
+
+    calculateHumanId.humanID === humanID;
 
     // check that the time has not expired
     component timeHasntPassed = GreaterThan(128);
