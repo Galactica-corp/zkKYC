@@ -13,7 +13,7 @@ contract VerificationSBT {
         IVerifierWrapper verifierWrapper;
         uint256 expirationTime;
         bytes32 verifierCodehash;
-        bytes encryptedData;
+        bytes32[2] encryptedData;
     }
 
     // mapping to store verification SBT
@@ -24,7 +24,7 @@ contract VerificationSBT {
     event VerificationSBTMinted(address dApp, address user);
 
     // function to mint verification SBT
-    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes calldata _encryptedData) public {
+    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes32[2] calldata _encryptedData) public {
         VerificationSBTMapping[keccak256(abi.encode(user, msg.sender))] = VerificationSBTInfo({
             dApp: msg.sender,
             verifierWrapper: _verifierWrapper, 
