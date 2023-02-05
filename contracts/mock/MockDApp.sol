@@ -9,7 +9,7 @@ import "../interfaces/IVerifierWrapper.sol";
 //There are two things that we will test
 //1. After the first airdrop claim the SC will mint a verification SBT for that user
 //2. With the verification SBT user won't need to supply the zk proof
-contract MockGDApp {
+contract MockDApp {
 
     // mappings to see if certain humanID has received the token airdrop
     // in real DApp this should be a merkle root so that we can aggregate data across different humanID in a zk way
@@ -24,7 +24,7 @@ contract MockGDApp {
     VerificationSBT public SBT;
     IVerifierWrapper public verifierWrapper; 
 
-    constructor(VerificationSBT _SBT, IAgeProofZkKYCVerifier _verifierWrapper) public {
+    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) public {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -39,7 +39,7 @@ contract MockGDApp {
     }
 
     function airdropToken(
-        uint tokenIndex;
+        uint tokenIndex,
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
@@ -48,32 +48,37 @@ contract MockGDApp {
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
             
-            bytes32 humanID = bytes32(input[15]);
-            uint dAppID = input[16];
+            bytes32 humanID = bytes32(input[14]);
+            uint dAppID = input[15];
 
             // check that the public dAppID is correct
-            require(dAppID == uint(address(this)), "incorrect dAppID");
+            require(dAppID == uint(uint160(address(this))), "incorrect dAppID");
 
             // check the zk proof
-            require(verifierWrapper.verifyProof(a, b, c, input), "zk proof is invalid");
+            require(IAgeProofZkKYCVerifier(address(verifierWrapper)).verifyProof(a, b, c, input), "zk proof is invalid");
 
-            // if everything is good then we transfer the airdrop
-            // then mark it in the mapping
-            ERC20 token;
-            if (tokenIndex==1) {
-                require(!hasReceivedToken1[humanID], "this humandID has already received this airdrop");
-                token1.transfer(msg.sender, token1AirdropAmount);
-                hasReceivedToken1[humanID] = true;
-            } else if (tokenIndex==2) {
-                require(!hasReceivedToken2[humanID], "this humandID has already received this airdrop");
-                token1.transfer(msg.sender, token2AirdropAmount);
-                hasReceivedToken2[humanID] = true;
-            } else {
-                revert("invalid token index");
-            }
+            
 
             //afterwards we mint the verification SBT
-            SBT.mintVerificationSBT(msg.sender, address(verifierWrapper), 1990878924, input[13:15]);
+            bytes32[2] memory encryptedData = [bytes32(input[12]), bytes32(input[13])];
+            SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, humanID);
+        }
+
+        bytes32 humanID = SBT.getHumanID(msg.sender, address(this));
+
+        // if everything is good then we transfer the airdrop
+        // then mark it in the mapping
+        ERC20 token;
+        if (tokenIndex==1) {
+            require(!hasReceivedToken1[humanID], "this humandID has already received this airdrop");
+            token1.transfer(msg.sender, token1AirdropAmount);
+            hasReceivedToken1[humanID] = true;
+        } else if (tokenIndex==2) {
+            require(!hasReceivedToken2[humanID], "this humandID has already received this airdrop");
+            token1.transfer(msg.sender, token2AirdropAmount);
+            hasReceivedToken2[humanID] = true;
+        } else {
+            revert("invalid token index");
         }
     }
 }

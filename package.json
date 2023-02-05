@@ -42,6 +42,7 @@
     "circomlibjs": "^0.1.7",
     "hardhat-circom": "^3.3.1",
     "keccak256": "^1.0.6",
-    "snarkit2": "^0.2.0"
+    "snarkit2": "^0.2.0",
+    "@openzeppelin/contracts": "^4.0.0"
   }
 }

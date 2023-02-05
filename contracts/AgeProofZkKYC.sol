@@ -39,7 +39,7 @@ contract AgeProofZkKYC is Ownable{
             uint[2][2] memory b,
             uint[2] memory c,
             uint[16] memory input
-        ) public view {
+        ) public view returns (bool) {
         
         require(input[0] == 1, "the proof output is not valid");
 
@@ -56,7 +56,7 @@ contract AgeProofZkKYC is Ownable{
         }
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
-        require(msg.sender == address(uint160(input[3])), "sender is not authorized to use this proof");
+        require(tx.origin == address(uint160(input[3])), "transaction submitter is not authorized to use this proof");
 
         (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
 
@@ -69,5 +69,6 @@ contract AgeProofZkKYC is Ownable{
         require(galacticaInstitution.institutionPubKey(1) == input[10], "the second part of institution pubkey is incorrect");
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+        return true;
     }
 }
