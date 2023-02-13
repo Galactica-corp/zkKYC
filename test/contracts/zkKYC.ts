@@ -114,7 +114,9 @@ describe('zkKYC SC', async () => {
     );
     // set the galactica institution pub key
     const galacticaInstitutionPubKey = [publicSignals[6], publicSignals[7]];
-    await mockGalacticaInstitution.setInstitutionPubkey(galacticaInstitutionPubKey);
+    await mockGalacticaInstitution.setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
@@ -241,7 +243,9 @@ describe('zkKYC SC', async () => {
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
       zkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('sender is not authorized to use this proof');
+    ).to.be.revertedWith(
+      'transaction submitter is not authorized to use this proof'
+    );
   });
 
   it('revert if the institution pub key is incorrect', async () => {
@@ -264,14 +268,15 @@ describe('zkKYC SC', async () => {
 
     // set the incorrect galactica institution pub key
     const galacticaInstitutionPubKey = [publicSignals[6] + 1, publicSignals[7]];
-    await mockGalacticaInstitution.setInstitutionPubkey(galacticaInstitutionPubKey);
+    await mockGalacticaInstitution.setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );
 
-    
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
       zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith("the first part of institution pubkey is incorrect");
+    ).to.be.revertedWith('the first part of institution pubkey is incorrect');
   });
 });

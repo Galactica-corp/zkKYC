@@ -248,7 +248,7 @@ describe('ageProofZkKYC SC', async () => {
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
       ageProofZkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('sender is not authorized to use this proof');
+    ).to.be.revertedWith('transaction submitter is not authorized to use this proof');
   });
 
   it('revert if public input for year is incorrect', async () => {
