@@ -15,6 +15,7 @@ contract VerificationSBT {
         uint256 expirationTime;
         bytes32 verifierCodehash;
         bytes32[2] encryptedData;
+        uint256[2] userPubKey;
         bytes32 humanID;
     }
 
@@ -25,13 +26,14 @@ contract VerificationSBT {
     // event emitted when a verification SBT is minted
     event VerificationSBTMinted(address indexed dApp, address indexed user, bytes32 indexed humanID);
 
-    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes32[2] calldata _encryptedData, bytes32 _humanID) public {
+    function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes32[2] calldata _encryptedData, uint256[2] calldata _userPubKey, bytes32 _humanID) public {
         VerificationSBTMapping[keccak256(abi.encode(user, msg.sender))] = VerificationSBTInfo({
             dApp: msg.sender,
             verifierWrapper: _verifierWrapper, 
             expirationTime: _expirationTime,
             verifierCodehash: _verifierWrapper.verifier().codehash,
             encryptedData: _encryptedData,
+            userPubKey: _userPubKey,
             humanID: _humanID
         });
         emit VerificationSBTMinted(msg.sender, user, _humanID);

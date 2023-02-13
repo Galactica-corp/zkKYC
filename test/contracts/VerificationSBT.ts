@@ -26,8 +26,6 @@ import {
 const { expect } = chai;
 
 describe('Verification SBT Smart contract', async () => {
-  // reset the testing chain so we can perform time related tests
-  /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
