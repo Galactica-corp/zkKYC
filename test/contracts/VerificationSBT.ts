@@ -132,7 +132,7 @@ describe('Verification SBT Smart contract', async () => {
     circuitZkeyPath = './circuits/build/ageProofZkKYC.zkey';
   });
 
-  it.only('if the proof is correct the verification SBT is minted', async () => {
+  it('if the proof is correct the verification SBT is minted', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
       sampleInput,
       circuitWasmPath,

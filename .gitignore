@@ -9,6 +9,8 @@ typechain-types
 cache
 artifacts
 
+#yarn related
+.yarn
 
 node_modules
 .env
@@ -23,5 +25,6 @@ artifacts
 
 # circom and snarkjs
 circuits/build
+
 
 
