@@ -56,6 +56,7 @@ contract AgeProofZkKYC is Ownable{
         }
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
+        // tx.origin is used here so user doesn't need to submit proof directly to this SC but can also submit through dApp
         require(tx.origin == address(uint160(input[3])), "transaction submitter is not authorized to use this proof");
 
         (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
