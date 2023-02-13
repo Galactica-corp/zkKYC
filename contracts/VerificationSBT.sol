@@ -23,9 +23,8 @@ contract VerificationSBT {
 
 
     // event emitted when a verification SBT is minted
-    event VerificationSBTMinted(address dApp, address user);
+    event VerificationSBTMinted(address indexed dApp, address indexed user, bytes32 indexed humanID);
 
-    // function to mint verification SBT
     function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes32[2] calldata _encryptedData, bytes32 _humanID) public {
         VerificationSBTMapping[keccak256(abi.encode(user, msg.sender))] = VerificationSBTInfo({
             dApp: msg.sender,
@@ -35,10 +34,9 @@ contract VerificationSBT {
             encryptedData: _encryptedData,
             humanID: _humanID
         });
-        emit VerificationSBTMinted(msg.sender, user);
+        emit VerificationSBTMinted(msg.sender, user, _humanID);
     }
 
-    // function to check the validity of verification SBT
     function isVerificationSBTValid(address user, address dApp) view public returns(bool) {
         VerificationSBTInfo storage verificationSBTInfo = VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
         // we check 2 conditions
