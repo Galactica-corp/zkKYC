@@ -5,6 +5,8 @@ import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 
+import './tasks/createZKKYC';
+
 
 
 const config: HardhatUserConfig = {
@@ -19,13 +21,31 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.17',
       },
+      {
+        version: '0.8.17',
+      },
     ],
   },
   networks: {
     galaTestnet: {
       url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
-      accounts: [ process.env.GalaTestnetDeployerPrivateKey],
+      accounts: [ process.env.GalaTestnetDeployerPrivateKey!],
     }
+  },
+  etherscan: {
+    apiKey: {
+      galaTestnet: "something"!, // not needed for now, I guess
+    },
+    customChains: [
+      {
+        network: "galaTestnet",
+        chainId: 1,
+        urls: {
+          apiURL: "http://10.51.0.5:4040/api",
+          browserURL: "http://10.51.0.5:4040/"
+        }
+      }
+    ]
   },
   circom: {
     // Base path for input files

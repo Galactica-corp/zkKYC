@@ -19,6 +19,7 @@ import {
   processPublicSignals,
   fromHexToBytes32,
 } from '../../lib/helpers';
+import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
 
 const { expect } = chai;
 
@@ -75,9 +76,15 @@ describe('ageProofZkKYC SC', async () => {
     )) as AgeProofZkKYC;
 
     // inputs to create proof
-    sampleInput = JSON.parse(
-      readFileSync('./circuits/input/ageProofZkKYC.json', 'utf8')
-    );
+    sampleInput = await generateZKKYCInput();
+    const today = new Date(Date.now());
+    sampleInput.currentYear = today.getUTCFullYear();
+    sampleInput.currentMonth = today.getUTCMonth() + 1;
+    sampleInput.currentDay = today.getUTCDate();
+    sampleInput.ageThreshold = 18;
+
+    // advance time a bit to set it later in the test
+    sampleInput.currentTime += 100;
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);

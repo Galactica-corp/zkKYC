@@ -8,7 +8,10 @@ include "./zkKYC.circom";
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
 template AgeProofZkKYC(levels){
-    // zkKYC infos
+    signal input holderCommitment;
+    signal input randomSalt;
+
+    // zkKYC data fields
     signal input surname;
     signal input forename;
     signal input middlename;
@@ -17,14 +20,21 @@ template AgeProofZkKYC(levels){
     signal input dayOfBirth;
     signal input verificationLevel;
     signal input expirationDate;
-    signal input holderCommitment;
-    signal input providerSignature;
-    signal input randomSalt;
     signal input streetAndNumber;
     signal input postcode;
     signal input town;
     signal input region;
     signal input country;
+
+    // pub key of the provider
+    signal input providerAx;
+    signal input providerAy;
+
+    // provider's EdDSA signature of the leaf hash
+    signal input providerS;
+    signal input providerR8x;
+    signal input providerR8y;
+    // TODO: check that the signature is valid
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -76,6 +86,8 @@ template AgeProofZkKYC(levels){
     signal output valid;
 
     component zkKYC = ZKKYC(levels);
+    zkKYC.holderCommitment <== holderCommitment;
+    zkKYC.randomSalt <== randomSalt;
     zkKYC.surname <== surname;
     zkKYC.forename <== forename;
     zkKYC.middlename <== middlename;
@@ -84,9 +96,6 @@ template AgeProofZkKYC(levels){
     zkKYC.dayOfBirth <== dayOfBirth;
     zkKYC.verificationLevel <== verificationLevel;
     zkKYC.expirationDate <== expirationDate;
-    zkKYC.holderCommitment <== holderCommitment;
-    zkKYC.providerSignature <== providerSignature;
-    zkKYC.randomSalt <== randomSalt;
     zkKYC.streetAndNumber <== streetAndNumber;
     zkKYC.postcode <== postcode;
     zkKYC.town <== town;
@@ -100,6 +109,11 @@ template AgeProofZkKYC(levels){
     zkKYC.encryptedData[0] <== encryptedData[0];
     zkKYC.encryptedData[1] <== encryptedData[1];
     
+    zkKYC.providerAx <== providerAx;
+    zkKYC.providerAy <== providerAy;
+    zkKYC.providerS <== providerS;
+    zkKYC.providerR8x <== providerR8x;
+    zkKYC.providerR8y <== providerR8y;
     for (var i = 0; i < levels; i++) {
         zkKYC.pathElements[i] <== pathElements[i];
     }

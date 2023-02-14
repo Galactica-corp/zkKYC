@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { ethers } from 'hardhat';
+import { utils } from 'ethers';
 
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -51,9 +51,47 @@ export function fromHexToBytes32(hex: string): string {
 export function generateRandomBytes32Array(length: number): Uint8Array[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(ethers.utils.randomBytes(32));
+    result.push(utils.randomBytes(32));
   }
   return result;
+}
+
+/**
+ * Hashes string to field number using poseidon. This is needed to break down the string into field elements that can be used in the circuit.
+ * @param input string to be hashed
+ * @param poseidon poseidon object for hashing (passed to avoid rebuilding with await)
+ * @returns field number as BigNumber
+ */
+export function hashStringToFieldNumber(input: string, poseidon: any): BigNumber {
+  // prepare string for hashing (poseidon requires an array of 1 to 16 numbers
+  // to allow strings longer than 16, we compress 4 characters into one 32 bit number
+  const maxLength = 16 * 4;
+  if (input.length > maxLength) {
+    throw new Error(`Input string too long (max ${maxLength} characters)`);
+  }
+  
+  let inputArray: number[] = [];
+  if (input.length == 0) {
+    inputArray = [0];
+  }
+  for (let i = 0; i < input.length; i += 4) {
+    let charCode = 0;
+    for (let j = 0; j < 4; j++) {
+      if (i + j < input.length) {
+        const char = input.charCodeAt(i + j);
+        if (char > 255) {
+          throw new Error(`Input string ${input} contains non-ascii character '${char}'`);
+        }
+        // shift bits into position (first character is in the most significant bits)
+        charCode |= char << (8 * (3-j));
+      }
+    } 
+    inputArray.push(charCode);
+  }
+  
+  return poseidon.F.toObject(
+    poseidon(inputArray, undefined, 1)
+  ).toString();
 }
 
 /**
@@ -81,10 +119,9 @@ export function arrayToBigInt(array: Uint8Array): bigint {
  * Convert bigint to byte array
  *
  * @param bn - bigint
- * @param length - length of resulting byte array, 0 to return byte length of integer
  * @returns byte array
  */
-export function bigIntToArray(bn: bigint, length: number): Uint8Array {
+export function bigIntToArray(bn: bigint): Uint8Array {
   // Convert bigint to hex string
   let hex = BigInt(bn).toString(16);
 
@@ -97,42 +134,23 @@ export function bigIntToArray(bn: bigint, length: number): Uint8Array {
   // Convert hex array to uint8 byte array
   const byteArray = new Uint8Array(hexArray.map((byte) => parseInt(byte, 16)));
 
-  return arrayToByteLength(byteArray, length);
+  return byteArray;
 }
 
 // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
 export function processProof(proof: any) {
-  const a = proof.pi_a.slice(0, 2).map((x) => fromDecToHex(x, true));
+  const a = proof.pi_a.slice(0, 2).map((x: any) => fromDecToHex(x, true));
   // for some reason the order of coordinate is reverse
   const b = [
     [proof.pi_b[0][1], proof.pi_b[0][0]].map((x) => fromDecToHex(x, true)),
     [proof.pi_b[1][1], proof.pi_b[1][0]].map((x) => fromDecToHex(x, true)),
   ];
 
-  const c = proof.pi_c.slice(0, 2).map((x) => fromDecToHex(x, true));
+  const c = proof.pi_c.slice(0, 2).map((x: any) => fromDecToHex(x, true));
   return [a, b, c];
 }
 
 // this function processes the public inputs
 export function processPublicSignals(publicSignals: any) {
-  return publicSignals.map((x) => fromDecToHex(x, true));
+  return publicSignals.map((x: any) => fromDecToHex(x, true));
 }
-
-export const zkCertificateFieldOrder = [
-  'surname',
-  'forename',
-  'middlename',
-  'yearOfBirth',
-  'monthOfBirth',
-  'dayOfBirth',
-  'verificationLevel',
-  'expirationDate',
-  'holderCommitment',
-  'providerSignature',
-  'randomSalt',
-  'streetAndNumber',
-  'postcode',
-  'town',
-  'region',
-  'country',
-];

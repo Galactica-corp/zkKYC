@@ -9,6 +9,7 @@ typechain-types
 cache
 artifacts
 
+<<<<<<< HEAD
 #yarn related
 .yarn
 
@@ -23,6 +24,8 @@ typechain-types
 cache
 artifacts
 
+=======
+>>>>>>> main
 # circom and snarkjs
 circuits/build
 

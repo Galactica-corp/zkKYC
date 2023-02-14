@@ -17,3 +17,13 @@ Before you can set test input variables in `circuits/init.json`.
 ```shell
 npx hardhat circom --verbose
 ```
+To compile the library functions into a node module, you can run:
+```shell
+npm run build
+```
+
+## Test
+Run unit and integration tests for circuits, library functions and smart contracts.
+```shell
+npm run test
+```
