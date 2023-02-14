@@ -6,7 +6,8 @@ import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
 import { ZKCertificate } from '../../lib/zkCertificate';
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { ZkCertStandard } from '../../lib';
 
 describe('Authorization Component', () => {
   let circuit: CircuitTestUtils;
@@ -54,8 +55,9 @@ describe('Authorization Component', () => {
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
+    const holderCommitment = await createHolderCommitment(eddsa, holderEdDSAKey);
     const userAddress = sampleInput.userAddress;
-    let zkKYC = new ZKCertificate(holderEdDSAKey, eddsa.poseidon, eddsa);
+    let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 0);
     const authorizationProof = zkKYC.getAuthorizationProofInput(
       holderEdDSAKey,
       userAddress

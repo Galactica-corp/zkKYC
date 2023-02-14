@@ -1,17 +1,12 @@
 import { buildEddsa } from 'circomlibjs';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import fs from 'fs';
+import { ZkCertStandard } from '../lib';
 
-/**
- * @description Script for creating a zkKYC certificate
- */
-async function main() {
-  BigInt.prototype.toJSON = function () {
-    return this.toString();
-  };
+export async function generateZKKYCInput() {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -20,8 +15,9 @@ async function main() {
   const [holder, user] = await ethers.getSigners();
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
+  const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(holderEdDSAKey, eddsa.poseidon, eddsa);
+  let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 1773);
 
   // create json output file for ownership test
   let ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
@@ -29,6 +25,8 @@ async function main() {
     holderEdDSAKey,
     user.address
   );
+  
+  const currentTimestamp = Math.floor(Date.now() / 1000);
 
   // sample field inputs
   let fields = {
@@ -41,8 +39,6 @@ async function main() {
     verificationLevel: '1',
     expirationDate: 1769736098,
     holderCommitment: zkKYC.holderCommitment,
-    providerSignature: '0xd52eD52d3C37b7f62b13dC2a613D3e99bDC47602',
-    randomSalt: '1773',
     streetAndNumber: '23423453234234',
     postcode: '23423453234234',
     town: '23423453234234',
@@ -67,12 +63,21 @@ async function main() {
   let merkleProof = merkleTree.createProof(leafHash);
 
   //construct the zkKYC inputs
-  let zkKYCInput = { ...fields };
+  let zkKYCInput: any = { ...fields };
+
+  // general zkCert fields
+  zkKYCInput.holderCommitment = zkKYC.holderCommitment;
+  zkKYCInput.randomSalt = zkKYC.randomSalt;
+  zkKYCInput.providerAx = zkKYC.providerData.Ax;
+  zkKYCInput.providerAy = zkKYC.providerData.Ay;
+  zkKYCInput.providerS = zkKYC.providerData.S;
+  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
+  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
 
   zkKYCInput.pathElements = merkleProof.path;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
   zkKYCInput.root = merkleRoot;
-  zkKYCInput.currentTime = zkKYCInput.expirationDate - 10;
+  zkKYCInput.currentTime = currentTimestamp;
 
   // add ownership proof inputs
   zkKYCInput.Ax = ownershipProofInput.Ax;
@@ -87,11 +92,19 @@ async function main() {
   zkKYCInput.R8x2 = authorizationProofInput.R8x;
   zkKYCInput.R8y2 = authorizationProofInput.R8y;
 
-  console.log(zkKYCInput);
+  return zkKYCInput;
+}
+
+
+/**
+ * @description Script for creating proof input for a zkKYC certificate
+ */
+async function main() {
+  const zkKYCInput = await generateZKKYCInput();
 
   fs.writeFileSync(
     './circuits/input/zkKYC.json',
-    JSON.stringify(zkKYCInput),
+    JSON.stringify(zkKYCInput, null, 2),
     'utf8'
   );
 }

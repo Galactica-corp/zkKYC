@@ -11,7 +11,10 @@ include "./ownership.circom";
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
 */
 template ZKKYC(levels){
-    // zkKYC infos
+    signal input holderCommitment;
+    signal input randomSalt;
+
+    // zkKYC data fields
     signal input surname;
     signal input forename;
     signal input middlename;
@@ -20,14 +23,21 @@ template ZKKYC(levels){
     signal input dayOfBirth;
     signal input verificationLevel;
     signal input expirationDate;
-    signal input holderCommitment;
-    signal input providerSignature;
-    signal input randomSalt;
     signal input streetAndNumber;
     signal input postcode;
     signal input town;
     signal input region;
     signal input country;
+
+    // pub key of the provider
+    signal input providerAx;
+    signal input providerAy;
+
+    // provider's EdDSA signature of the leaf hash
+    signal input providerS;
+    signal input providerR8x;
+    signal input providerR8y;
+    // TODO: check that the signature is valid
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -73,26 +83,32 @@ template ZKKYC(levels){
     authorization.R8x <== R8x2;
     authorization.R8y <== R8y2; 
 
+    // content hash for zkKYC data
+    component contentHash = Poseidon(13);
+    contentHash.inputs[0] <== surname;
+    contentHash.inputs[1] <== forename;
+    contentHash.inputs[2] <== middlename;
+    contentHash.inputs[3] <== yearOfBirth;
+    contentHash.inputs[4] <== monthOfBirth;
+    contentHash.inputs[5] <== dayOfBirth;
+    contentHash.inputs[6] <== verificationLevel;
+    contentHash.inputs[7] <== expirationDate;
+    contentHash.inputs[8] <== streetAndNumber;
+    contentHash.inputs[9] <== postcode;
+    contentHash.inputs[10] <== town;
+    contentHash.inputs[11] <== region;
+    contentHash.inputs[12] <== country;
+
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
-    _zkCertHash.surname <== surname;
-    _zkCertHash.forename <== forename;
-    _zkCertHash.middlename <== middlename;
-    _zkCertHash.yearOfBirth <== yearOfBirth;
-    _zkCertHash.monthOfBirth <== monthOfBirth;
-    _zkCertHash.dayOfBirth <== dayOfBirth;
-    _zkCertHash.verificationLevel <== verificationLevel;
-    _zkCertHash.expirationDate <== expirationDate;
+    _zkCertHash.contentHash <== contentHash.out;
+    _zkCertHash.providerAx <== providerAx;
+    _zkCertHash.providerAy <== providerAy;
+    _zkCertHash.providerS <== providerS;
+    _zkCertHash.providerR8x <== providerR8x;
+    _zkCertHash.providerR8y <== providerR8y;
     _zkCertHash.holderCommitment <== holderCommitment;
-    _zkCertHash.providerSignature <== providerSignature;
     _zkCertHash.randomSalt <== randomSalt;
-    _zkCertHash.streetAndNumber <== streetAndNumber;
-    _zkCertHash.postcode <== postcode;
-    _zkCertHash.town <== town;
-    _zkCertHash.region <== region;
-    _zkCertHash.country <== country;
-
-
 
     // use the merkle proof component to calculate the root
     component _merkleProof = MerkleProof(levels);

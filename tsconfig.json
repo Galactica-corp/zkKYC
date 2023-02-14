@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
+    "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -10,5 +11,17 @@
       "node_modules/@types",
       "types"
     ],
-  }
+    "outDir": "./dist",
+  },
+  "include": [
+    "./hardhat.config.ts",
+    "./index.ts",
+    "./lib/*",
+    "./types/*",
+    "./scripts/*",
+    "./tasks/*",
+    // "./test/contracts/*",
+    // "./test/circuits/*",
+    "index.ts"
+  ],
 }
