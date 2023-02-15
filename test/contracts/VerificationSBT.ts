@@ -14,7 +14,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const snarkjs = require('snarkjs');
 import { readFileSync } from 'fs';
-import { buildPoseidon } from "circomlibjs";
+import { buildPoseidon } from 'circomlibjs';
 const hre = require('hardhat');
 import {
   fromDecToHex,
@@ -22,6 +22,15 @@ import {
   processPublicSignals,
   fromHexToBytes32,
 } from '../../lib/helpers';
+import { decryptFraudInvestigationData } from '../../lib/SBTData';
+import {
+  getEddsaKeyFromEthSigner,
+  createHolderCommitment,
+} from '../../lib/keyManagement';
+import { ZKCertificate } from '../../lib/zkCertificate';
+import { ZkCertStandard } from '../../lib';
+
+import { buildEddsa } from 'circomlibjs';
 
 const { expect } = chai;
 
@@ -36,14 +45,16 @@ describe('Verification SBT Smart contract', async () => {
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let randomUser: SignerWithAddress;
+  let encryptionAccount: SignerWithAddress;
+  let institution: SignerWithAddress;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, randomUser] = await hre.ethers.getSigners();
+    [deployer, user, encryptionAccount, institution] =
+      await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
@@ -82,17 +93,21 @@ describe('Verification SBT Smart contract', async () => {
       'VerificationSBT',
       deployer
     );
-    verificationSBT = (await verificationSBTFactory.deploy()) as VerificationSBT;
+    verificationSBT =
+      (await verificationSBTFactory.deploy()) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'MockDApp',
       deployer
     );
-    mockDApp = (await mockDAppFactory.deploy(verificationSBT.address, ageProofZkKYC.address)) as MockDApp;
+    mockDApp = (await mockDAppFactory.deploy(
+      verificationSBT.address,
+      ageProofZkKYC.address
+    )) as MockDApp;
 
     const mockTokenFactory = await ethers.getContractFactory(
-        'MockToken',
-        deployer
+      'MockToken',
+      deployer
     );
 
     token1 = await mockTokenFactory.deploy(mockDApp.address);
@@ -101,7 +116,6 @@ describe('Verification SBT Smart contract', async () => {
     await mockDApp.setToken1(token1.address);
     await mockDApp.setToken2(token2.address);
 
-    
     // inputs to create proof
     sampleInput = JSON.parse(
       readFileSync('./circuits/input/ageProofZkKYC.json', 'utf8')
@@ -111,17 +125,23 @@ describe('Verification SBT Smart contract', async () => {
     sampleInput.dAppID = mockDApp.address;
     // now we need to recalculate the humanID
     const fieldOrder = [
-        "surname",
-        "forename",
-        "middlename",
-        "yearOfBirth",
-        "monthOfBirth",
-        "dayOfBirth",
-        "passportID",
-        "dAppID"
+      'surname',
+      'forename',
+      'middlename',
+      'yearOfBirth',
+      'monthOfBirth',
+      'dayOfBirth',
+      'passportID',
+      'dAppID',
     ];
     let poseidon = await buildPoseidon();
-    sampleInput.humanID = poseidon.F.toObject(poseidon(fieldOrder.map(field => sampleInput[field]), undefined, 1)).toString();
+    sampleInput.humanID = poseidon.F.toObject(
+      poseidon(
+        fieldOrder.map((field) => sampleInput[field]),
+        undefined,
+        1
+      )
+    ).toString();
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -146,7 +166,9 @@ describe('Verification SBT Smart contract', async () => {
 
     // set the galactica institution pub key
     const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
-    await mockGalacticaInstitution.setInstitutionPubkey(galacticaInstitutionPubKey);
+    await mockGalacticaInstitution.setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
@@ -158,22 +180,82 @@ describe('Verification SBT Smart contract', async () => {
     await mockDApp.connect(user).airdropToken(1, a, b, c, publicInputs);
 
     // check that the verification SBT is created
-    expect(await verificationSBT.isVerificationSBTValid(user.address, mockDApp.address)).to.be.equal(true);
+    expect(
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        mockDApp.address
+      )
+    ).to.be.equal(true);
 
     // data is stored for the correct humanID
-    expect(await mockDApp.hasReceivedToken1(fromHexToBytes32(fromDecToHex(sampleInput.humanID)))).to.be.equal(true); 
+    expect(
+      await mockDApp.hasReceivedToken1(
+        fromHexToBytes32(fromDecToHex(sampleInput.humanID))
+      )
+    ).to.be.equal(true);
 
     // check the content of the verification SBT
-    const verificationSBTInfo = await verificationSBT.getVerificationSBTInfo(user.address, mockDApp.address);
+    const verificationSBTInfo = await verificationSBT.getVerificationSBTInfo(
+      user.address,
+      mockDApp.address
+    );
     expect(verificationSBTInfo.dApp).to.be.equal(mockDApp.address);
-    expect(verificationSBTInfo.verifierWrapper).to.be.equal(ageProofZkKYC.address);
-    expect(verificationSBTInfo.encryptedData[0]).to.be.equal(fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[0])));
-    expect(verificationSBTInfo.encryptedData[1]).to.be.equal(fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[1])));
+    expect(verificationSBTInfo.verifierWrapper).to.be.equal(
+      ageProofZkKYC.address
+    );
+    expect(verificationSBTInfo.encryptedData[0]).to.be.equal(
+      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[0]))
+    );
+    expect(verificationSBTInfo.encryptedData[1]).to.be.equal(
+      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[1]))
+    );
 
     // check that the verificationSBT can be used to receive the second token without proof
-    await mockDApp.connect(user).airdropToken(2, [0,0], [[0,0], [0,0]], [0,0], publicInputs);
-    expect(await mockDApp.hasReceivedToken2(fromHexToBytes32(fromDecToHex(sampleInput.humanID)))).to.be.equal(true); 
+    await mockDApp.connect(user).airdropToken(
+      2,
+      [0, 0],
+      [
+        [0, 0],
+        [0, 0],
+      ],
+      [0, 0],
+      publicInputs
+    );
+    expect(
+      await mockDApp.hasReceivedToken2(
+        fromHexToBytes32(fromDecToHex(sampleInput.humanID))
+      )
+    ).to.be.equal(true);
 
+    // test decryption
 
+    const galaInstitutionPriv = BigInt(
+      await getEddsaKeyFromEthSigner(institution)
+    ).toString();
+    const userPriv = BigInt(
+      await getEddsaKeyFromEthSigner(encryptionAccount)
+    ).toString();
+
+    const eddsa = await buildEddsa();
+    const userPub = eddsa.prv2pub(userPriv);
+    const decryptedData = await decryptFraudInvestigationData(
+      galaInstitutionPriv,
+      userPub,
+      verificationSBTInfo.encryptedData
+    );
+
+    expect(decryptedData[0]).to.be.equal(sampleInput.providerAx);
+
+    const holderEdDSAKey = await getEddsaKeyFromEthSigner(deployer);
+    const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
+    let zkKYC = new ZKCertificate(
+      holderCommitment,
+      ZkCertStandard.zkKYC,
+      eddsa,
+      1773
+    );
+    zkKYC.setFields(sampleInput);
+
+    expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
   });
 });

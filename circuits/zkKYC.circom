@@ -88,7 +88,7 @@ template ZKKYC(levels){
     ownership.S <== S;
     ownership.R8x <== R8x;
     ownership.R8y <== R8y;
-
+    
     ownership.valid === 1;
 
     component authorization = Authorization();
@@ -144,7 +144,7 @@ template ZKKYC(levels){
     _encryptionProof.senderPubKey[1] <== userPubKey[1];
     _encryptionProof.receiverPubKey[0] <== investigationInstitutionPubKey[0];
     _encryptionProof.receiverPubKey[1] <== investigationInstitutionPubKey[1];
-    _encryptionProof.msg[0] <== providerSignature;
+    _encryptionProof.msg[0] <== providerAx;
     _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
 
     _encryptionProof.encryptedMsg[0] === encryptedData[0];
@@ -159,7 +159,7 @@ template ZKKYC(levels){
     calculateHumanId.dayOfBirth <== dayOfBirth;
     calculateHumanId.passportID <== passportID;
     calculateHumanId.dAppID <== dAppID;
-
+    
     calculateHumanId.humanID === humanID;
 
     // check that the time has not expired
@@ -168,7 +168,4 @@ template ZKKYC(levels){
     timeHasntPassed.in[1] <== currentTime;
 
     valid <== timeHasntPassed.out;
-
-
-
 }

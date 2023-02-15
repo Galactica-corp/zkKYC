@@ -27,7 +27,11 @@ describe('zkKYC Circuit Component', () => {
       sanityCheck
     );
 
-    assert.propertyVal(witness, 'main.randomSalt', sampleInput.randomSalt.toString());
+    assert.propertyVal(
+      witness,
+      'main.randomSalt',
+      sampleInput.randomSalt.toString()
+    );
     assert.propertyVal(
       witness,
       'main.pathIndices',

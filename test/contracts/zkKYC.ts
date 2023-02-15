@@ -256,7 +256,6 @@ describe('zkKYC SC', async () => {
     const publicRoot = publicSignals[1];
     const publicTime = parseInt(publicSignals[2], 10);
     // set the merkle root to the correct one
-
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
@@ -265,7 +264,10 @@ describe('zkKYC SC', async () => {
     await hre.network.provider.send('evm_mine');
 
     // set the incorrect galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[6] + 1, publicSignals[7]];
+    const galacticaInstitutionPubKey = [
+      (BigInt(publicSignals[6]) + BigInt('1')).toString(),
+      publicSignals[7],
+    ];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );

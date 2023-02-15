@@ -37,7 +37,11 @@ describe('Calculate zkCert Hash Circuit Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.holderCommitment', sampleInput.holderCommitment);
+    assert.propertyVal(
+      witness,
+      'main.holderCommitment',
+      sampleInput.holderCommitment
+    );
     assert.propertyVal(witness, 'main.contentHash', sampleInput.contentHash);
     // check resulting root as output
     assert.propertyVal(witness, 'main.zkCertHash', expectedHash);

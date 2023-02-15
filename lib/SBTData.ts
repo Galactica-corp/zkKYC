@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import { generateEcdhSharedKey } from './keyManagement';
 import { buildEddsa } from 'circomlibjs';
-import { buildMimcSponge } from '../../lib/mimcEncrypt';
+import { buildMimcSponge } from './mimcEncrypt';
 
 /**
  * @description Generates encrypted data for fraud investigation
@@ -12,41 +12,45 @@ import { buildMimcSponge } from '../../lib/mimcEncrypt';
  * @param zkCertHash:
  * @return encryptedData
  */
-export async function calculateEncryptedData(
-  galaInstitutionPubKey: ,
-  userPrivKey: BigInt,
-  providerPubKey,
-  zkCertHash
+export async function encryptFraudInvestigationData(
+  galaInstitutionPub: string[],
+  userPrivKey: string,
+  providerPubKey: string,
+  zkCertHash: string
 ) {
   const eddsa = await buildEddsa();
   const sharedKey = generateEcdhSharedKey(
     userPrivKey,
-    galaInstitutionPubKey,
+    galaInstitutionPub,
     eddsa
   );
   const mimcjs = await buildMimcSponge();
-    const result = mimcjs.encrypt(providerPubKey, zkCertHash, sharedKey[0]);
-    return result.map((p: any) => eddsa.poseidon.F.toObject(p).toString()
-}
-export async function getEddsaKeyFromEthSigner(
-  signer: SignerWithAddress
-): Promise<string> {
-  return signer.signMessage(eddsaKeyGenerationMessage);
-}
-async function main() {
-  const [sender, receiver] = await ethers.getSigners();
-
-  const senderPriv = BigInt(await getEddsaKeyFromEthSigner(sender)).toString();
-  const receiverPriv = BigInt(
-    await getEddsaKeyFromEthSigner(receiver)
-  ).toString();
-  console.log(senderPriv);
-  console.log(receiverPriv);
+  const result = mimcjs.encrypt(providerPubKey, zkCertHash, sharedKey[0]);
+  return [
+    eddsa.poseidon.F.toObject(result.xL).toString(),
+    eddsa.poseidon.F.toObject(result.xR).toString(),
+  ];
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+export async function decryptFraudInvestigationData(
+  galaInstitutionPrivKey: string,
+  userPubKey: string[],
+  encryptedData: string[]
+) {
+  const eddsa = await buildEddsa();
+  const sharedKey = generateEcdhSharedKey(
+    galaInstitutionPrivKey,
+    userPubKey,
+    eddsa
+  );
+  const mimcjs = await buildMimcSponge();
+  const result = mimcjs.decrypt(
+    encryptedData[0],
+    encryptedData[1],
+    sharedKey[0]
+  );
+  return [
+    eddsa.poseidon.F.toObject(result.xL).toString(),
+    eddsa.poseidon.F.toObject(result.xR).toString(),
+  ];
+}

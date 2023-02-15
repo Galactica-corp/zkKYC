@@ -34,7 +34,7 @@ describe('Encryption Proof', () => {
     await circuit.checkConstraints(witness);
   });
 
-  it.only('generates unique shared ECDH key for sender and receiver', async () => {
+  it('generates unique shared ECDH key for sender and receiver', async () => {
     const [sender, receiver] = await ethers.getSigners();
     const msg = ['42', '69'];
 
@@ -46,7 +46,9 @@ describe('Encryption Proof', () => {
     ).toString();
 
     const senderPub = eddsa.prv2pub(senderPriv);
+
     const receiverPub = eddsa.prv2pub(receiverPriv);
+
 
     const sharedKey = generateEcdhSharedKey(senderPriv, receiverPub, eddsa);
 
@@ -66,8 +68,6 @@ describe('Encryption Proof', () => {
     );
 
     const expectedResult = mimcjs.encrypt(msg[0], msg[1], sharedKey[0]);
-    console.log(expectedResult);
-    console.log(eddsa.poseidon.F.toObject(expectedResult.xL).toString());
 
     assert.propertyVal(
       witness,
