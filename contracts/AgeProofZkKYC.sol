@@ -32,7 +32,7 @@ contract AgeProofZkKYC is Ownable{
     }
 
     //a, b, c are the proof
-    // input array contains the public parameters: isValid, root, currentTime, currentYear, currentMonth, currentDay, ageThreshold
+    // input array contains the public parameters: isValid, root, currentTime, userAddress, currentYear, currentMonth, currentDay, ageThreshold, userPubKey, investigationInstitutionPubKey, encryptedData, humanID, dAppID
     function verifyProof(
             uint[2] memory a,
             uint[2][2] memory b,
