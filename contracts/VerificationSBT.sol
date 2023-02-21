@@ -27,6 +27,7 @@ contract VerificationSBT {
     event VerificationSBTMinted(address indexed dApp, address indexed user, bytes32 indexed humanID);
 
     function mintVerificationSBT(address user, IVerifierWrapper _verifierWrapper, uint _expirationTime, bytes32[2] calldata _encryptedData, uint256[2] calldata _userPubKey, bytes32 _humanID) public {
+        // The msg.sender is included in the key, so that each dApp can only mint SBTs corresponding to it
         VerificationSBTMapping[keccak256(abi.encode(user, msg.sender))] = VerificationSBTInfo({
             dApp: msg.sender,
             verifierWrapper: _verifierWrapper, 
