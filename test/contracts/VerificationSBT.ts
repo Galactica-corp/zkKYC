@@ -9,6 +9,7 @@ import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacti
 import { AgeProofZkKYCVerifier } from '../../typechain-types/AgeProofZkKYCVerifier';
 import { MockDApp } from '../../typechain-types/mock/MockDApp';
 import { VerificationSBT } from '../../typechain-types/VerificationSBT';
+import { fieldOrder } from '../../lib/helpers';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -123,17 +124,7 @@ describe('Verification SBT Smart contract', async () => {
 
     // we need to change the dAppID to the address of the MockDApp created here
     sampleInput.dAppID = mockDApp.address;
-    // now we need to recalculate the humanID
-    const fieldOrder = [
-      'surname',
-      'forename',
-      'middlename',
-      'yearOfBirth',
-      'monthOfBirth',
-      'dayOfBirth',
-      'passportID',
-      'dAppID',
-    ];
+
     let poseidon = await buildPoseidon();
     sampleInput.humanID = poseidon.F.toObject(
       poseidon(

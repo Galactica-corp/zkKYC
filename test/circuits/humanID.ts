@@ -2,24 +2,15 @@ import { assert, expect } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
-import { buildPoseidon } from "circomlibjs";
-
+import { buildPoseidon } from 'circomlibjs';
+import { fieldOrder } from '../../lib/helpers';
 describe('HumanID Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
     readFileSync('./circuits/input/humanID.json', 'utf8')
   );
-  const fieldOrder = [
-    "surname",
-    "forename",
-    "middlename",
-    "yearOfBirth",
-    "monthOfBirth",
-    "dayOfBirth",
-    "passportID",
-    "dAppID"
-  ];
+
   let expectedID: string;
 
   const sanityCheck = true;
@@ -28,7 +19,13 @@ describe('HumanID Component', () => {
     circuit = await hre.circuitTest.setup('humanID');
 
     let poseidon = await buildPoseidon();
-    expectedID = poseidon.F.toObject(poseidon(fieldOrder.map(field => sampleInput[field]), undefined, 1)).toString();
+    expectedID = poseidon.F.toObject(
+      poseidon(
+        fieldOrder.map((field) => sampleInput[field]),
+        undefined,
+        1
+      )
+    ).toString();
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -42,7 +39,11 @@ describe('HumanID Component', () => {
       sanityCheck
     );
     assert.propertyVal(witness, 'main.surname', sampleInput.surname);
-    assert.propertyVal(witness, 'main.yearOfBirth', sampleInput.yearOfBirth.toString());
+    assert.propertyVal(
+      witness,
+      'main.yearOfBirth',
+      sampleInput.yearOfBirth.toString()
+    );
     assert.propertyVal(witness, 'main.passportID', sampleInput.passportID);
     assert.propertyVal(witness, 'main.dAppID', sampleInput.dAppID);
     // check resulting output

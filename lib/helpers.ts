@@ -14,7 +14,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 export async function overwriteArtifact(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
-  bytecode: string,
+  bytecode: string
 ): Promise<void> {
   const artifact = await hre.artifacts.readArtifact(contractName);
   artifact.bytecode = bytecode;
@@ -62,14 +62,17 @@ export function generateRandomBytes32Array(length: number): Uint8Array[] {
  * @param poseidon poseidon object for hashing (passed to avoid rebuilding with await)
  * @returns field number as BigNumber
  */
-export function hashStringToFieldNumber(input: string, poseidon: any): BigNumber {
+export function hashStringToFieldNumber(
+  input: string,
+  poseidon: any
+): BigNumber {
   // prepare string for hashing (poseidon requires an array of 1 to 16 numbers
   // to allow strings longer than 16, we compress 4 characters into one 32 bit number
   const maxLength = 16 * 4;
   if (input.length > maxLength) {
     throw new Error(`Input string too long (max ${maxLength} characters)`);
   }
-  
+
   let inputArray: number[] = [];
   if (input.length == 0) {
     inputArray = [0];
@@ -80,18 +83,18 @@ export function hashStringToFieldNumber(input: string, poseidon: any): BigNumber
       if (i + j < input.length) {
         const char = input.charCodeAt(i + j);
         if (char > 255) {
-          throw new Error(`Input string ${input} contains non-ascii character '${char}'`);
+          throw new Error(
+            `Input string ${input} contains non-ascii character '${char}'`
+          );
         }
         // shift bits into position (first character is in the most significant bits)
-        charCode |= char << (8 * (3-j));
+        charCode |= char << (8 * (3 - j));
       }
-    } 
+    }
     inputArray.push(charCode);
   }
-  
-  return poseidon.F.toObject(
-    poseidon(inputArray, undefined, 1)
-  ).toString();
+
+  return poseidon.F.toObject(poseidon(inputArray, undefined, 1)).toString();
 }
 
 /**
@@ -154,3 +157,14 @@ export function processProof(proof: any) {
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((x: any) => fromDecToHex(x, true));
 }
+
+export const fieldOrder = [
+  'surname',
+  'forename',
+  'middlename',
+  'yearOfBirth',
+  'monthOfBirth',
+  'dayOfBirth',
+  'passportID',
+  'dAppID',
+];
