@@ -12,6 +12,7 @@ import { VerificationSBT } from '../../typechain-types/VerificationSBT';
 import { fieldOrder } from '../../lib/helpers';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
 
 const snarkjs = require('snarkjs');
 import { readFileSync } from 'fs';
@@ -118,9 +119,18 @@ describe('Verification SBT Smart contract', async () => {
     await mockDApp.setToken2(token2.address);
 
     // inputs to create proof
-    sampleInput = JSON.parse(
-      readFileSync('./circuits/input/ageProofZkKYC.json', 'utf8')
-    );
+    sampleInput = await generateZKKYCInput();
+    const today = new Date(Date.now());
+    sampleInput.currentYear = today.getUTCFullYear();
+    sampleInput.currentMonth = today.getUTCMonth() + 1;
+    sampleInput.currentDay = today.getUTCDate();
+    sampleInput.ageThreshold = 18;
+
+    // advance time a bit to set it later in the test
+    sampleInput.currentTime += 100;
+
+    // get signer object authorized to use the zkKYC record
+    user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
     // we need to change the dAppID to the address of the MockDApp created here
     sampleInput.dAppID = mockDApp.address;
