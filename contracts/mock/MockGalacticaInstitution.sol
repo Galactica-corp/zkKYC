@@ -1,5 +1,6 @@
 pragma solidity ^0.8.0;
 
+/// @author Galactica dev team
 contract MockGalacticaInstitution {
 
     uint[2] public institutionPubKey;

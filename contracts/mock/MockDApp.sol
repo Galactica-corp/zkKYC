@@ -4,6 +4,7 @@ import "../VerificationSBT.sol";
 import "../interfaces/IAgeProofZkKYCVerifier.sol";
 import "../interfaces/IVerifierWrapper.sol";
 
+/// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
 //Only users with a valid zkKYC record and older than 18 can receive the airdrop
 //There are two things that we will test

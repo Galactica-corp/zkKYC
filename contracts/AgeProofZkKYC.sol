@@ -7,6 +7,8 @@ import "./libraries/BokkyPooBahsDateTimeLibrary.sol";
 import "./interfaces/IGalacticaInstitution.sol";
 import "hardhat/console.sol";
 
+/// @author Galactica dev team
+/// @title A wrapper for verifier with age condition
 contract AgeProofZkKYC is Ownable{
     IAgeProofZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;

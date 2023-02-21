@@ -14,7 +14,7 @@ import { KYCCenterRegistry } from "./KYCCenterRegistry.sol";
 
 /**
  * @title KYCRecordRegistry
- * @author modified from Railgun Contributors
+ * @author Galactica dev team
  * @notice Batch Incremental Merkle Tree for zkKYC records
  * Relevant external contract calls should be in those functions, not here
  */

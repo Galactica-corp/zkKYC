@@ -6,6 +6,8 @@ import "./interfaces/IZkKYCVerifier.sol";
 import "./interfaces/IKYCRegistry.sol";
 import "./interfaces/IGalacticaInstitution.sol";
 
+/// @author Galactica dev team
+/// @title a wrapper for verifier of ZkKYC record existence
 contract ZkKYC is Ownable{
     IZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;

@@ -3,9 +3,8 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/IVerifierWrapper.sol";
 
-
-// A global smart contract that store verification SBT, minted by dApp for users submitting zk proofs
-
+/// @author Galactica dev team
+/// @title A global smart contract that store verification SBT, minted by dApp for users submitting zk proofs
 contract VerificationSBT {
 
 
