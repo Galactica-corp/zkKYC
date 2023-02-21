@@ -99,6 +99,20 @@ template ZKKYC(levels){
     contentHash.inputs[11] <== region;
     contentHash.inputs[12] <== country;
 
+    // provider signature verification
+    component messageSignedByProvider = Poseidon(2);
+    messageSignedByProvider.inputs[0] = contentHash;
+    messageSignedByProvider.inputs[1] = holderCommitment;
+
+    component eddsa = EdDSAPoseidonVerifier()
+    eddsa.enabled <== 1;
+    eddsa.M <== messageSignedByProvider;
+    eddsa.Ax <== providerAx;
+    eddsa.Ay <== providerAy;
+    eddsa.S <== providerS;
+    eddsa.R8x <== providerR8x;
+    eddsa.R8y <== providerR8y;
+
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
     _zkCertHash.contentHash <== contentHash.out;
