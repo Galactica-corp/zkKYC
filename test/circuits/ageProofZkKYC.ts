@@ -2,18 +2,28 @@ import { assert, expect } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
+import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
 
 describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
-  const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/ageProofZkKYC.json', 'utf8')
-  );
+  let sampleInput: any;
 
   const sanityCheck = true;
 
   before(async () => {
     circuit = await hre.circuitTest.setup('ageProofZkKYC');
+    // inputs to create proof
+    sampleInput = await generateZKKYCInput();
+    const today = new Date(Date.now());
+    sampleInput.currentYear = today.getUTCFullYear();
+    sampleInput.currentMonth = today.getUTCMonth() + 1;
+    sampleInput.currentDay = today.getUTCDate();
+    sampleInput.ageThreshold = 18;
+
+    // advance time a bit to set it later in the test
+    sampleInput.currentTime += 100;
+
   });
 
   it('produces a witness with valid constraints', async () => {

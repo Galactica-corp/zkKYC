@@ -12,7 +12,7 @@ import { VerificationSBT } from '../../typechain-types/VerificationSBT';
 import { fieldOrder } from '../../lib/helpers';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { generateZKKYCInput, fields } from '../../scripts/generateZKKYCInput';
 
 const snarkjs = require('snarkjs');
 import { readFileSync } from 'fs';
@@ -49,13 +49,14 @@ describe('Verification SBT Smart contract', async () => {
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
   let institution: SignerWithAddress;
+  let KYCProvider: SignerWithAddress;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, encryptionAccount, institution] =
+    [deployer, user, encryptionAccount, institution, KYCProvider] =
       await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
@@ -204,9 +205,11 @@ describe('Verification SBT Smart contract', async () => {
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
       ageProofZkKYC.address
     );
+
     expect(verificationSBTInfo.encryptedData[0]).to.be.equal(
       fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[0]))
     );
+
     expect(verificationSBTInfo.encryptedData[1]).to.be.equal(
       fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[1]))
     );
@@ -255,7 +258,13 @@ describe('Verification SBT Smart contract', async () => {
       eddsa,
       1773
     );
-    zkKYC.setFields(sampleInput);
+
+    // set the fields in zkKYC object
+    zkKYC.setFields(fields);
+
+    const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+    let _ = zkKYC.getProviderData(providerEdDSAKey);
+
 
     expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
   });

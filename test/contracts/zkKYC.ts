@@ -199,7 +199,7 @@ describe('zkKYC SC', async () => {
     );
 
     const publicRoot = publicSignals[1];
-    const pulicTime = parseInt(publicSignals[2], 10);
+    const publicTime = parseInt(publicSignals[2], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -207,7 +207,7 @@ describe('zkKYC SC', async () => {
     );
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      pulicTime + 200,
+      publicTime + 200,
     ]);
 
     await hre.network.provider.send('evm_mine');

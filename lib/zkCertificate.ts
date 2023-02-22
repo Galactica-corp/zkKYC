@@ -163,15 +163,16 @@ export class ZKCertificate {
       throw new Error('Self check on EdDSA signature failed');
     }
 
-    return {
-      // public key of the holder
+    this.providerData = {
+      // public key of the provider
       Ax: this.fieldPoseidon.toObject(providerPubKeyEddsa[0]).toString(),
       Ay: this.fieldPoseidon.toObject(providerPubKeyEddsa[1]).toString(),
-      // signature of the holder
+      // signature of the provider
       S: sig.S.toString(),
       R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
       R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     };
+    return this.providerData;
   }
 
   /**

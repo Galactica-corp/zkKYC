@@ -12,6 +12,22 @@ import fs from 'fs';
 import { ZkCertStandard } from '../lib';
 import { Scalar } from 'ffjavascript';
 
+// sample field inputs
+export const fields = {
+  surname: '23742384',
+  forename: '23234234',
+  middlename: '12233937',
+  yearOfBirth: 1982,
+  monthOfBirth: 5,
+  dayOfBirth: 28,
+  verificationLevel: '1',
+  expirationDate: 1769736098,
+  streetAndNumber: '23423453234234',
+  postcode: '23423453234234',
+  town: '23423453234234',
+  region: '23423453234234',
+  country: '23423453234234',
+};
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -40,26 +56,21 @@ export async function generateZKKYCInput() {
 
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
-  // sample field inputs
-  let fields = {
-    surname: '23742384',
-    forename: '23234234',
-    middlename: '12233937',
-    yearOfBirth: 1982,
-    monthOfBirth: 5,
-    dayOfBirth: 28,
-    verificationLevel: '1',
-    expirationDate: 1769736098,
-    holderCommitment: zkKYC.holderCommitment,
-    streetAndNumber: '23423453234234',
-    postcode: '23423453234234',
-    town: '23423453234234',
-    region: '23423453234234',
-    country: '23423453234234',
-  };
-
   // set the fields in zkKYC object
   zkKYC.setFields(fields);
+
+  //construct the zkKYC inputs
+  let zkKYCInput: any = { ...fields };
+
+  // some default provider private key
+  // providerData needs to be created before leafHash computation
+  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+  const providerData = zkKYC.getProviderData(providerEdDSAKey);
+  zkKYCInput.providerAx = providerData.Ax;
+  zkKYCInput.providerAy = providerData.Ay;
+  zkKYCInput.providerS = providerData.S;
+  zkKYCInput.providerR8x = providerData.R8x;
+  zkKYCInput.providerR8y = providerData.R8y;
 
   // calculate zkKYC leaf hash
   let leafHash = zkKYC.leafHash;
@@ -94,21 +105,9 @@ export async function generateZKKYCInput() {
 
   let merkleProof = merkleTree.createProof(leafHash);
 
-  //construct the zkKYC inputs
-  let zkKYCInput: any = { ...fields };
-
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
-
-  // some default provider private key
-  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-  const providerData = zkKYC.getProviderData(providerEdDSAKey);
-  zkKYCInput.providerAx = providerData.Ax;
-  zkKYCInput.providerAy = providerData.Ay;
-  zkKYCInput.providerS = providerData.S;
-  zkKYCInput.providerR8x = providerData.R8x;
-  zkKYCInput.providerR8y = providerData.R8y;
 
   zkKYCInput.pathElements = merkleProof.path;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
