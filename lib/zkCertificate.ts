@@ -76,6 +76,12 @@ export class ZKCertificate {
     ).toString();
   }
 
+  get providerMessage(): string {
+    return this.poseidon.F.toObject(
+      this.poseidon([this.contentHash, this.holderCommitment], undefined, 1)
+    ).toString();
+  }
+
   get did(): string {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
@@ -129,6 +135,38 @@ export class ZKCertificate {
       // public key of the holder
       Ax: this.fieldPoseidon.toObject(holderPubKeyEddsa[0]).toString(),
       Ay: this.fieldPoseidon.toObject(holderPubKeyEddsa[1]).toString(),
+      // signature of the holder
+      S: sig.S.toString(),
+      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+    };
+  }
+  /**
+   * @description Create the input for the provider signature check of this zkCert
+   *
+   * @param providerKey EdDSA Private key of the KYC provider
+   * @returns ProviderData struct
+   */
+  public getProviderData(providerKey: string): ProviderData {
+    const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
+    const message: BigInt = this.fieldPoseidon.toObject(
+      this.poseidon([this.contentHash, this.holderCommitment])
+    );
+    // take modulo of the message to get it into the mod field supported by eddsa
+    const messageMod = this.fieldPoseidon.e(
+      Scalar.mod(message, eddsaPrimeFieldMod)
+    );
+    const sig = this.eddsa.signPoseidon(providerKey, messageMod);
+
+    // selfcheck
+    if (!this.eddsa.verifyPoseidon(messageMod, sig, providerPubKeyEddsa)) {
+      throw new Error('Self check on EdDSA signature failed');
+    }
+
+    return {
+      // public key of the holder
+      Ax: this.fieldPoseidon.toObject(providerPubKeyEddsa[0]).toString(),
+      Ay: this.fieldPoseidon.toObject(providerPubKeyEddsa[1]).toString(),
       // signature of the holder
       S: sig.S.toString(),
       R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),

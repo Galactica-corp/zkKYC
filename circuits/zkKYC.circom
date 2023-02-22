@@ -8,6 +8,7 @@ include "./authorization.circom";
 include "./ownership.circom";
 include "./encryptionProof.circom";
 include "./humanID.circom";
+include "./providerSignatureCheck.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
@@ -114,6 +115,16 @@ template ZKKYC(levels){
     contentHash.inputs[10] <== town;
     contentHash.inputs[11] <== region;
     contentHash.inputs[12] <== country;
+
+    // provider signature verification
+    component providerSignatureCheck = ProviderSignatureCheck();
+    providerSignatureCheck.contentHash <== contentHash.out;
+    providerSignatureCheck.holderCommitment <== holderCommitment;
+    providerSignatureCheck.providerAx <== providerAx;
+    providerSignatureCheck.providerAy <== providerAy;
+    providerSignatureCheck.providerS <== providerS;
+    providerSignatureCheck.providerR8x <== providerR8x;
+    providerSignatureCheck.providerR8y <== providerR8y;
 
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();

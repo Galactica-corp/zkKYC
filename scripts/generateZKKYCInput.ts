@@ -4,11 +4,13 @@ import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
   formatPrivKeyForBabyJub,
+  eddsaPrimeFieldMod,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import fs from 'fs';
 import { ZkCertStandard } from '../lib';
+import { Scalar } from 'ffjavascript';
 
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
@@ -16,7 +18,7 @@ export async function generateZKKYCInput() {
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user, encryptionAccount, institution] =
+  const [holder, user, encryptionAccount, institution, KYCProvider] =
     await ethers.getSigners();
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
@@ -98,11 +100,15 @@ export async function generateZKKYCInput() {
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
-  zkKYCInput.providerAx = zkKYC.providerData.Ax;
-  zkKYCInput.providerAy = zkKYC.providerData.Ay;
-  zkKYCInput.providerS = zkKYC.providerData.S;
-  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
-  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
+
+  // some default provider private key
+  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+  const providerData = zkKYC.getProviderData(providerEdDSAKey);
+  zkKYCInput.providerAx = providerData.Ax;
+  zkKYCInput.providerAy = providerData.Ay;
+  zkKYCInput.providerS = providerData.S;
+  zkKYCInput.providerR8x = providerData.R8x;
+  zkKYCInput.providerR8y = providerData.R8y;
 
   zkKYCInput.pathElements = merkleProof.path;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
