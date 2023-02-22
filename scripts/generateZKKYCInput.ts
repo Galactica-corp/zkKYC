@@ -1,10 +1,15 @@
 import { buildEddsa } from 'circomlibjs';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import {
+  createHolderCommitment,
+  getEddsaKeyFromEthSigner,
+  eddsaPrimeFieldMod,
+} from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import fs from 'fs';
 import { ZkCertStandard } from '../lib';
+import { Scalar } from 'ffjavascript';
 
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
@@ -12,12 +17,17 @@ export async function generateZKKYCInput() {
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user] = await ethers.getSigners();
+  const [holder, user, KYCProvider] = await ethers.getSigners();
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 1773);
+  let zkKYC = new ZKCertificate(
+    holderCommitment,
+    ZkCertStandard.zkKYC,
+    eddsa,
+    1773
+  );
 
   // create json output file for ownership test
   let ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
@@ -25,7 +35,7 @@ export async function generateZKKYCInput() {
     holderEdDSAKey,
     user.address
   );
-  
+
   const currentTimestamp = Math.floor(Date.now() / 1000);
 
   // sample field inputs
@@ -68,11 +78,15 @@ export async function generateZKKYCInput() {
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
-  zkKYCInput.providerAx = zkKYC.providerData.Ax;
-  zkKYCInput.providerAy = zkKYC.providerData.Ay;
-  zkKYCInput.providerS = zkKYC.providerData.S;
-  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
-  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
+
+  // some default provider private key
+  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+  const providerData = zkKYC.getProviderData(providerEdDSAKey);
+  zkKYCInput.providerAx = providerData.Ax;
+  zkKYCInput.providerAy = providerData.Ay;
+  zkKYCInput.providerS = providerData.S;
+  zkKYCInput.providerR8x = providerData.R8x;
+  zkKYCInput.providerR8y = providerData.R8y;
 
   zkKYCInput.pathElements = merkleProof.path;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
@@ -94,7 +108,6 @@ export async function generateZKKYCInput() {
 
   return zkKYCInput;
 }
-
 
 /**
  * @description Script for creating proof input for a zkKYC certificate

@@ -6,6 +6,7 @@ include "./merkleProof.circom";
 include "./calculateZkCertHash.circom";
 include "./authorization.circom";
 include "./ownership.circom";
+include "./providerSignatureCheck.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
@@ -100,18 +101,14 @@ template ZKKYC(levels){
     contentHash.inputs[12] <== country;
 
     // provider signature verification
-    component messageSignedByProvider = Poseidon(2);
-    messageSignedByProvider.inputs[0] = contentHash;
-    messageSignedByProvider.inputs[1] = holderCommitment;
-
-    component eddsa = EdDSAPoseidonVerifier()
-    eddsa.enabled <== 1;
-    eddsa.M <== messageSignedByProvider;
-    eddsa.Ax <== providerAx;
-    eddsa.Ay <== providerAy;
-    eddsa.S <== providerS;
-    eddsa.R8x <== providerR8x;
-    eddsa.R8y <== providerR8y;
+    component providerSignatureCheck = ProviderSignatureCheck();
+    providerSignatureCheck.contentHash <== contentHash.out;
+    providerSignatureCheck.holderCommitment <== holderCommitment;
+    providerSignatureCheck.providerAx <== providerAx;
+    providerSignatureCheck.providerAy <== providerAy;
+    providerSignatureCheck.providerS <== providerS;
+    providerSignatureCheck.providerR8x <== providerR8x;
+    providerSignatureCheck.providerR8y <== providerR8y;
 
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
