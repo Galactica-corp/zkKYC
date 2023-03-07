@@ -59,6 +59,8 @@ template AgeProofZkKYC(levels){
     signal input R8x2;
     signal input R8y2;
 
+
+
     // public variables related to age proof circuit
     signal input currentYear;
     signal input currentMonth;
@@ -66,6 +68,19 @@ template AgeProofZkKYC(levels){
 
     // age threshold
     signal input ageThreshold;
+
+    //inputs for encryption of fraud investigation data
+    signal input userPrivKey;
+    signal input userPubKey[2]; // should be public to check that it corresponds to user address
+    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+
+    //humanID related variable
+    //humanID as public input, so dApp can use it
+    signal input humanID;
+    signal input passportID;
+    //dAppID is public so it can be checked by the dApp
+    signal input dAppID;
 
     // final result
     signal output valid;
@@ -86,6 +101,14 @@ template AgeProofZkKYC(levels){
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
+    zkKYC.userPrivKey <== userPrivKey;
+    zkKYC.userPubKey[0] <== userPubKey[0];
+    zkKYC.userPubKey[1] <== userPubKey[1];
+    zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
+    zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
+    zkKYC.encryptedData[0] <== encryptedData[0];
+    zkKYC.encryptedData[1] <== encryptedData[1];
+    
     zkKYC.providerAx <== providerAx;
     zkKYC.providerAy <== providerAy;
     zkKYC.providerS <== providerS;
@@ -106,6 +129,9 @@ template AgeProofZkKYC(levels){
     zkKYC.S2 <== S2;
     zkKYC.R8x2 <== R8x2;
     zkKYC.R8y2 <== R8y2;
+    zkKYC.humanID <== humanID;
+    zkKYC.passportID <== passportID;
+    zkKYC.dAppID <== dAppID;
 
     component ageProof = AgeProof();
     ageProof.yearOfBirth <== yearOfBirth;

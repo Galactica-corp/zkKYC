@@ -1,5 +1,6 @@
 pragma solidity ^0.8.0;
 
+/// @author Galactica dev team
 contract MockKYCRegistry {
 
     bytes32 public merkleRoot;

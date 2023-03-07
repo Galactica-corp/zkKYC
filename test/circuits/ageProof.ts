@@ -37,7 +37,7 @@ describe('Age Proof Circuit Component', () => {
   });
 
   it('the proof is not valid if current year is small', async () => {
-      let forgedInput = {...sampleInput };
+    let forgedInput = { ...sampleInput };
     forgedInput.currentYear =
       forgedInput.yearOfBirth + forgedInput.ageThreshold - 1;
     const witness = await circuit.calculateLabeledWitness(

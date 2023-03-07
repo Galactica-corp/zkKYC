@@ -2,18 +2,17 @@ import { assert, expect } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
+import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
 
 describe('zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
-
-  const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/zkKYC.json', 'utf8')
-  );
+  let sampleInput: any;
 
   const sanityCheck = true;
 
   before(async () => {
     circuit = await hre.circuitTest.setup('zkKYC');
+    sampleInput = await generateZKKYCInput();
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -27,7 +26,11 @@ describe('zkKYC Circuit Component', () => {
       sanityCheck
     );
 
-    assert.propertyVal(witness, 'main.randomSalt', sampleInput.randomSalt.toString());
+    assert.propertyVal(
+      witness,
+      'main.randomSalt',
+      sampleInput.randomSalt.toString()
+    );
     assert.propertyVal(
       witness,
       'main.pathIndices',

@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
 
+/// @author Galactica dev team
+/// @title Smart contract storing whitelist of KYC providers
 contract KYCCenterRegistry is Ownable {
 
     mapping(address => bool) public KYCCenters;

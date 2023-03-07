@@ -6,6 +6,9 @@ include "./merkleProof.circom";
 include "./calculateZkCertHash.circom";
 include "./authorization.circom";
 include "./ownership.circom";
+include "./encryptionProof.circom";
+include "./humanID.circom";
+include "./providerSignatureCheck.circom";
 
 /*
 Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
@@ -62,7 +65,21 @@ template ZKKYC(levels){
     signal input R8x2;
     signal input R8y2;
 
+    //inputs for encryption of fraud investigation data
+    signal input userPrivKey;
+    signal input userPubKey[2]; // should be public to check that it corresponds to user address
+    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+
+    //humanID related variable
+    //humanID as public input, so dApp can use it
+    signal input humanID;
+    signal input passportID;
+    //dAppID is public so it can be checked by the dApp
+    signal input dAppID;
+
     signal output valid;
+
 
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
     component ownership = Ownership();
@@ -72,7 +89,7 @@ template ZKKYC(levels){
     ownership.S <== S;
     ownership.R8x <== R8x;
     ownership.R8y <== R8y;
-
+    
     ownership.valid === 1;
 
     component authorization = Authorization();
@@ -99,6 +116,16 @@ template ZKKYC(levels){
     contentHash.inputs[11] <== region;
     contentHash.inputs[12] <== country;
 
+    // provider signature verification
+    component providerSignatureCheck = ProviderSignatureCheck();
+    providerSignatureCheck.contentHash <== contentHash.out;
+    providerSignatureCheck.holderCommitment <== holderCommitment;
+    providerSignatureCheck.providerAx <== providerAx;
+    providerSignatureCheck.providerAy <== providerAy;
+    providerSignatureCheck.providerS <== providerS;
+    providerSignatureCheck.providerR8x <== providerR8x;
+    providerSignatureCheck.providerR8y <== providerR8y;
+
     // calculation using a Poseidon component
     component _zkCertHash = CalculateZkCertHash();
     _zkCertHash.contentHash <== contentHash.out;
@@ -121,11 +148,35 @@ template ZKKYC(levels){
     // check that the calculated root is equal to the public root
     root === _merkleProof.root;
 
+    //check that the encrypted fraud investigation data is correctly created
+    component _encryptionProof = encryptionProof();
+    _encryptionProof.senderPrivKey <== userPrivKey;
+    _encryptionProof.senderPubKey[0] <== userPubKey[0];
+    _encryptionProof.senderPubKey[1] <== userPubKey[1];
+    _encryptionProof.receiverPubKey[0] <== investigationInstitutionPubKey[0];
+    _encryptionProof.receiverPubKey[1] <== investigationInstitutionPubKey[1];
+    _encryptionProof.msg[0] <== providerAx;
+    _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
+
+    _encryptionProof.encryptedMsg[0] === encryptedData[0];
+    _encryptionProof.encryptedMsg[1] === encryptedData[1];
+
+    component calculateHumanId = HumanID();
+    calculateHumanId.surname <== surname;
+    calculateHumanId.forename <== forename;
+    calculateHumanId.middlename <== middlename;
+    calculateHumanId.yearOfBirth <== yearOfBirth;
+    calculateHumanId.monthOfBirth <== monthOfBirth;
+    calculateHumanId.dayOfBirth <== dayOfBirth;
+    calculateHumanId.passportID <== passportID;
+    calculateHumanId.dAppID <== dAppID;
+    
+    calculateHumanId.humanID === humanID;
+
     // check that the time has not expired
     component timeHasntPassed = GreaterThan(128);
     timeHasntPassed.in[0] <== expirationDate;
     timeHasntPassed.in[1] <== currentTime;
 
     valid <== timeHasntPassed.out;
-
 }

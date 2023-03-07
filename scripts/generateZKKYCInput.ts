@@ -1,23 +1,51 @@
 import { buildEddsa } from 'circomlibjs';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import {
+  createHolderCommitment,
+  getEddsaKeyFromEthSigner,
+  formatPrivKeyForBabyJub,
+  eddsaPrimeFieldMod,
+} from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import fs from 'fs';
 import { ZkCertStandard } from '../lib';
+import { Scalar } from 'ffjavascript';
 
+// sample field inputs
+export const fields = {
+  surname: '23742384',
+  forename: '23234234',
+  middlename: '12233937',
+  yearOfBirth: 1982,
+  monthOfBirth: 5,
+  dayOfBirth: 28,
+  verificationLevel: '1',
+  expirationDate: 1769736098,
+  streetAndNumber: '23423453234234',
+  postcode: '23423453234234',
+  town: '23423453234234',
+  region: '23423453234234',
+  country: '23423453234234',
+};
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user] = await ethers.getSigners();
+  const [holder, user, encryptionAccount, institution, KYCProvider] =
+    await ethers.getSigners();
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 1773);
+  let zkKYC = new ZKCertificate(
+    holderCommitment,
+    ZkCertStandard.zkKYC,
+    eddsa,
+    1773
+  );
 
   // create json output file for ownership test
   let ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
@@ -25,32 +53,47 @@ export async function generateZKKYCInput() {
     holderEdDSAKey,
     user.address
   );
-  
-  const currentTimestamp = Math.floor(Date.now() / 1000);
 
-  // sample field inputs
-  let fields = {
-    surname: '23742384',
-    forename: '23234234',
-    middlename: '12233937',
-    yearOfBirth: 1982,
-    monthOfBirth: 5,
-    dayOfBirth: 28,
-    verificationLevel: '1',
-    expirationDate: 1769736098,
-    holderCommitment: zkKYC.holderCommitment,
-    streetAndNumber: '23423453234234',
-    postcode: '23423453234234',
-    town: '23423453234234',
-    region: '23423453234234',
-    country: '23423453234234',
-  };
+  const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // set the fields in zkKYC object
   zkKYC.setFields(fields);
 
+  //construct the zkKYC inputs
+  let zkKYCInput: any = { ...fields };
+
+  // some default provider private key
+  // providerData needs to be created before leafHash computation
+  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+  const providerData = zkKYC.getProviderData(providerEdDSAKey);
+  zkKYCInput.providerAx = providerData.Ax;
+  zkKYCInput.providerAy = providerData.Ay;
+  zkKYCInput.providerS = providerData.S;
+  zkKYCInput.providerR8x = providerData.R8x;
+  zkKYCInput.providerR8y = providerData.R8y;
+
   // calculate zkKYC leaf hash
   let leafHash = zkKYC.leafHash;
+
+  let encryptionPrivKey = BigInt(
+    await getEddsaKeyFromEthSigner(encryptionAccount)
+  ).toString();
+  let institutionPrivKey = BigInt(
+    await getEddsaKeyFromEthSigner(institution)
+  ).toString();
+  let institutionPub = eddsa.prv2pub(institutionPrivKey);
+
+  let fraudInvestigationDataEncryptionProofInput =
+    await zkKYC.getFraudInvestigationDataEncryptionProofInput(
+      institutionPub,
+      encryptionPrivKey
+    );
+
+  let passportID = '3095472098';
+  //placeholder for now, later on we need to be able to change it to deployed dApp address on-chain
+  // probably the generateZKKYCInput will need to read inputs from a json file
+  let dAppID = '2093684589645';
+  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppID, passportID);
 
   // initiate an empty merkle tree
   let merkleTree = new MerkleTree(32, eddsa.poseidon);
@@ -62,17 +105,9 @@ export async function generateZKKYCInput() {
 
   let merkleProof = merkleTree.createProof(leafHash);
 
-  //construct the zkKYC inputs
-  let zkKYCInput: any = { ...fields };
-
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
-  zkKYCInput.providerAx = zkKYC.providerData.Ax;
-  zkKYCInput.providerAy = zkKYC.providerData.Ay;
-  zkKYCInput.providerS = zkKYC.providerData.S;
-  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
-  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
 
   zkKYCInput.pathElements = merkleProof.path;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
@@ -92,9 +127,22 @@ export async function generateZKKYCInput() {
   zkKYCInput.R8x2 = authorizationProofInput.R8x;
   zkKYCInput.R8y2 = authorizationProofInput.R8y;
 
+  // add fraud investigation data
+  zkKYCInput.userPrivKey =
+    fraudInvestigationDataEncryptionProofInput.userPrivKey;
+  zkKYCInput.userPubKey = fraudInvestigationDataEncryptionProofInput.userPubKey;
+  zkKYCInput.investigationInstitutionPubKey =
+    fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey;
+  zkKYCInput.encryptedData =
+    fraudInvestigationDataEncryptionProofInput.encryptedData;
+
+  // add humanID data
+  zkKYCInput.passportID = humanIDProofInput.passportID;
+  zkKYCInput.dAppID = humanIDProofInput.dAppID;
+  zkKYCInput.humanID = humanIDProofInput.humanID;
+
   return zkKYCInput;
 }
-
 
 /**
  * @description Script for creating proof input for a zkKYC certificate

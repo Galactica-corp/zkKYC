@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 pragma abicoder v2;
 
+/// @author Galactica dev team
 import { KYCRecordRegistry } from "../KYCRecordRegistry.sol";
 
 contract KYCRecordRegistryTest is KYCRecordRegistry {

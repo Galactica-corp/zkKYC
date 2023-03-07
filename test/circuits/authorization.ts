@@ -6,7 +6,10 @@ import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
 import { ZKCertificate } from '../../lib/zkCertificate';
-import { createHolderCommitment, getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import {
+  createHolderCommitment,
+  getEddsaKeyFromEthSigner,
+} from '../../lib/keyManagement';
 import { ZkCertStandard } from '../../lib';
 
 describe('Authorization Component', () => {
@@ -42,7 +45,7 @@ describe('Authorization Component', () => {
   it('identifies invalid signatures correctly', async () => {
     const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'userAddress'];
     for (let field of fieldsToChange) {
-      let forgedInput = {...sampleInput};
+      let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;
       await expect(
         circuit.calculateLabeledWitness(forgedInput, sanityCheck)
@@ -55,9 +58,17 @@ describe('Authorization Component', () => {
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
-    const holderCommitment = await createHolderCommitment(eddsa, holderEdDSAKey);
+    const holderCommitment = await createHolderCommitment(
+      eddsa,
+      holderEdDSAKey
+    );
     const userAddress = sampleInput.userAddress;
-    let zkKYC = new ZKCertificate(holderCommitment, ZkCertStandard.zkKYC, eddsa, 0);
+    let zkKYC = new ZKCertificate(
+      holderCommitment,
+      ZkCertStandard.zkKYC,
+      eddsa,
+      0
+    );
     const authorizationProof = zkKYC.getAuthorizationProofInput(
       holderEdDSAKey,
       userAddress

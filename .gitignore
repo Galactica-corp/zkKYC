@@ -9,7 +9,22 @@ typechain-types
 cache
 artifacts
 
+#yarn related
+.yarn
+
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache
+artifacts
+
 # circom and snarkjs
 circuits/build
+
 
 

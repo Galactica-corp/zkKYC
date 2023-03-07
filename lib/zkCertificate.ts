@@ -1,8 +1,10 @@
 import { Scalar, utils } from 'ffjavascript';
 
-import { eddsaPrimeFieldMod } from './keyManagement';
+import { eddsaPrimeFieldMod, formatPrivKeyForBabyJub } from './keyManagement';
 import { zkKYCContentFields } from './zkCertStandards';
 import { ZkCertStandard } from './zkCertStandards';
+import { encryptFraudInvestigationData } from './SBTData';
+import { buildEddsa } from 'circomlibjs';
 
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -14,7 +16,6 @@ export class ZKCertificate {
   protected fieldPoseidon: any;
 
   // fields of zkCert
-
 
   /**
    * @description Create a ZKCertificate
@@ -34,7 +35,13 @@ export class ZKCertificate {
     protected eddsa: any,
     public randomSalt: number,
     public fields: Record<string, any> = {}, // standardize field definitions
-    public providerData: ProviderData = {Ax: '0', Ay: '0', S: '0', R8x: '0', R8y: '0'},
+    public providerData: ProviderData = {
+      Ax: '0',
+      Ay: '0',
+      S: '0',
+      R8x: '0',
+      R8y: '0',
+    }
   ) {
     this.poseidon = eddsa.poseidon;
     this.fieldPoseidon = this.poseidon.F;
@@ -52,7 +59,8 @@ export class ZKCertificate {
 
   get leafHash(): string {
     return this.poseidon.F.toObject(
-      this.poseidon([ 
+      this.poseidon(
+        [
           this.contentHash,
           this.providerData.Ax,
           this.providerData.Ay,
@@ -60,11 +68,17 @@ export class ZKCertificate {
           this.providerData.R8x,
           this.providerData.R8y,
           this.holderCommitment,
-          this.randomSalt
+          this.randomSalt,
         ],
         undefined,
         1
       )
+    ).toString();
+  }
+
+  get providerMessage(): string {
+    return this.poseidon.F.toObject(
+      this.poseidon([this.contentHash, this.holderCommitment], undefined, 1)
     ).toString();
   }
 
@@ -81,7 +95,7 @@ export class ZKCertificate {
    * TODO: add encryption option
    * @returns JSON string
    */
-  public exportJson() : string {
+  public exportJson(): string {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
@@ -101,7 +115,7 @@ export class ZKCertificate {
    * @returns OwnershipProofInput struct
    */
   public getOwnershipProofInput(holderKey: string): OwnershipProofInput {
-    const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey)
+    const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
     const hashPubkey: BigInt = this.fieldPoseidon.toObject(
       this.poseidon([holderPubKeyEddsa[0], holderPubKeyEddsa[1]])
     );
@@ -112,9 +126,7 @@ export class ZKCertificate {
     const sig = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
     // selfcheck
-    if (
-      !this.eddsa.verifyPoseidon(hashPubkeyMsg, sig, holderPubKeyEddsa)
-    ) {
+    if (!this.eddsa.verifyPoseidon(hashPubkeyMsg, sig, holderPubKeyEddsa)) {
       throw new Error('Self check on EdDSA signature failed');
     }
 
@@ -128,6 +140,39 @@ export class ZKCertificate {
       R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
       R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     };
+  }
+  /**
+   * @description Create the input for the provider signature check of this zkCert
+   *
+   * @param providerKey EdDSA Private key of the KYC provider
+   * @returns ProviderData struct
+   */
+  public getProviderData(providerKey: string): ProviderData {
+    const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
+    const message: BigInt = this.fieldPoseidon.toObject(
+      this.poseidon([this.contentHash, this.holderCommitment])
+    );
+    // take modulo of the message to get it into the mod field supported by eddsa
+    const messageMod = this.fieldPoseidon.e(
+      Scalar.mod(message, eddsaPrimeFieldMod)
+    );
+    const sig = this.eddsa.signPoseidon(providerKey, messageMod);
+
+    // selfcheck
+    if (!this.eddsa.verifyPoseidon(messageMod, sig, providerPubKeyEddsa)) {
+      throw new Error('Self check on EdDSA signature failed');
+    }
+
+    this.providerData = {
+      // public key of the provider
+      Ax: this.fieldPoseidon.toObject(providerPubKeyEddsa[0]).toString(),
+      Ay: this.fieldPoseidon.toObject(providerPubKeyEddsa[1]).toString(),
+      // signature of the provider
+      S: sig.S.toString(),
+      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+    };
+    return this.providerData;
   }
 
   /**
@@ -151,7 +196,7 @@ export class ZKCertificate {
     const sig = this.eddsa.signPoseidon(holderKey, userAddress_);
 
     // selfcheck
-    const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey)
+    const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
     if (!this.eddsa.verifyPoseidon(userAddress, sig, holderPubKeyEddsa)) {
       throw new Error('Self check on EdDSA signature failed');
     }
@@ -165,6 +210,65 @@ export class ZKCertificate {
       S: sig.S.toString(),
       R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
       R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+    };
+  }
+
+  /**
+   * @description Create the input for the fraud investigation data encryption proof of this zkCert
+   *
+   * @param galaInstitutionPubKey
+   * @param userPrivKey
+   * @param providerPubKey
+   * @param zkCertHash
+   * @returns
+   */
+  public async getFraudInvestigationDataEncryptionProofInput(
+    institutionPub: string[],
+    userPrivKey: string
+  ): Promise<FraudInvestigationDataEncryptionProofInput> {
+    const eddsa = await buildEddsa();
+    const userPub = eddsa.prv2pub(userPrivKey);
+    const institutionPubKey = institutionPub.map((p: any) =>
+      eddsa.poseidon.F.toObject(p).toString()
+    );
+
+    return {
+      userPrivKey: formatPrivKeyForBabyJub(userPrivKey, eddsa).toString(),
+      userPubKey: userPub.map((p: any) =>
+        eddsa.poseidon.F.toObject(p).toString()
+      ),
+      investigationInstitutionPubkey: institutionPubKey,
+      encryptedData: await encryptFraudInvestigationData(
+        institutionPub,
+        userPrivKey,
+        this.providerData.Ax,
+        this.leafHash
+      ),
+    };
+  }
+  public getHumanIDProofInput(
+    dAppID: string,
+    passportID: string
+  ): HumanIDProofInput {
+    return {
+      dAppID: dAppID,
+      passportID: passportID,
+      humanID: this.poseidon.F.toObject(
+        this.poseidon(
+          [
+            this.fields.surname,
+            this.fields.forename,
+            this.fields.middlename,
+            this.fields.yearOfBirth,
+            this.fields.monthOfBirth,
+            this.fields.dayOfBirth,
+            passportID,
+            dAppID,
+          ],
+          undefined,
+          1
+        )
+      ).toString(),
     };
   }
 }
@@ -199,4 +303,18 @@ export interface ProviderData {
   S: string;
   R8x: string;
   R8y: string;
+}
+
+export interface FraudInvestigationDataEncryptionProofInput {
+  userPrivKey: string;
+  userPubKey: string[];
+
+  investigationInstitutionPubkey: string[];
+  encryptedData: string[];
+}
+
+export interface HumanIDProofInput {
+  passportID: string;
+  dAppID: string;
+  humanID: string;
 }
