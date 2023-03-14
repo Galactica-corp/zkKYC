@@ -62,12 +62,6 @@ const config: HardhatUserConfig = {
         input: 'input/zkKYC.json',
       },
       {
-        name: 'zkKYC_plonk',
-        circuit: 'test/test_zkKYC.circom',
-        input: 'input/zkKYC.json',
-        protocol: 'plonk',
-      },
-      {
         name: 'merkleProof',
         circuit: 'test/test_merkleProof.circom',
         input: 'input/merkleProof.json',
@@ -81,12 +75,6 @@ const config: HardhatUserConfig = {
         name: 'calculateZkCertHash',
         circuit: 'test/test_calculateZkCertHash.circom',
         input: 'input/calculateZkCertHash.json',
-      },
-      {
-        name: 'calculateZkCertHash_plonk',
-        circuit: 'test/test_calculateZkCertHash.circom',
-        input: 'input/calculateZkCertHash.json',
-        protocol: 'plonk',
       },
       {
         name: 'humanID',
