@@ -6,6 +6,7 @@ import '@typechain/hardhat';
 import 'hardhat-circom';
 
 import './tasks/createZKKYC';
+import './tasks/smartCircuitBuild';
 
 
 
