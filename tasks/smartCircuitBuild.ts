@@ -20,7 +20,7 @@ async function smartCircuitBuild(
     
     // read the list of circuits from a config file
     
-    await hre.config.circom.circuits.forEach(async (circuit: any) => {
+    for (const circuit of hre.config.circom.circuits) {
       const rootPath = hre.config.paths.root;
       
       const verifierName = camelcase(circuit.name, {
@@ -75,15 +75,15 @@ async function smartCircuitBuild(
       if (!buildNeeded) {
         console.log(`${circuit.name} is up to date`);
       } else {
-        console.log(`Compining circuit ${circuit.name}. This might take a while...`);
-        hre.run("circom", {circuit: circuit.name})
+        console.log(`Compiling circuit ${circuit.name}. This might take a while...`);
+        await hre.run("circom", {circuit: circuit.name})
 
         // Make contract names unique so that hardhat does not complain
         const contentBefore = fs.readFileSync(verifierPath, 'utf8');
         var contentAfter = contentBefore.replace(/contract Verifier {/g, `contract ${verifierName}Verifier {`);
         fs.writeFileSync(verifierPath, contentAfter, 'utf8');
       }
-    });
+    }
 
     console.log("done");
 }

@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "hardhat test",
-    "build": "tsc"
+    "build": "hardhat smartCircuitBuild",
+    "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild"
   },
   "repository": {
     "type": "git",
