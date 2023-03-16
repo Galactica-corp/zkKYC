@@ -15,8 +15,10 @@ npm install
 Compile the SNARK circuit and build the verifyer.sol contract
 Before you can set test input variables in `circuits/init.json`.
 ```shell
-npx hardhat circom --verbose
+npx hardhat smartCircuitBuild --verbose
 ```
+This only rebuilds the circuits for which the source changed since the last build.
+
 To compile the library functions into a node module, you can run:
 ```shell
 npm run build
@@ -25,5 +27,6 @@ npm run build
 ## Test
 Run unit and integration tests for circuits, library functions and smart contracts.
 ```shell
+npx hardhat smartCircuitBuild --verbose
 npm run test
 ```
