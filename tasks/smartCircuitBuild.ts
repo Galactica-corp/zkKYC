@@ -29,16 +29,16 @@ async function smartCircuitBuild(
         locale: false,
       });
       const verifierPath = path.join(rootPath, "contracts", verifierName + "Verifier.sol");
+      const buildConfigPath = path.join(hre.config.circom.outputBasePath, circuit.name + "BuildConfig.json");
       
       const outputFiles = [
         verifierPath,
+        buildConfigPath,
         path.join(circuit.wasm ? circuit.wasm : circuit.name + ".wasm"),
         path.join(circuit.zkey ? circuit.zkey : circuit.name + ".zkey"),
       ];
       
       const sourceFiles = findAllImportedSourceFiles(circuit.circuit, []);
-
-      // TODO: remember last config to detect build config changes for a circuit
       
       // check build file existance
       let buildNeeded = false;
@@ -71,17 +71,31 @@ async function smartCircuitBuild(
           console.log(`Rebuilding ${circuit.name} because source files changed`);
         }
       }
+      if(!buildNeeded) {
+        // check if build config changed
+        // file should be present because otherwise buildNeeded would be true already
+        const previousConfig = JSON.parse(fs.readFileSync(buildConfigPath, 'utf8'));
+        
+        if (JSON.stringify(previousConfig) !== JSON.stringify(circuit)) {
+          // this would also triger on different order of keys
+          buildNeeded = true;
+          console.log(`Rebuilding ${circuit.name} because build config changed`);
+        }
+      }
 
       if (!buildNeeded) {
         console.log(`${circuit.name} is up to date`);
       } else {
         console.log(`Compiling circuit ${circuit.name}. This might take a while...`);
-        await hre.run("circom", {circuit: circuit.name})
+        // await hre.run("circom", {circuit: circuit.name})
 
         // Make contract names unique so that hardhat does not complain
         const contentBefore = fs.readFileSync(verifierPath, 'utf8');
         var contentAfter = contentBefore.replace(/contract Verifier {/g, `contract ${verifierName}Verifier {`);
         fs.writeFileSync(verifierPath, contentAfter, 'utf8');
+
+        // Write JSON of build config for that circuit to detect changes
+        fs.writeFileSync(buildConfigPath, JSON.stringify(circuit, null, 2), 'utf8');
       }
     }
 
