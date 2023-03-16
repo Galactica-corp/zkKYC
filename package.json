@@ -8,7 +8,7 @@
     "/dist"
   ],
   "scripts": {
-    "test": "hardhat test",
+    "test": "hardhat smartCircuitBuild; hardhat test",
     "build": "hardhat smartCircuitBuild",
     "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild"
   },
