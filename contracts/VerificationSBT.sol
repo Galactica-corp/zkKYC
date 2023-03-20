@@ -6,8 +6,6 @@ import "./interfaces/IVerifierWrapper.sol";
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBT, minted by dApp for users submitting zk proofs
 contract VerificationSBT {
-
-
     struct VerificationSBTInfo {
         address dApp;
         IVerifierWrapper verifierWrapper;

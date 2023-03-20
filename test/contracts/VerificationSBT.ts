@@ -3,12 +3,12 @@ import chai, { use } from 'chai';
 
 chai.config.includeStack = true;
 
-import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
-import { AgeProofZkKYC } from '../../typechain-types/AgeProofZkKYC';
-import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacticaInstitution';
-import { AgeProofZkKYCVerifier } from '../../typechain-types/AgeProofZkKYCVerifier';
-import { MockDApp } from '../../typechain-types/mock/MockDApp';
-import { VerificationSBT } from '../../typechain-types/VerificationSBT';
+import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
+import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
+import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
+import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import { fieldOrder } from '../../lib/helpers';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -31,8 +31,10 @@ import {
 } from '../../lib/keyManagement';
 import { ZKCertificate } from '../../lib/zkCertificate';
 import { ZkCertStandard } from '../../lib';
+import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 
 import { buildEddsa } from 'circomlibjs';
+import { BigNumberish } from 'ethers';
 
 const { expect } = chai;
 
@@ -167,7 +169,7 @@ describe.only('Verification SBT Smart contract', async () => {
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
+    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]] as [BigNumberish, BigNumberish];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -266,8 +268,12 @@ describe.only('Verification SBT Smart contract', async () => {
     let _ = zkKYC.getProviderData(providerEdDSAKey);
 
     expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
-  });
 
+    // check that the verification SBT can be found by the frontend
+    const loggedSBTs = await queryVerificationSBTs(verificationSBT.address, user.address);
+    expect(loggedSBTs.has(mockDApp.address)).to.be.true;
+    expect(loggedSBTs.get(mockDApp.address)!.length).to.be.equal(1);
+  });
 
   it('should revert on incorrect proof', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
@@ -287,7 +293,8 @@ describe.only('Verification SBT Smart contract', async () => {
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
+    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]] as [BigNumberish, BigNumberish];
+    console.log(galacticaInstitutionPubKey)
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
