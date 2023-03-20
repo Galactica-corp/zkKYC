@@ -36,7 +36,7 @@ import { buildEddsa } from 'circomlibjs';
 
 const { expect } = chai;
 
-describe('Verification SBT Smart contract', async () => {
+describe.only('Verification SBT Smart contract', async () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -265,7 +265,42 @@ describe('Verification SBT Smart contract', async () => {
     const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
     let _ = zkKYC.getProviderData(providerEdDSAKey);
 
-
     expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
+  });
+
+
+  it('should revert on incorrect proof', async () => {
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    // change the proof to make it incorrect
+    proof.pi_a[0] = proof.pi_a[0] + "1";
+
+    const publicRoot = publicSignals[1];
+    const publicTime = parseInt(publicSignals[2], 10);
+    // set the merkle root to the correct one
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
+
+    // set the galactica institution pub key
+    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
+    await mockGalacticaInstitution.setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+
+    let tx = mockDApp.connect(user).airdropToken(1, a, b, c, publicInputs);
+
+    await expect(tx).to.be.rejected;
   });
 });
