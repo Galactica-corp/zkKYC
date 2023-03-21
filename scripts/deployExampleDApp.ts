@@ -18,8 +18,8 @@ async function main() {
   const mockDApp = await deploySC('MockDApp', true, {},
     [verificationSBT, ageProofZkKYC]
   );
-  const token1 = await deploySC('MockToken', true, {}, [deployer.address]);
-  const token2 = await deploySC('MockToken', true, {}, [deployer.address]);
+  const token1 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [deployer.address]);
+  const token2 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [deployer.address]);
 
   await mockDApp.setToken1(token1.address);
   await mockDApp.setToken2(token2.address);
