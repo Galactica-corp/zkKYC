@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../VerificationSBT.sol";
@@ -25,7 +26,7 @@ contract MockDApp {
     VerificationSBT public SBT;
     IVerifierWrapper public verifierWrapper; 
 
-    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) public {
+    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -46,10 +47,11 @@ contract MockDApp {
         uint[2] memory c,
         uint[16] memory input
     ) public {
+        bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
             
-            bytes32 humanID = bytes32(input[14]);
+            humanID = bytes32(input[14]);
             uint dAppID = input[15];
 
             // check that the public dAppID is correct
@@ -66,11 +68,10 @@ contract MockDApp {
             SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, userPubKey, humanID);
         }
 
-        bytes32 humanID = SBT.getHumanID(msg.sender, address(this));
+        humanID = SBT.getHumanID(msg.sender, address(this));
 
         // if everything is good then we transfer the airdrop
         // then mark it in the mapping
-        ERC20 token;
         if (tokenIndex==1) {
             require(!hasReceivedToken1[humanID], "this humandID has already received this airdrop");
             token1.transfer(msg.sender, token1AirdropAmount);

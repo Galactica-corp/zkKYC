@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
@@ -15,7 +16,7 @@ contract AgeProofZkKYC is Ownable{
     IGalacticaInstitution public galacticaInstitution;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
 
-    constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) public {
+    constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
         galacticaInstitution = IGalacticaInstitution(_galacticaInstitution);
