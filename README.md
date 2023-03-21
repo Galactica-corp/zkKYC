@@ -30,3 +30,15 @@ Run unit and integration tests for circuits, library functions and smart contrac
 npx hardhat smartCircuitBuild --verbose
 npm run test
 ```
+
+## Deploy
+There are some scripts for deployment of the basic infrastructure and example dApps.
+Before running it, you need to configure the deployer wallet in the environment variables used in `hardhat.config.ts` adn fund the account.
+```shell
+npx hardhat run scripts/deployInfrastructure.ts --network galaTestnet
+```
+You can find the addresses of the deployed contracts in the console output.
+If you also want to deploy example contracts, you can enter them in the following script before running it.
+```shell
+npx hardhat run scripts/deployExampleDApp.ts --network galaTestnet
+```

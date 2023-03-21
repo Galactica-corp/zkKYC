@@ -294,7 +294,6 @@ describe.only('Verification SBT Smart contract', async () => {
 
     // set the galactica institution pub key
     const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]] as [BigNumberish, BigNumberish];
-    console.log(galacticaInstitutionPubKey)
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );

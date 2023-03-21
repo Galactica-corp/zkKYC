@@ -40,7 +40,7 @@ const config: HardhatUserConfig = {
     customChains: [
       {
         network: "galaTestnet",
-        chainId: 1,
+        chainId: 31233,
         urls: {
           apiURL: "http://10.51.0.5:4040/api",
           browserURL: "http://10.51.0.5:4040/"
