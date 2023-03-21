@@ -30,6 +30,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "@typechain/hardhat": "^6.1.2",
     "@types/mocha": "^9.1.0",
+    "chalk": "^4",
     "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",

@@ -4,7 +4,9 @@ import { overwriteArtifact } from "../lib/helpers";
 import { poseidonContract } from 'circomlibjs';
 import { Contract, Signer } from "ethers";
 import { FactoryOptions } from "hardhat/types";
+import chalk from "chalk";
 
+const log = console.log;
 
 /**
  * Helper function to deploy a smart contract and verify it on the block explorer
@@ -16,7 +18,7 @@ import { FactoryOptions } from "hardhat/types";
  * @returns Promise of the deployed contract
  */
 async function deploySC(name: string, verify?: boolean, signerOrOptions?: Signer | FactoryOptions | undefined, constructorArgs?: any[] | undefined) : Promise<Contract> {
-  console.log(`Deploying ${name}...`);
+  log(`Deploying ${name}...`);
   const factory = await ethers.getContractFactory(name, signerOrOptions);
   
   let contract: Contract;
@@ -28,7 +30,7 @@ async function deploySC(name: string, verify?: boolean, signerOrOptions?: Signer
   }
   await contract.deployed();
 
-  console.log(`${name} deployed to ${contract.address}`);
+  log(chalk.green(`${name} deployed to ${contract.address}`));
 
   if (verify) {
     try {
@@ -39,13 +41,10 @@ async function deploySC(name: string, verify?: boolean, signerOrOptions?: Signer
         ...signerOrOptions
       });
     } catch (error: any) {
-      console.error(`Verification failed: ${error.message}`)
-      console.error(`If you get a file not found error, try running 'npx hardhat clean' first`)
+      log(chalk.red(`Verification failed: ${error.message}`));
+      log(chalk.red(`If you get a file not found error, try running 'npx hardhat clean' first`));
     }
   }
-
-  console.log();
-
   return contract;
 }
 
@@ -54,8 +53,8 @@ async function main() {
 
   // wallets
   const [ deployer ] = await hre.ethers.getSigners();
-  console.log(`Using account ${deployer.address} to deploy contracts`);
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${deployer.address} to deploy contracts`);
+  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // get poseidon from library
   await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
@@ -81,6 +80,8 @@ async function main() {
     [deployer.address, ageProofZkKYCVerifier.address, recordRegistry.address, galacticaInstitution.address]
   );
   const verificationSBT = await deploySC('VerificationSBT', true);
+
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
