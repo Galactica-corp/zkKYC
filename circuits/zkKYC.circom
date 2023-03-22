@@ -69,7 +69,7 @@ template ZKKYC(levels){
     signal input userPrivKey;
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -158,8 +158,8 @@ template ZKKYC(levels){
 
     userPubKey[0] <== _encryptionProof.senderPubKey[0];
     userPubKey[1] <== _encryptionProof.senderPubKey[1];
-    _encryptionProof.encryptedMsg[0] === encryptedData[0];
-    _encryptionProof.encryptedMsg[1] === encryptedData[1];
+    encryptedData[0] <== _encryptionProof.encryptedMsg[0];
+    encryptedData[1] <== _encryptionProof.encryptedMsg[1];
 
     component calculateHumanId = HumanID();
     calculateHumanId.surname <== surname;

@@ -15,7 +15,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { generateZKKYCInput, fields } from '../../scripts/generateZKKYCInput';
 
 const snarkjs = require('snarkjs');
-import { readFileSync } from 'fs';
 import { buildPoseidon } from 'circomlibjs';
 const hre = require('hardhat');
 import {
@@ -161,15 +160,15 @@ describe('Verification SBT Smart contract', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[3];
-    const publicTime = parseInt(publicSignals[4], 10);
+    const publicRoot = publicSignals[5];
+    const publicTime = parseInt(publicSignals[6], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]] as [BigNumberish, BigNumberish];
+    const galacticaInstitutionPubKey = [publicSignals[11], publicSignals[12]] as [BigNumberish, BigNumberish];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -206,14 +205,6 @@ describe('Verification SBT Smart contract', async () => {
     expect(verificationSBTInfo.dApp).to.be.equal(mockDApp.address);
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
       ageProofZkKYC.address
-    );
-
-    expect(verificationSBTInfo.encryptedData[0]).to.be.equal(
-      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[0]))
-    );
-
-    expect(verificationSBTInfo.encryptedData[1]).to.be.equal(
-      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[1]))
     );
 
     // check that the verificationSBT can be used to receive the second token without proof

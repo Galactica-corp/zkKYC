@@ -132,8 +132,6 @@ export async function generateZKKYCInput() {
     fraudInvestigationDataEncryptionProofInput.userPrivKey;
   zkKYCInput.investigationInstitutionPubKey =
     fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey;
-  zkKYCInput.encryptedData =
-    fraudInvestigationDataEncryptionProofInput.encryptedData;
 
   // add humanID data
   zkKYCInput.passportID = humanIDProofInput.passportID;

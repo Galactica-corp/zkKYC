@@ -73,7 +73,7 @@ template AgeProofZkKYC(levels){
     signal input userPrivKey;
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal input encryptedData[2]; // should be public to be stored in the verification SBT
+    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -104,8 +104,6 @@ template AgeProofZkKYC(levels){
     zkKYC.userPrivKey <== userPrivKey;
     zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
     zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
-    zkKYC.encryptedData[0] <== encryptedData[0];
-    zkKYC.encryptedData[1] <== encryptedData[1];
     zkKYC.providerAx <== providerAx;
     zkKYC.providerAy <== providerAy;
     zkKYC.providerS <== providerS;
@@ -131,6 +129,8 @@ template AgeProofZkKYC(levels){
     zkKYC.dAppID <== dAppID;
     userPubKey[0] <== zkKYC.userPubKey[0];
     userPubKey[1] <== zkKYC.userPubKey[1];
+    encryptedData[0] <== zkKYC.encryptedData[0];
+    encryptedData[1] <== zkKYC.encryptedData[1];
 
     component ageProof = AgeProof();
     ageProof.yearOfBirth <== yearOfBirth;
