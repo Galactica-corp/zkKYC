@@ -1,3 +1,5 @@
+pragma circom 2.0.3;
+
 /**
  * Encrypt/Decrypt extention of MimcSponge taken from https://github.com/iden3/circomlib/pull/16
  *

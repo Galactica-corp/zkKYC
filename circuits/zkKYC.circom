@@ -67,7 +67,7 @@ template ZKKYC(levels){
 
     //inputs for encryption of fraud investigation data
     signal input userPrivKey;
-    signal input userPubKey[2]; // should be public to check that it corresponds to user address
+    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
     signal input encryptedData[2]; // should be public to be stored in the verification SBT
 
@@ -151,13 +151,13 @@ template ZKKYC(levels){
     //check that the encrypted fraud investigation data is correctly created
     component _encryptionProof = encryptionProof();
     _encryptionProof.senderPrivKey <== userPrivKey;
-    _encryptionProof.senderPubKey[0] <== userPubKey[0];
-    _encryptionProof.senderPubKey[1] <== userPubKey[1];
     _encryptionProof.receiverPubKey[0] <== investigationInstitutionPubKey[0];
     _encryptionProof.receiverPubKey[1] <== investigationInstitutionPubKey[1];
     _encryptionProof.msg[0] <== providerAx;
     _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
 
+    userPubKey[0] <== _encryptionProof.senderPubKey[0];
+    userPubKey[1] <== _encryptionProof.senderPubKey[1];
     _encryptionProof.encryptedMsg[0] === encryptedData[0];
     _encryptionProof.encryptedMsg[1] === encryptedData[1];
 

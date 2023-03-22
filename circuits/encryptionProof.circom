@@ -13,17 +13,17 @@ include "mimcEncrypt.circom";
 */
 template encryptionProof(){
     signal input senderPrivKey;
-    signal input senderPubKey[2]; //should be public input
     signal input receiverPubKey[2]; //should be public input
     signal input msg[2];
 
-    signal output encryptedMsg[2]; //should be public input
+    signal output senderPubKey[2]; // becomes output (visible publicly)
+    signal output encryptedMsg[2]; // becomes output (visible publicly)
 
     // check that the sender uses the private key for encryption that corresponds to his public key
     component privToPub = PrivToPubKey();
     privToPub.privKey <== senderPrivKey;
-    privToPub.pubKey[0] === senderPubKey[0];
-    privToPub.pubKey[1] === senderPubKey[1];
+    senderPubKey[0] <== privToPub.pubKey[0];
+    senderPubKey[1] <== privToPub.pubKey[1];
 
     // derive the symmetric encryption key
     component ecdh = Ecdh();

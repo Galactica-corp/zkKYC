@@ -64,7 +64,7 @@ contract MockDApp {
 
             //afterwards we mint the verification SBT
             bytes32[2] memory encryptedData = [bytes32(input[12]), bytes32(input[13])];
-            uint256[2] memory userPubKey = [input[8], input[9]];
+            uint256[2] memory userPubKey = [input[0], input[1]];
             SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, userPubKey, humanID);
         }
 

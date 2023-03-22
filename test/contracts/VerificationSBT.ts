@@ -38,7 +38,7 @@ import { BigNumberish } from 'ethers';
 
 const { expect } = chai;
 
-describe.only('Verification SBT Smart contract', async () => {
+describe('Verification SBT Smart contract', async () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -161,8 +161,8 @@ describe.only('Verification SBT Smart contract', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[3];
+    const publicTime = parseInt(publicSignals[4], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -285,8 +285,8 @@ describe.only('Verification SBT Smart contract', async () => {
     // change the proof to make it incorrect
     proof.pi_a[0] = proof.pi_a[0] + "1";
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[3];
+    const publicTime = parseInt(publicSignals[4], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
