@@ -37,7 +37,7 @@ import { BigNumberish } from 'ethers';
 
 const { expect } = chai;
 
-describe('Verification SBT Smart contract', async () => {
+describe.only('Verification SBT Smart contract', async () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -160,15 +160,18 @@ describe('Verification SBT Smart contract', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[5];
-    const publicTime = parseInt(publicSignals[6], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[11], publicSignals[12]] as [BigNumberish, BigNumberish];
+    const galacticaInstitutionPubKey = [
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()], 
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ] as [BigNumberish, BigNumberish];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -276,15 +279,18 @@ describe('Verification SBT Smart contract', async () => {
     // change the proof to make it incorrect
     proof.pi_a[0] = proof.pi_a[0] + "1";
 
-    const publicRoot = publicSignals[3];
-    const publicTime = parseInt(publicSignals[4], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]] as [BigNumberish, BigNumberish];
+    const galacticaInstitutionPubKey = [
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ] as [BigNumberish, BigNumberish];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );

@@ -17,22 +17,22 @@ contract AgeProofZkKYC is Ownable{
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
-    uint8 internal constant INDEX_USER_PUBKEY_AX = 0;
-    uint8 internal constant INDEX_USER_PUBKEY_AY = 1;
-    uint8 internal constant INDEX_ENCRYPTED_DATA_0 = 2;
-    uint8 internal constant INDEX_ENCRYPTED_DATA_1 = 3;
-    uint8 internal constant INDEX_IS_VALID = 4;
-    uint8 internal constant INDEX_ROOT = 5;
-    uint8 internal constant INDEX_CURRENT_TIME = 6;
-    uint8 internal constant INDEX_USER_ADDRESS = 7;
-    uint8 internal constant INDEX_CURRENT_YEAR = 8;
-    uint8 internal constant INDEX_CURRENT_MONTH = 9;
-    uint8 internal constant INDEX_CURRENT_DAY = 10;
-    uint8 internal constant INDEX_AGE_THRESHOLD = 11;
-    uint8 internal constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 12;
-    uint8 internal constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 13;
-    uint8 internal constant INDEX_HUMAN_ID = 14;
-    uint8 internal constant INDEX_DAPP_ID = 15;
+    uint8 public constant INDEX_USER_PUBKEY_AX = 0;
+    uint8 public constant INDEX_USER_PUBKEY_AY = 1;
+    uint8 public constant INDEX_ENCRYPTED_DATA_0 = 2;
+    uint8 public constant INDEX_ENCRYPTED_DATA_1 = 3;
+    uint8 public constant INDEX_IS_VALID = 4;
+    uint8 public constant INDEX_ROOT = 5;
+    uint8 public constant INDEX_CURRENT_TIME = 6;
+    uint8 public constant INDEX_USER_ADDRESS = 7;
+    uint8 public constant INDEX_CURRENT_YEAR = 8;
+    uint8 public constant INDEX_CURRENT_MONTH = 9;
+    uint8 public constant INDEX_CURRENT_DAY = 10;
+    uint8 public constant INDEX_AGE_THRESHOLD = 11;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 12;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 13;
+    uint8 public constant INDEX_HUMAN_ID = 14;
+    uint8 public constant INDEX_DAPP_ID = 15;
 
     constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);

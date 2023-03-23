@@ -3,10 +3,10 @@ import chai, { use } from 'chai';
 
 chai.config.includeStack = true;
 
-import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
-import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacticaInstitution';
-import { ZkKYC } from '../../typechain-types/ZkKYC';
-import { ZkKYCVerifier } from '../../typechain-types/ZkKYCVerifier';
+import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
+import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -20,10 +20,11 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { BigNumber } from 'ethers';
 
 const { expect } = chai;
 
-describe('zkKYC SC', async () => {
+describe.only('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYC: ZkKYC;
@@ -104,14 +105,17 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[6], publicSignals[7]];
+    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
+      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -133,7 +137,7 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -157,8 +161,8 @@ describe('zkKYC SC', async () => {
       circuitWasmPath,
       circuitZkeyPath
     );
-    expect(publicSignals[0]).to.be.equal('0');
-    const publicRoot = publicSignals[1];
+    expect(publicSignals[await zkKYC.INDEX_IS_VALID()]).to.be.equal('0');
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -198,8 +202,8 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -226,8 +230,8 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -253,8 +257,8 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -264,9 +268,10 @@ describe('zkKYC SC', async () => {
     await hre.network.provider.send('evm_mine');
 
     // set the incorrect galactica institution pub key
-    const galacticaInstitutionPubKey = [
-      (BigInt(publicSignals[6]) + BigInt('1')).toString(),
-      publicSignals[7],
+
+    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()] + BigNumber.from('1'),
+      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
     ];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
