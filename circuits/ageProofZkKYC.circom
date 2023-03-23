@@ -25,6 +25,8 @@ template AgeProofZkKYC(levels){
     signal input town;
     signal input region;
     signal input country;
+    signal input citizenship;
+    signal input passportID;
 
     // pub key of the provider
     signal input providerAx;
@@ -78,9 +80,8 @@ template AgeProofZkKYC(levels){
     //humanID related variable
     //humanID as public input, so dApp can use it
     signal input humanID;
-    signal input passportID;
-    //dAppID is public so it can be checked by the dApp
-    signal input dAppID;
+    //dAppAddress is public so it can be checked by the dApp
+    signal input dAppAddress;
 
     // final result
     signal output valid;
@@ -101,6 +102,8 @@ template AgeProofZkKYC(levels){
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
+    zkKYC.passportID <== passportID;
+    zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
     zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
     zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
@@ -125,8 +128,7 @@ template AgeProofZkKYC(levels){
     zkKYC.R8x2 <== R8x2;
     zkKYC.R8y2 <== R8y2;
     zkKYC.humanID <== humanID;
-    zkKYC.passportID <== passportID;
-    zkKYC.dAppID <== dAppID;
+    zkKYC.dAppAddress <== dAppAddress;
     userPubKey[0] <== zkKYC.userPubKey[0];
     userPubKey[1] <== zkKYC.userPubKey[1];
     encryptedData[0] <== zkKYC.encryptedData[0];

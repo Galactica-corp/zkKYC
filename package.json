@@ -8,9 +8,9 @@
     "/dist"
   ],
   "scripts": {
-    "test": "hardhat smartCircuitBuild && hardhat test",
-    "build": "hardhat smartCircuitBuild",
-    "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild"
+    "test": "hardhat smartCircuitBuild --verbose && hardhat test",
+    "build": "hardhat smartCircuitBuild --verbose",
+    "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose"
   },
   "repository": {
     "type": "git",

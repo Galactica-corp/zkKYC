@@ -9,7 +9,7 @@ import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/M
 import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
 import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-import { fieldOrder } from '../../lib/helpers';
+import { humanIDFieldOrder } from '../../lib/zkCertStandards';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { generateZKKYCInput, fields } from '../../scripts/generateZKKYCInput';
@@ -134,13 +134,13 @@ describe('Verification SBT Smart contract', async () => {
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
-    // we need to change the dAppID to the address of the MockDApp created here
-    sampleInput.dAppID = mockDApp.address;
+    // we need to change the dAppAddress to the address of the MockDApp created here
+    sampleInput.dAppAddress = mockDApp.address;
 
     let poseidon = await buildPoseidon();
     sampleInput.humanID = poseidon.F.toObject(
       poseidon(
-        fieldOrder.map((field) => sampleInput[field]),
+        humanIDFieldOrder.map((field) => sampleInput[field]),
         undefined,
         1
       )

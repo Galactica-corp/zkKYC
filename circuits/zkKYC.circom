@@ -31,6 +31,8 @@ template ZKKYC(levels){
     signal input town;
     signal input region;
     signal input country;
+    signal input citizenship;
+    signal input passportID;
 
     // pub key of the provider
     signal input providerAx;
@@ -74,9 +76,9 @@ template ZKKYC(levels){
     //humanID related variable
     //humanID as public input, so dApp can use it
     signal input humanID;
-    signal input passportID;
-    //dAppID is public so it can be checked by the dApp
-    signal input dAppID;
+
+    //dAppAddress is public so it can be checked by the dApp
+    signal input dAppAddress;
 
     signal output valid;
 
@@ -101,7 +103,7 @@ template ZKKYC(levels){
     authorization.R8y <== R8y2; 
 
     // content hash for zkKYC data
-    component contentHash = Poseidon(13);
+    component contentHash = Poseidon(15);
     contentHash.inputs[0] <== surname;
     contentHash.inputs[1] <== forename;
     contentHash.inputs[2] <== middlename;
@@ -115,6 +117,8 @@ template ZKKYC(levels){
     contentHash.inputs[10] <== town;
     contentHash.inputs[11] <== region;
     contentHash.inputs[12] <== country;
+    contentHash.inputs[13] <== citizenship;
+    contentHash.inputs[14] <== passportID;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();
@@ -169,7 +173,7 @@ template ZKKYC(levels){
     calculateHumanId.monthOfBirth <== monthOfBirth;
     calculateHumanId.dayOfBirth <== dayOfBirth;
     calculateHumanId.passportID <== passportID;
-    calculateHumanId.dAppID <== dAppID;
+    calculateHumanId.dAppAddress <== dAppAddress;
     
     calculateHumanId.humanID === humanID;
 

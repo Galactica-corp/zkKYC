@@ -52,10 +52,10 @@ contract MockDApp {
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
             
             humanID = bytes32(input[14]);
-            uint dAppID = input[15];
+            uint dAppAddress = input[15];
 
-            // check that the public dAppID is correct
-            require(dAppID == uint(uint160(address(this))), "incorrect dAppID");
+            // check that the public dAppAddress is correct
+            require(dAppAddress == uint(uint160(address(this))), "incorrect dAppAddress");
 
             // check the zk proof
             require(IAgeProofZkKYCVerifier(address(verifierWrapper)).verifyProof(a, b, c, input), "zk proof is invalid");

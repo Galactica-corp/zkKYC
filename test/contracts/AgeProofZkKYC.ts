@@ -322,7 +322,7 @@ describe('ageProofZkKYC SC', async () => {
 
     // set the incorrect galactica institution pub key
     const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
+      BigNumber.from(publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()]).add(1),
       publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
     ];
     await mockGalacticaInstitution.setInstitutionPubkey(

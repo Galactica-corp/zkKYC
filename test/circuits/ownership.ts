@@ -67,6 +67,4 @@ describe('Ownership Component', () => {
     const witness = await circuit.calculateWitness(ownershipProof, sanityCheck);
     await circuit.assertOut(witness, expected);
   });
-
-  it.skip('TODO: test integration in zkKYC', async () => {});
 });

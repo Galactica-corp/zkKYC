@@ -3,14 +3,11 @@ import { ZKCertificate } from '../lib/zkCertificate';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
-  formatPrivKeyForBabyJub,
-  eddsaPrimeFieldMod,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import fs from 'fs';
 import { ZkCertStandard } from '../lib';
-import { Scalar } from 'ffjavascript';
 
 // sample field inputs
 export const fields = {
@@ -27,6 +24,8 @@ export const fields = {
   town: '23423453234234',
   region: '23423453234234',
   country: '23423453234234',
+  citizenship: '23423453234234',
+  passportID: '3095472098',
 };
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
@@ -89,11 +88,10 @@ export async function generateZKKYCInput() {
       encryptionPrivKey
     );
 
-  let passportID = '3095472098';
   //placeholder for now, later on we need to be able to change it to deployed dApp address on-chain
   // probably the generateZKKYCInput will need to read inputs from a json file
-  let dAppID = '2093684589645';
-  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppID, passportID);
+  let dAppAddress = '2093684589645';
+  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress, fields.passportID);
 
   // initiate an empty merkle tree
   let merkleTree = new MerkleTree(32, eddsa.poseidon);
@@ -134,8 +132,7 @@ export async function generateZKKYCInput() {
     fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey;
 
   // add humanID data
-  zkKYCInput.passportID = humanIDProofInput.passportID;
-  zkKYCInput.dAppID = humanIDProofInput.dAppID;
+  zkKYCInput.dAppAddress = humanIDProofInput.dAppAddress;
   zkKYCInput.humanID = humanIDProofInput.humanID;
 
   return zkKYCInput;

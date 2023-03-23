@@ -19,6 +19,8 @@ npx hardhat smartCircuitBuild --verbose
 ```
 This only rebuilds the circuits for which the source changed since the last build.
 
+If the circuits were changed, the compilation requires a valid input file for the circuit. They can be found in `circuits/input/`. They can be modified by hand. For complex circuits using hashes, such as zkKYC, you can use the `npx hardhat run scripts/generateZKKYCInputs.ts` to generate the file inlcuding hashes and merkle tree data.
+
 To compile the library functions into a node module, you can run:
 ```shell
 npm run build
