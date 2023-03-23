@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.zkKYCContentFields = exports.zkCertCommonFields = exports.ZkCertStandard = void 0;
+exports.humanIDFieldOrder = exports.zkKYCContentFields = exports.zkCertCommonFields = exports.ZkCertStandard = void 0;
 /**
  * Enum for zkCert standards
  */
@@ -39,4 +39,16 @@ exports.zkKYCContentFields = [
     'town',
     'region',
     'country',
+    'citizenship',
+    'passportID',
+];
+exports.humanIDFieldOrder = [
+    'surname',
+    'forename',
+    'middlename',
+    'yearOfBirth',
+    'monthOfBirth',
+    'dayOfBirth',
+    'passportID',
+    'dAppAddress',
 ];

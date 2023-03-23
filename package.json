@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "test": "hardhat smartCircuitBuild --verbose && hardhat test",
-    "build": "hardhat smartCircuitBuild --verbose",
-    "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose"
+    "build": "tsc",
+    "compile": "hardhat smartCircuitBuild --verbose",
+    "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose"
   },
   "repository": {
     "type": "git",
