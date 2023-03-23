@@ -24,7 +24,7 @@ import { BigNumber } from 'ethers';
 
 const { expect } = chai;
 
-describe.only('zkKYC SC', async () => {
+describe('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYC: ZkKYC;
@@ -270,7 +270,7 @@ describe.only('zkKYC SC', async () => {
     // set the incorrect galactica institution pub key
 
     const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()] + BigNumber.from('1'),
+      BigNumber.from(publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()]).add('1'),
       publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
     ];
     await mockGalacticaInstitution.setInstitutionPubkey(

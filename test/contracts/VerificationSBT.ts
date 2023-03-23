@@ -37,7 +37,7 @@ import { BigNumberish } from 'ethers';
 
 const { expect } = chai;
 
-describe.only('Verification SBT Smart contract', async () => {
+describe('Verification SBT Smart contract', async () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
