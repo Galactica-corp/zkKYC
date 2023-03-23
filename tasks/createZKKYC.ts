@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { buildEddsa } from "circomlibjs";
 import { ZKCertificate } from "../lib/zkCertificate";
-import { getEddsaKeyFromEthSigner, createHolderCommitment } from "../lib/keyManagement";
+import { getEddsaKeyFromEthSigner } from "../lib/keyManagement";
 
 import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -15,6 +15,10 @@ import { hashStringToFieldNumber, zkKYCContentFields, ZkCertStandard } from '../
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
     console.log("Creating zkKYC certificate");
+
+    const [provider] = await hre.ethers.getSigners();
+    console.log(`Using provider ${provider.address} to sign the zkKYC certificate`);
+
     console.log("holderCommitment", args.holderCommitment);
     console.log("randomSalt", args.randomSalt);
 
@@ -38,6 +42,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       "town",
       "region",
       "country",
+      "citizenship",
+      "passportID",
     ];
     const zkKYCFields: Record<string, any> = {};
     for (let field of zkKYCContentFields.filter((field) => !exceptions.includes(field))) {
@@ -56,7 +62,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     // TODO: create ZkKYC subclass requiring all the other fields
     let zkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, zkKYCFields);
 
-    // TODO: let provider sign the zkKYC
+    // let provider sign the zkKYC
+    const providerEdDSAKey = await getEddsaKeyFromEthSigner(provider);
+    zkKYC.signWithProvider(providerEdDSAKey);
 
     console.log("zkKYC", zkKYC.exportJson());
 

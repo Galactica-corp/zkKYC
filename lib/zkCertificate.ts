@@ -147,7 +147,7 @@ export class ZKCertificate {
    * @param providerKey EdDSA Private key of the KYC provider
    * @returns ProviderData struct
    */
-  public getProviderData(providerKey: string): ProviderData {
+  public signWithProvider(providerKey: string): ProviderData {
     const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
     const message: BigInt = this.fieldPoseidon.toObject(
       this.poseidon([this.contentHash, this.holderCommitment])
