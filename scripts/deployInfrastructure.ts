@@ -2,15 +2,20 @@ import hre from "hardhat";
 import { overwriteArtifact } from "../lib/helpers";
 import { poseidonContract } from 'circomlibjs';
 import { deploySC } from '../lib/hardhatHelpers';
+import { buildEddsa } from 'circomlibjs';
+import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 
 const log = console.log;
 
 
 async function main() {
   // wallets
-  const [ deployer ] = await hre.ethers.getSigners();
+  const [ deployer/*, institutionSigner*/ ] = await hre.ethers.getSigners();
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+
+  const institutionSigner = deployer;
+  log(`Using account ${institutionSigner.address} as institution for fraud investigation`);
 
   // get poseidon from library
   await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
@@ -29,7 +34,16 @@ async function main() {
     [centerRegistry.address]
   );
   const ageProofZkKYCVerifier = await deploySC('AgeProofZkKYCVerifier', true);
+  
   const galacticaInstitution = await deploySC('MockGalacticaInstitution', true);
+  let institutionPrivKey = BigInt(
+    await getEddsaKeyFromEthSigner(institutionSigner)
+  ).toString();
+  const eddsa = await buildEddsa();
+  let institutionPub = eddsa.prv2pub(institutionPrivKey);
+  console.log('Institution pubkey: ', institutionPub);
+  await galacticaInstitution.setInstitutionPubkey(institutionPub);
+
   const ageProofZkKYC = await deploySC('AgeProofZkKYC',
     true,
     {},
