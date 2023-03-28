@@ -4,9 +4,9 @@ import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x4a150538E297E06d18580b0Ec2caC66e88cFA32C';
-  const recordRegistryAddr = '0x862Cc9FE60F6c53080D524f2997aB2595F4C09eC';
-  const zkKYCLeafHash = '3117336777051834855540872560265552874773137464163281414505601608025080702835';
+  const centerRegistryAddr = '0x85301D2A48527114c9BA7746732615F3E4f9cc5f';
+  const recordRegistryAddr = '0xc8410FE3bC9b7D728767cB9cD7F5F89bBcA6eF69';
+  const zkKYCLeafHash = '913338630289763938167212770624253461411251029088142596559861590717003723041';
 
   // wallets
   const [ deployer ] = await ethers.getSigners();

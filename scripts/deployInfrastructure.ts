@@ -36,11 +36,16 @@ async function main() {
   const ageProofZkKYCVerifier = await deploySC('AgeProofZkKYCVerifier', true);
   
   const galacticaInstitution = await deploySC('MockGalacticaInstitution', true);
-  let institutionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(institutionSigner)
-  ).toString();
-  const eddsa = await buildEddsa();
-  let institutionPub = eddsa.prv2pub(institutionPrivKey);
+  // TODO: figure out why the pubkey from this institution doesn't work
+  // let institutionPrivKey = BigInt(
+  //   await getEddsaKeyFromEthSigner(institutionSigner)
+  // ).toString();
+  // const eddsa = await buildEddsa();
+  // let institutionPub = eddsa.prv2pub(institutionPrivKey);
+  let institutionPub = [
+    "20409749357159524859350796580629088486874894097428792502700472217353173206540",
+    "18525656670900745219442221083879563750404908547508147494645295007202380963404"
+  ];
   console.log('Institution pubkey: ', institutionPub);
   await galacticaInstitution.setInstitutionPubkey(institutionPub);
 
