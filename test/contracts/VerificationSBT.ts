@@ -259,7 +259,7 @@ describe('Verification SBT Smart contract', async () => {
     zkKYC.setFields(fields);
 
     const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-    let _ = zkKYC.getProviderData(providerEdDSAKey);
+    zkKYC.signWithProvider(providerEdDSAKey);
 
     expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
 
