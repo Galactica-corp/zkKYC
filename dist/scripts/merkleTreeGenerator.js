@@ -10,21 +10,23 @@ async function main() {
     const poseidon = await (0, circomlibjs_1.buildPoseidon)();
     // input
     const merkleDepth = 32;
-    const leaveToProof = "3117336777051834855540872560265552874773137464163281414505601608025080702835";
     const leaves = [
-        leaveToProof,
+        "19630604862894493237865119507631642105595355222686969752403793856928034143008",
+        "913338630289763938167212770624253461411251029088142596559861590717003723041",
     ];
     // calculate merkle tree
     const merkleTree = new merkleTree_1.MerkleTree(merkleDepth, poseidon);
     merkleTree.insertleaves(leaves);
-    const merkleProof = merkleTree.createProof(leaveToProof);
-    // create json output file
-    let output = {
-        root: merkleTree.root,
-        pathIndices: merkleProof.pathIndices,
-        pathElements: merkleProof.path,
-    };
-    console.log("Result:", output);
+    for (const leaf of leaves) {
+        const merkleProof = merkleTree.createProof(leaf);
+        // create json output file
+        let output = {
+            root: merkleTree.root,
+            pathIndices: merkleProof.pathIndices,
+            pathElements: merkleProof.path,
+        };
+        console.log(`Merkle proof for ${leaf}:\n`, JSON.stringify(output, null, 2));
+    }
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

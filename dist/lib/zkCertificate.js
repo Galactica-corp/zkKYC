@@ -116,7 +116,7 @@ class ZKCertificate {
      * @param providerKey EdDSA Private key of the KYC provider
      * @returns ProviderData struct
      */
-    getProviderData(providerKey) {
+    signWithProvider(providerKey) {
         const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
         const message = this.fieldPoseidon.toObject(this.poseidon([this.contentHash, this.holderCommitment]));
         // take modulo of the message to get it into the mod field supported by eddsa

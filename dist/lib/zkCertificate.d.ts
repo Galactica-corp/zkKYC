@@ -51,7 +51,7 @@ export declare class ZKCertificate {
      * @param providerKey EdDSA Private key of the KYC provider
      * @returns ProviderData struct
      */
-    getProviderData(providerKey: string): ProviderData;
+    signWithProvider(providerKey: string): ProviderData;
     /**
      * @description Create the input for the authorization proof of this zkCert
      *

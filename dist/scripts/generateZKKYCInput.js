@@ -50,7 +50,7 @@ async function generateZKKYCInput() {
     // some default provider private key
     // providerData needs to be created before leafHash computation
     const providerEdDSAKey = await (0, keyManagement_1.getEddsaKeyFromEthSigner)(KYCProvider);
-    const providerData = zkKYC.getProviderData(providerEdDSAKey);
+    const providerData = zkKYC.signWithProvider(providerEdDSAKey);
     zkKYCInput.providerAx = providerData.Ax;
     zkKYCInput.providerAy = providerData.Ay;
     zkKYCInput.providerS = providerData.S;
