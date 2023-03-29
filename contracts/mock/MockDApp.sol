@@ -45,7 +45,7 @@ contract MockDApp {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[16] memory input
+        uint[18] memory input
     ) public {
         bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
@@ -65,7 +65,8 @@ contract MockDApp {
             //afterwards we mint the verification SBT
             uint256[2] memory userPubKey = [input[0], input[1]];
             bytes32[2] memory encryptedData = [bytes32(input[2]), bytes32(input[3])];
-            SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, userPubKey, humanID);
+            uint256[2] memory providerPubKey = [input[16], input[17]];
+            SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, userPubKey, humanID, providerPubKey);
         }
 
         humanID = SBT.getHumanID(msg.sender, address(this));

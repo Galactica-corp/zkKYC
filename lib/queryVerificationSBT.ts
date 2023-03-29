@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import { VerificationSBT } from '../typechain-types/contracts/VerificationSBT';
+import { IVerificationSBT } from '../typechain-types/contracts/interfaces/IVerificationSBT';
 
 
 /**
@@ -21,13 +22,13 @@ export async function queryVerificationSBTs(
   humanID: string | undefined = undefined,
   filterExpiration: boolean = false
 )
-  : Promise<Map<string, VerificationSBT.VerificationSBTInfoStruct[]>> {
+  : Promise<Map<string, IVerificationSBT.VerificationSBTInfoStruct[]>> {
   const factory = await ethers.getContractFactory("VerificationSBT");
   const sbtContract = factory.attach(sbtContractAddr) as VerificationSBT;
 
   const currentBlock = await ethers.provider.getBlockNumber();
   const lastBlockTime = (await ethers.provider.getBlock(currentBlock)).timestamp;
-  let sbtListRes = new Map<string, VerificationSBT.VerificationSBTInfoStruct[]>();
+  let sbtListRes = new Map<string, IVerificationSBT.VerificationSBTInfoStruct[]>();
 
   // go through all logs adding a verification SBT for the user
   const createStakeLogs = await sbtContract.queryFilter(sbtContract.filters.VerificationSBTMinted(dAppAddr, userAddr, humanID));

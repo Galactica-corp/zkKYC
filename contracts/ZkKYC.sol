@@ -27,6 +27,8 @@ contract ZkKYC is Ownable{
     uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 9;
     uint8 public constant INDEX_HUMAN_ID = 10;
     uint8 public constant INDEX_DAPP_ID = 11;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AX = 12;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AY = 13;
 
     constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
         verifier = IZkKYCVerifier(_verifier);
@@ -52,7 +54,7 @@ contract ZkKYC is Ownable{
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[12] memory input
+            uint[14] memory input
         ) public view {
         
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");

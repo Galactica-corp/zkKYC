@@ -34,15 +34,10 @@ template ZKKYC(levels){
     signal input citizenship;
     signal input passportID;
 
-    // pub key of the provider
-    signal input providerAx;
-    signal input providerAy;
-
     // provider's EdDSA signature of the leaf hash
     signal input providerS;
     signal input providerR8x;
     signal input providerR8y;
-    // TODO: check that the signature is valid
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -69,9 +64,7 @@ template ZKKYC(levels){
 
     //inputs for encryption of fraud investigation data
     signal input userPrivKey;
-    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -80,6 +73,12 @@ template ZKKYC(levels){
     //dAppAddress is public so it can be checked by the dApp
     signal input dAppAddress;
 
+    // pub key of the provider
+    signal input providerAx;
+    signal input providerAy;
+
+    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
 
 
