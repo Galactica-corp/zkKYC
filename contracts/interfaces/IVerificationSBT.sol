@@ -20,7 +20,7 @@ interface IVerificationSBT {
 
     function isVerificationSBTValid(address user, address dApp) external view returns(bool);
 
-    function getVerificationSBTInfo(address user, address dApp) external returns(VerificationSBTInfo memory);
+    function getVerificationSBTInfo(address user, address dApp) external view returns(VerificationSBTInfo memory);
 
     function getHumanID(address user, address dApp) external view returns(bytes32);
 }
