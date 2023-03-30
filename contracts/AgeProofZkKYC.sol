@@ -22,19 +22,20 @@ contract AgeProofZkKYC is Ownable{
     uint8 public constant INDEX_ENCRYPTED_DATA_0 = 2;
     uint8 public constant INDEX_ENCRYPTED_DATA_1 = 3;
     uint8 public constant INDEX_IS_VALID = 4;
-    uint8 public constant INDEX_ROOT = 5;
-    uint8 public constant INDEX_CURRENT_TIME = 6;
-    uint8 public constant INDEX_USER_ADDRESS = 7;
-    uint8 public constant INDEX_CURRENT_YEAR = 8;
-    uint8 public constant INDEX_CURRENT_MONTH = 9;
-    uint8 public constant INDEX_CURRENT_DAY = 10;
-    uint8 public constant INDEX_AGE_THRESHOLD = 11;
-    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 12;
-    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 13;
-    uint8 public constant INDEX_HUMAN_ID = 14;
-    uint8 public constant INDEX_DAPP_ID = 15;
-    uint8 public constant INDEX_PROVIDER_PUBKEY_AX = 16;
-    uint8 public constant INDEX_PROVIDER_PUBKEY_AY = 17;
+    uint8 public constant INDEX_VERIFICATION_EXPIRATION = 5;
+    uint8 public constant INDEX_ROOT = 6;
+    uint8 public constant INDEX_CURRENT_TIME = 7;
+    uint8 public constant INDEX_USER_ADDRESS = 8;
+    uint8 public constant INDEX_CURRENT_YEAR = 9;
+    uint8 public constant INDEX_CURRENT_MONTH = 10;
+    uint8 public constant INDEX_CURRENT_DAY = 11;
+    uint8 public constant INDEX_AGE_THRESHOLD = 12;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 13;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 14;
+    uint8 public constant INDEX_HUMAN_ID = 15;
+    uint8 public constant INDEX_DAPP_ID = 16;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AX = 17;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AY = 18;
 
     constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);
@@ -59,7 +60,7 @@ contract AgeProofZkKYC is Ownable{
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[18] memory input
+            uint[19] memory input
         ) public view returns (bool) {
         
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");

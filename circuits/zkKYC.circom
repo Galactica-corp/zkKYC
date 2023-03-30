@@ -10,10 +10,13 @@ include "./encryptionProof.circom";
 include "./humanID.circom";
 include "./providerSignatureCheck.circom";
 
-/*
-Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
-*/
-template ZKKYC(levels){
+/**
+ * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ *
+ * @param levels - number of levels of the merkle tree.
+ * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ */
+template ZKKYC(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -80,6 +83,7 @@ template ZKKYC(levels){
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
+    signal output verificationExpiration; 
 
 
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
@@ -180,6 +184,16 @@ template ZKKYC(levels){
     component timeHasntPassed = GreaterThan(128);
     timeHasntPassed.in[0] <== expirationDate;
     timeHasntPassed.in[1] <== currentTime;
+
+    // the expiration date of the resulting Verification SBT should not equal the expiration date
+    // of the zkKYC data to leak less information that could make it possible to trace the user
+    // So we take a date a fixed time in the future, but latest at the zkKYC expiration
+    var verificationExpirationMax = currentTime + maxExpirationLengthDays * 24 * 60 * 60;
+    verificationExpiration <-- expirationDate < verificationExpirationMax ? expirationDate : verificationExpirationMax;
+    component verificationExpirationMaxCheck = LessEqThan(32); // 32 bits are enough for unix timestamps until year 2106
+    verificationExpirationMaxCheck.in[0] <== verificationExpiration;
+    verificationExpirationMaxCheck.in[1] <== verificationExpiration;
+    verificationExpirationMaxCheck.out === 1;
 
     valid <== timeHasntPassed.out;
 }

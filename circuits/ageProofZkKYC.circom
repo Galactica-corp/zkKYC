@@ -4,10 +4,13 @@ include "../node_modules/circomlib/circuits/gates.circom";
 include "./ageProof.circom";
 include "./zkKYC.circom";
 
-/*
-Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
-*/
-template AgeProofZkKYC(levels){
+/**
+ * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ *
+ * @param levels - number of levels of the merkle tree.
+ * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ */
+template AgeProofZkKYC(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -85,8 +88,9 @@ template AgeProofZkKYC(levels){
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
+    signal output verificationExpiration; 
 
-    component zkKYC = ZKKYC(levels);
+    component zkKYC = ZKKYC(levels, maxExpirationLengthDays);
     zkKYC.holderCommitment <== holderCommitment;
     zkKYC.randomSalt <== randomSalt;
     zkKYC.surname <== surname;
@@ -133,6 +137,7 @@ template AgeProofZkKYC(levels){
     userPubKey[1] <== zkKYC.userPubKey[1];
     encryptedData[0] <== zkKYC.encryptedData[0];
     encryptedData[1] <== zkKYC.encryptedData[1];
+    verificationExpiration <== zkKYC.verificationExpiration;
 
     component ageProof = AgeProof();
     ageProof.yearOfBirth <== yearOfBirth;

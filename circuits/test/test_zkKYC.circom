@@ -11,4 +11,4 @@ component main {public [
   dAppAddress,
   providerAx,
   providerAy
-]} = ZKKYC(32);
+]} = ZKKYC(32, 60);

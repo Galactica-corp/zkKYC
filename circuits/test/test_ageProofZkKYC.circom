@@ -15,4 +15,4 @@ component main {public [
   dAppAddress,
   providerAx,
   providerAy
-]} = AgeProofZkKYC(32);
+]} = AgeProofZkKYC(32, 60);
