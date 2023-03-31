@@ -6,7 +6,6 @@ import {
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
-import fs from 'fs';
 import { ZkCertStandard } from '../lib';
 
 // sample field inputs
@@ -27,6 +26,7 @@ export const fields = {
   citizenship: '23423453234234',
   passportID: '3095472098',
 };
+
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -137,23 +137,3 @@ export async function generateZKKYCInput() {
 
   return zkKYCInput;
 }
-
-/**
- * @description Script for creating proof input for a zkKYC certificate
- */
-async function main() {
-  const zkKYCInput = await generateZKKYCInput();
-
-  fs.writeFileSync(
-    './circuits/input/zkKYC.json',
-    JSON.stringify(zkKYCInput, null, 2),
-    'utf8'
-  );
-}
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
