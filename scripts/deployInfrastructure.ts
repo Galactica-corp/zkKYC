@@ -10,11 +10,11 @@ const log = console.log;
 
 async function main() {
   // wallets
-  const [ deployer/*, institutionSigner*/ ] = await hre.ethers.getSigners();
+  const [ deployer, institutionSigner ] = await hre.ethers.getSigners();
+
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const institutionSigner = deployer;
   log(`Using account ${institutionSigner.address} as institution for fraud investigation`);
 
   // get poseidon from library
@@ -36,16 +36,13 @@ async function main() {
   const ageProofZkKYCVerifier = await deploySC('AgeProofZkKYCVerifier', true);
   
   const galacticaInstitution = await deploySC('MockGalacticaInstitution', true);
-  // TODO: figure out why the pubkey from this institution doesn't work
-  // let institutionPrivKey = BigInt(
-  //   await getEddsaKeyFromEthSigner(institutionSigner)
-  // ).toString();
-  // const eddsa = await buildEddsa();
-  // let institutionPub = eddsa.prv2pub(institutionPrivKey);
-  let institutionPub = [
-    "20409749357159524859350796580629088486874894097428792502700472217353173206540",
-    "18525656670900745219442221083879563750404908547508147494645295007202380963404"
-  ];
+  let institutionPrivKey = BigInt(
+    await getEddsaKeyFromEthSigner(institutionSigner)
+  ).toString();
+  const eddsa = await buildEddsa();
+  let institutionPub = eddsa.prv2pub(institutionPrivKey);
+  // convert pubkey uint8array to decimal string
+  institutionPub = institutionPub.map((x: Uint8Array) => eddsa.poseidon.F.toObject(x).toString());
   console.log('Institution pubkey: ', institutionPub);
   await galacticaInstitution.setInstitutionPubkey(institutionPub);
 

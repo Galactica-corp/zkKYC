@@ -31,7 +31,7 @@ const config: HardhatUserConfig = {
       url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
       accounts: [ 
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
-        // TODO: add different wallet as institution
+        process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
       ],
     }
   },
