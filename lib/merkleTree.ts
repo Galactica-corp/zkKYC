@@ -90,6 +90,7 @@ export class MerkleTree {
         // rebuild tree.
         for (let level = 0; level < this.depth; level += 1) {
             // recalculate level above
+            // TODO: do not recalculate branches that are full and were not changed
             this.tree[level + 1] = [];
     
             // here we can use the fact that the tree is sparse and just filled from the right
