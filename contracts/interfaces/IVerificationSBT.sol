@@ -32,4 +32,7 @@ interface IVerificationSBT {
     function getVerificationSBTInfo(address user, address dApp) external view returns(VerificationSBTInfo memory);
 
     function getHumanID(address user, address dApp) external view returns(bytes32);
+
+    /// @dev returns the block number at which the contract was created, so that the frontend can search for logs from here instead of searching from genesis.
+    function deploymentBlock() external view returns(uint64);
 }

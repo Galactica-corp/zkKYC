@@ -10,12 +10,19 @@ contract VerificationSBT is IVerificationSBT {
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
 
+    /// Block number at which the contract was created, so that the frontend can search for logs from here instead of searching from genesis.
+    uint64 public deploymentBlock;
+
     // event emitted when a verification SBT is minted
     event VerificationSBTMinted(
         address indexed dApp,
         address indexed user,
         bytes32 indexed humanID
     );
+
+    constructor() {
+        deploymentBlock = uint64(block.number);
+    }
 
     function mintVerificationSBT(
         address user,
@@ -74,5 +81,4 @@ contract VerificationSBT is IVerificationSBT {
         return
             VerificationSBTMapping[keccak256(abi.encode(user, dApp))].humanID;
     }
-
 }
