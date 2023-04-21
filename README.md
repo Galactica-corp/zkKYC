@@ -44,3 +44,15 @@ If you also want to deploy example contracts, you can enter them in the followin
 ```shell
 npx hardhat run scripts/deployExampleDApp.ts --network galaTestnet
 ```
+
+## Create and issue zkCertificates
+First collect the certificate data and holder commitment from the user. For example as in [the zkKYC example](example/kycFields.json).
+Then you can sign it using the following hardhat task (replace holder commitment and file)
+```shell
+npx hardhat createZkKYC --holder-commitment 2548540024400520720751029171633903682525672775622781811599241942877782733224 --kyc-data-file example/kycFields.json
+```
+The resulting zkCert can be issued on chain with the following script after adjusting the parameters in it.
+```shell
+npx hardhat run scripts/issueZkKYC.ts --network galaTestnet
+```
+Then you can send the zkCert data to the user, so that he/she can create zk proofs with it.
