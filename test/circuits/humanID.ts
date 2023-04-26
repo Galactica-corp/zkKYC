@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
-import { fieldOrder } from '../../lib/helpers';
+import { humanIDFieldOrder } from '../../lib/zkCertStandards';
 describe('HumanID Component', () => {
   let circuit: CircuitTestUtils;
 
@@ -21,7 +21,7 @@ describe('HumanID Component', () => {
     let poseidon = await buildPoseidon();
     expectedID = poseidon.F.toObject(
       poseidon(
-        fieldOrder.map((field) => sampleInput[field]),
+        humanIDFieldOrder.map((field) => sampleInput[field]),
         undefined,
         1
       )
@@ -45,7 +45,7 @@ describe('HumanID Component', () => {
       sampleInput.yearOfBirth.toString()
     );
     assert.propertyVal(witness, 'main.passportID', sampleInput.passportID);
-    assert.propertyVal(witness, 'main.dAppID', sampleInput.dAppID);
+    assert.propertyVal(witness, 'main.dAppAddress', sampleInput.dAppAddress);
     // check resulting output
     assert.propertyVal(witness, 'main.humanID', expectedID);
   });
@@ -57,7 +57,7 @@ describe('HumanID Component', () => {
   });
 
   it('output changes on any difference', async () => {
-    for (let field of fieldOrder) {
+    for (let field of humanIDFieldOrder) {
       let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;
       const witness = await circuit.calculateLabeledWitness(
@@ -67,6 +67,4 @@ describe('HumanID Component', () => {
       assert.notPropertyVal(witness, 'main.humanID', expectedID);
     }
   });
-
-  it.skip('TODO: test integration in zkKYC', async () => {});
 });

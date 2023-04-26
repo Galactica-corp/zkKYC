@@ -9,7 +9,6 @@ import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
 
 
-
 const config: HardhatUserConfig = {
   mocha: {
     timeout: 100000000,
@@ -30,7 +29,10 @@ const config: HardhatUserConfig = {
   networks: {
     galaTestnet: {
       url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
-      accounts: [ process.env.GalaTestnetDeployerPrivateKey!],
+      accounts: [ 
+        process.env.GalaTestnetDeployerPrivateKey!, // deployer
+        process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
+      ],
     }
   },
   etherscan: {
@@ -40,7 +42,7 @@ const config: HardhatUserConfig = {
     customChains: [
       {
         network: "galaTestnet",
-        chainId: 1,
+        chainId: 31233,
         urls: {
           apiURL: "http://10.51.0.5:4040/api",
           browserURL: "http://10.51.0.5:4040/"

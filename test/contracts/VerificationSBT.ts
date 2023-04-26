@@ -3,19 +3,18 @@ import chai, { use } from 'chai';
 
 chai.config.includeStack = true;
 
-import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
-import { AgeProofZkKYC } from '../../typechain-types/AgeProofZkKYC';
-import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacticaInstitution';
-import { AgeProofZkKYCVerifier } from '../../typechain-types/AgeProofZkKYCVerifier';
-import { MockDApp } from '../../typechain-types/mock/MockDApp';
-import { VerificationSBT } from '../../typechain-types/VerificationSBT';
-import { fieldOrder } from '../../lib/helpers';
+import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
+import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
+import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
+import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import { humanIDFieldOrder } from '../../lib/zkCertStandards';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { generateZKKYCInput, fields } from '../../scripts/generateZKKYCInput';
 
 const snarkjs = require('snarkjs');
-import { readFileSync } from 'fs';
 import { buildPoseidon } from 'circomlibjs';
 const hre = require('hardhat');
 import {
@@ -31,8 +30,10 @@ import {
 } from '../../lib/keyManagement';
 import { ZKCertificate } from '../../lib/zkCertificate';
 import { ZkCertStandard } from '../../lib';
+import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 
 import { buildEddsa } from 'circomlibjs';
+import { BigNumberish } from 'ethers';
 
 const { expect } = chai;
 
@@ -133,13 +134,13 @@ describe('Verification SBT Smart contract', async () => {
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
-    // we need to change the dAppID to the address of the MockDApp created here
-    sampleInput.dAppID = mockDApp.address;
+    // we need to change the dAppAddress to the address of the MockDApp created here
+    sampleInput.dAppAddress = mockDApp.address;
 
     let poseidon = await buildPoseidon();
     sampleInput.humanID = poseidon.F.toObject(
       poseidon(
-        fieldOrder.map((field) => sampleInput[field]),
+        humanIDFieldOrder.map((field) => sampleInput[field]),
         undefined,
         1
       )
@@ -159,15 +160,18 @@ describe('Verification SBT Smart contract', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
+    const galacticaInstitutionPubKey = [
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()], 
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ] as [BigNumberish, BigNumberish];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -204,14 +208,6 @@ describe('Verification SBT Smart contract', async () => {
     expect(verificationSBTInfo.dApp).to.be.equal(mockDApp.address);
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
       ageProofZkKYC.address
-    );
-
-    expect(verificationSBTInfo.encryptedData[0]).to.be.equal(
-      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[0]))
-    );
-
-    expect(verificationSBTInfo.encryptedData[1]).to.be.equal(
-      fromHexToBytes32(fromDecToHex(sampleInput.encryptedData[1]))
     );
 
     // check that the verificationSBT can be used to receive the second token without proof
@@ -263,9 +259,51 @@ describe('Verification SBT Smart contract', async () => {
     zkKYC.setFields(fields);
 
     const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-    let _ = zkKYC.getProviderData(providerEdDSAKey);
-
+    zkKYC.signWithProvider(providerEdDSAKey);
 
     expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
+
+    // check that the verification SBT can be found by the frontend
+    const loggedSBTs = await queryVerificationSBTs(verificationSBT.address, user.address);
+    expect(loggedSBTs.has(mockDApp.address)).to.be.true;
+    expect(loggedSBTs.get(mockDApp.address)!.length).to.be.equal(1);
+  });
+
+  it('should revert on incorrect proof', async () => {
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+
+    // change the proof to make it incorrect
+    proof.pi_a[0] = proof.pi_a[0] + "1";
+
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
+    // set the merkle root to the correct one
+    await mockKYCRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot))
+    );
+
+    // set the galactica institution pub key
+    const galacticaInstitutionPubKey = [
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ] as [BigNumberish, BigNumberish];
+    await mockGalacticaInstitution.setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    let [a, b, c] = processProof(proof);
+
+    let publicInputs = processPublicSignals(publicSignals);
+
+    let tx = mockDApp.connect(user).airdropToken(1, a, b, c, publicInputs);
+
+    await expect(tx).to.be.rejected;
   });
 });

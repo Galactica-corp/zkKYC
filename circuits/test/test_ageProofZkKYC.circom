@@ -1,5 +1,18 @@
-pragma circom 2.0.3;
+pragma circom 2.1.4;
 
 include "../ageProofZkKYC.circom";
 
-component main {public [root, currentTime, userAddress, currentYear, currentMonth, currentDay, ageThreshold, userPubKey, investigationInstitutionPubKey, encryptedData, humanID, dAppID]} = AgeProofZkKYC(32);
+component main {public [
+  root,
+  currentTime, 
+  userAddress, 
+  currentYear, 
+  currentMonth, 
+  currentDay, 
+  ageThreshold, 
+  investigationInstitutionPubKey, 
+  humanID, 
+  dAppAddress,
+  providerAx,
+  providerAy
+]} = AgeProofZkKYC(32, 60);

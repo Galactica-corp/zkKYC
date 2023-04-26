@@ -1,4 +1,4 @@
-pragma circom 2.0.3;
+pragma circom 2.1.4;
 
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
@@ -10,10 +10,13 @@ include "./encryptionProof.circom";
 include "./humanID.circom";
 include "./providerSignatureCheck.circom";
 
-/*
-Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
-*/
-template ZKKYC(levels){
+/**
+ * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ *
+ * @param levels - number of levels of the merkle tree.
+ * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ */
+template ZKKYC(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -31,16 +34,13 @@ template ZKKYC(levels){
     signal input town;
     signal input region;
     signal input country;
-
-    // pub key of the provider
-    signal input providerAx;
-    signal input providerAy;
+    signal input citizenship;
+    signal input passportID;
 
     // provider's EdDSA signature of the leaf hash
     signal input providerS;
     signal input providerR8x;
     signal input providerR8y;
-    // TODO: check that the signature is valid
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -67,18 +67,23 @@ template ZKKYC(levels){
 
     //inputs for encryption of fraud investigation data
     signal input userPrivKey;
-    signal input userPubKey[2]; // should be public to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal input encryptedData[2]; // should be public to be stored in the verification SBT
 
     //humanID related variable
     //humanID as public input, so dApp can use it
     signal input humanID;
-    signal input passportID;
-    //dAppID is public so it can be checked by the dApp
-    signal input dAppID;
 
+    //dAppAddress is public so it can be checked by the dApp
+    signal input dAppAddress;
+
+    // pub key of the provider
+    signal input providerAx;
+    signal input providerAy;
+
+    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
+    signal output verificationExpiration; 
 
 
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
@@ -101,7 +106,7 @@ template ZKKYC(levels){
     authorization.R8y <== R8y2; 
 
     // content hash for zkKYC data
-    component contentHash = Poseidon(13);
+    component contentHash = Poseidon(15);
     contentHash.inputs[0] <== surname;
     contentHash.inputs[1] <== forename;
     contentHash.inputs[2] <== middlename;
@@ -115,6 +120,8 @@ template ZKKYC(levels){
     contentHash.inputs[10] <== town;
     contentHash.inputs[11] <== region;
     contentHash.inputs[12] <== country;
+    contentHash.inputs[13] <== citizenship;
+    contentHash.inputs[14] <== passportID;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();
@@ -151,15 +158,15 @@ template ZKKYC(levels){
     //check that the encrypted fraud investigation data is correctly created
     component _encryptionProof = encryptionProof();
     _encryptionProof.senderPrivKey <== userPrivKey;
-    _encryptionProof.senderPubKey[0] <== userPubKey[0];
-    _encryptionProof.senderPubKey[1] <== userPubKey[1];
     _encryptionProof.receiverPubKey[0] <== investigationInstitutionPubKey[0];
     _encryptionProof.receiverPubKey[1] <== investigationInstitutionPubKey[1];
     _encryptionProof.msg[0] <== providerAx;
     _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
 
-    _encryptionProof.encryptedMsg[0] === encryptedData[0];
-    _encryptionProof.encryptedMsg[1] === encryptedData[1];
+    userPubKey[0] <== _encryptionProof.senderPubKey[0];
+    userPubKey[1] <== _encryptionProof.senderPubKey[1];
+    encryptedData[0] <== _encryptionProof.encryptedMsg[0];
+    encryptedData[1] <== _encryptionProof.encryptedMsg[1];
 
     component calculateHumanId = HumanID();
     calculateHumanId.surname <== surname;
@@ -169,7 +176,7 @@ template ZKKYC(levels){
     calculateHumanId.monthOfBirth <== monthOfBirth;
     calculateHumanId.dayOfBirth <== dayOfBirth;
     calculateHumanId.passportID <== passportID;
-    calculateHumanId.dAppID <== dAppID;
+    calculateHumanId.dAppAddress <== dAppAddress;
     
     calculateHumanId.humanID === humanID;
 
@@ -177,6 +184,16 @@ template ZKKYC(levels){
     component timeHasntPassed = GreaterThan(128);
     timeHasntPassed.in[0] <== expirationDate;
     timeHasntPassed.in[1] <== currentTime;
+
+    // the expiration date of the resulting Verification SBT should not equal the expiration date
+    // of the zkKYC data to leak less information that could make it possible to trace the user
+    // So we take a date a fixed time in the future, but latest at the zkKYC expiration
+    var verificationExpirationMax = currentTime + maxExpirationLengthDays * 24 * 60 * 60;
+    verificationExpiration <-- expirationDate < verificationExpirationMax ? expirationDate : verificationExpirationMax;
+    component verificationExpirationMaxCheck = LessEqThan(32); // 32 bits are enough for unix timestamps until year 2106
+    verificationExpirationMaxCheck.in[0] <== verificationExpiration;
+    verificationExpirationMaxCheck.in[1] <== verificationExpiration;
+    verificationExpirationMaxCheck.out === 1;
 
     valid <== timeHasntPassed.out;
 }

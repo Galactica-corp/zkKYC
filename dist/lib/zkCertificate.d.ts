@@ -29,6 +29,7 @@ export declare class ZKCertificate {
     providerData?: ProviderData);
     get contentHash(): string;
     get leafHash(): string;
+    get providerMessage(): string;
     get did(): string;
     setFields(fields: Record<string, any>): void;
     /**
@@ -45,6 +46,13 @@ export declare class ZKCertificate {
      */
     getOwnershipProofInput(holderKey: string): OwnershipProofInput;
     /**
+     * @description Create the input for the provider signature check of this zkCert
+     *
+     * @param providerKey EdDSA Private key of the KYC provider
+     * @returns ProviderData struct
+     */
+    signWithProvider(providerKey: string): ProviderData;
+    /**
      * @description Create the input for the authorization proof of this zkCert
      *
      * @param holderKey EdDSA Private key of the holder
@@ -52,6 +60,24 @@ export declare class ZKCertificate {
      * @returns AuthorizationProofInput struct
      */
     getAuthorizationProofInput(holderKey: string, userAddress: string): AuthorizationProofInput;
+    /**
+     * @description Create the input for the fraud investigation data encryption proof of this zkCert
+     *
+     * @param galaInstitutionPubKey
+     * @param userPrivKey
+     * @param providerPubKey
+     * @param zkCertHash
+     * @returns
+     */
+    getFraudInvestigationDataEncryptionProofInput(institutionPub: string[], userPrivKey: string): Promise<FraudInvestigationDataEncryptionProofInput>;
+    /**
+     * @description Calculate dApp specific human ID from zkKYC and dApp address.
+     *
+     * @param dAppAddress Address of the dApp.
+     * @returns Human ID as string.
+     */
+    getHumanID(dAppAddress: string): string;
+    getHumanIDProofInput(dAppAddress: string, passportID: string): HumanIDProofInput;
 }
 export interface OwnershipProofInput {
     holderCommitment: string;
@@ -76,4 +102,14 @@ export interface ProviderData {
     R8x: string;
     R8y: string;
 }
-
+export interface FraudInvestigationDataEncryptionProofInput {
+    userPrivKey: string;
+    userPubKey: string[];
+    investigationInstitutionPubkey: string[];
+    encryptedData: string[];
+}
+export interface HumanIDProofInput {
+    passportID: string;
+    dAppAddress: string;
+    humanID: string;
+}

@@ -1,12 +1,8 @@
 import fs from 'fs';
-import * as fsPromise from 'fs/promises';
-import * as path from "path";
-
-import { task, types } from "hardhat/config";
+import path from "path";
+import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { string } from 'hardhat/internal/core/params/argumentTypes';
 import camelcase from "camelcase";
-
 
 
 /**
@@ -87,7 +83,7 @@ async function smartCircuitBuild(
         console.log(`${circuit.name} is up to date`);
       } else {
         console.log(`Compiling circuit ${circuit.name}. This might take a while...`);
-        // await hre.run("circom", {circuit: circuit.name})
+        await hre.run("circom", {circuit: circuit.name})
 
         // Make contract names unique so that hardhat does not complain
         const contentBefore = fs.readFileSync(verifierPath, 'utf8');

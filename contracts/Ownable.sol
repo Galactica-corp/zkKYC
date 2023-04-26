@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -20,7 +19,7 @@ contract Ownable {
     /**
      * @dev Initializes the contract setting the initial owner.
      */
-    constructor (address _owner) public {
+    constructor (address _owner) {
         owner = _owner;
         emit OwnershipTransferred(address(0), _owner);
     }

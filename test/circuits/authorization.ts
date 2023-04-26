@@ -76,6 +76,4 @@ describe('Authorization Component', () => {
 
     await circuit.calculateWitness(authorizationProof, sanityCheck);
   });
-
-  it.skip('TODO: test integration in zkKYC', async () => {});
 });

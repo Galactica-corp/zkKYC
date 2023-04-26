@@ -4,9 +4,12 @@ import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x862Cc9FE60F6c53080D524f2997aB2595F4C09eC';
-  const recordRegistryAddr = '0x6989febF9623FAD3c5FC25B84e0b8F2F0d9a68f0';
-  const zkKYCLeafHash = '3117336777051834855540872560265552874773137464163281414505601608025080702835';
+  const centerRegistryAddr = '0xfE9e52d5B8D27cDeBF8582FeDc0E3cFd225e01Ca';
+  const recordRegistryAddr = '0x6c7B2DfEF78a7CC20C17725153f60eE908069912';
+  const zkKYCLeafHashes = [
+    '19630604862894493237865119507631642105595355222686969752403793856928034143008',
+    '913338630289763938167212770624253461411251029088142596559861590717003723041',
+  ];
 
   // wallets
   const [ deployer ] = await ethers.getSigners();
@@ -24,10 +27,12 @@ async function main() {
   let tx = await centerRegistry.grantKYCCenterRole(deployer.address);
   await tx.wait();
 
-  console.log(`Issuing zkKYC with leaf hash ${zkKYCLeafHash}`);
-  const leafBytes = fromHexToBytes32(fromDecToHex(zkKYCLeafHash))
-  tx = await recordRegistry.addZkKYCRecord(leafBytes);
-  await tx.wait();
+  for (const zkKYCLeafHash of zkKYCLeafHashes) {
+    console.log(`Issuing zkKYC with leaf hash ${zkKYCLeafHash}`);
+    const leafBytes = fromHexToBytes32(fromDecToHex(zkKYCLeafHash))
+    tx = await recordRegistry.addZkKYCRecord(leafBytes);
+    await tx.wait();
+  }
 
   console.log(`Done`);
 }

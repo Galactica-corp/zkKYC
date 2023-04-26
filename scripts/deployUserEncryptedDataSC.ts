@@ -1,10 +1,10 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 
 async function main() {
 
-    const [deployer] = await hre.ethers.getSigners();
+    const [deployer] = await ethers.getSigners();
 
-    console.log(`Deploying contracts with account ${deployer.address} on network ${hre.network.name}`);
+    console.log(`Deploying contracts with account ${deployer.address} on network ${network.name}`);
 
     console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 

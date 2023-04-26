@@ -37,4 +37,17 @@ export const zkKYCContentFields = [
   'town',
   'region',
   'country',
+  'citizenship',
+  'passportID',
+];
+
+export const humanIDFieldOrder = [
+  'surname',
+  'forename',
+  'middlename',
+  'yearOfBirth',
+  'monthOfBirth',
+  'dayOfBirth',
+  'passportID',
+  'dAppAddress',
 ];

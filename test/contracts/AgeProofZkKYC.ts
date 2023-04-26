@@ -3,16 +3,16 @@ import chai, { use } from 'chai';
 
 chai.config.includeStack = true;
 
-import { MockKYCRegistry } from '../../typechain-types/mock/MockKYCRegistry';
-import { AgeProofZkKYC } from '../../typechain-types/AgeProofZkKYC';
-import { MockGalacticaInstitution } from '../../typechain-types/mock/MockGalacticaInstitution';
-import { AgeProofZkKYCVerifier } from '../../typechain-types/AgeProofZkKYCVerifier';
+import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
+import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const snarkjs = require('snarkjs');
-import { readFileSync } from 'fs';
 const hre = require('hardhat');
+
 import {
   fromDecToHex,
   processProof,
@@ -20,6 +20,7 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { BigNumber } from 'ethers';
 
 const { expect } = chai;
 
@@ -117,15 +118,18 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[9], publicSignals[10]];
+    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()], 
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );
@@ -147,7 +151,7 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -173,8 +177,8 @@ describe('ageProofZkKYC SC', async () => {
       circuitWasmPath,
       circuitZkeyPath
     );
-    expect(publicSignals[0]).to.be.equal('0');
-    const publicRoot = publicSignals[1];
+    expect(publicSignals[await ageProofZkKYC.INDEX_IS_VALID()]).to.be.equal('0');
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -214,8 +218,8 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const pulicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const pulicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -242,8 +246,8 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const publicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -273,8 +277,8 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const pulicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const pulicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -301,8 +305,8 @@ describe('ageProofZkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[1];
-    const pulicTime = parseInt(publicSignals[2], 10);
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const pulicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -317,7 +321,10 @@ describe('ageProofZkKYC SC', async () => {
     let publicInputs = processPublicSignals(publicSignals);
 
     // set the incorrect galactica institution pub key
-    const galacticaInstitutionPubKey = [publicSignals[6] + 1, publicSignals[7]];
+    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      BigNumber.from(publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()]).add(1),
+      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
+    ];
     await mockGalacticaInstitution.setInstitutionPubkey(
       galacticaInstitutionPubKey
     );

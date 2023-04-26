@@ -1,13 +1,16 @@
-pragma circom 2.0.3;
+pragma circom 2.1.4;
 
 include "../node_modules/circomlib/circuits/gates.circom";
 include "./ageProof.circom";
 include "./zkKYC.circom";
 
-/*
-Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
-*/
-template AgeProofZkKYC(levels){
+/**
+ * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ *
+ * @param levels - number of levels of the merkle tree.
+ * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ */
+template AgeProofZkKYC(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -25,16 +28,8 @@ template AgeProofZkKYC(levels){
     signal input town;
     signal input region;
     signal input country;
-
-    // pub key of the provider
-    signal input providerAx;
-    signal input providerAy;
-
-    // provider's EdDSA signature of the leaf hash
-    signal input providerS;
-    signal input providerR8x;
-    signal input providerR8y;
-    // TODO: check that the signature is valid
+    signal input citizenship;
+    signal input passportID;
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -71,21 +66,31 @@ template AgeProofZkKYC(levels){
 
     //inputs for encryption of fraud investigation data
     signal input userPrivKey;
-    signal input userPubKey[2]; // should be public to check that it corresponds to user address
     signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
-    signal input encryptedData[2]; // should be public to be stored in the verification SBT
 
     //humanID related variable
     //humanID as public input, so dApp can use it
     signal input humanID;
-    signal input passportID;
-    //dAppID is public so it can be checked by the dApp
-    signal input dAppID;
+    //dAppAddress is public so it can be checked by the dApp
+    signal input dAppAddress;
+
+
+    // pub key of the provider
+    signal input providerAx;
+    signal input providerAy;
+
+    // provider's EdDSA signature of the leaf hash
+    signal input providerS;
+    signal input providerR8x;
+    signal input providerR8y;
 
     // final result
+    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
+    signal output verificationExpiration; 
 
-    component zkKYC = ZKKYC(levels);
+    component zkKYC = ZKKYC(levels, maxExpirationLengthDays);
     zkKYC.holderCommitment <== holderCommitment;
     zkKYC.randomSalt <== randomSalt;
     zkKYC.surname <== surname;
@@ -101,14 +106,11 @@ template AgeProofZkKYC(levels){
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
+    zkKYC.passportID <== passportID;
+    zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
-    zkKYC.userPubKey[0] <== userPubKey[0];
-    zkKYC.userPubKey[1] <== userPubKey[1];
     zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
     zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
-    zkKYC.encryptedData[0] <== encryptedData[0];
-    zkKYC.encryptedData[1] <== encryptedData[1];
-    
     zkKYC.providerAx <== providerAx;
     zkKYC.providerAy <== providerAy;
     zkKYC.providerS <== providerS;
@@ -130,8 +132,12 @@ template AgeProofZkKYC(levels){
     zkKYC.R8x2 <== R8x2;
     zkKYC.R8y2 <== R8y2;
     zkKYC.humanID <== humanID;
-    zkKYC.passportID <== passportID;
-    zkKYC.dAppID <== dAppID;
+    zkKYC.dAppAddress <== dAppAddress;
+    userPubKey[0] <== zkKYC.userPubKey[0];
+    userPubKey[1] <== zkKYC.userPubKey[1];
+    encryptedData[0] <== zkKYC.encryptedData[0];
+    encryptedData[1] <== zkKYC.encryptedData[1];
+    verificationExpiration <== zkKYC.verificationExpiration;
 
     component ageProof = AgeProof();
     ageProof.yearOfBirth <== yearOfBirth;

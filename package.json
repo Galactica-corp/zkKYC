@@ -8,9 +8,10 @@
     "/dist"
   ],
   "scripts": {
-    "test": "hardhat smartCircuitBuild; hardhat test",
-    "build": "hardhat smartCircuitBuild",
-    "rebuild": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild"
+    "test": "hardhat smartCircuitBuild --verbose && hardhat test",
+    "build": "tsc",
+    "compile": "hardhat smartCircuitBuild --verbose",
+    "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose"
   },
   "repository": {
     "type": "git",
@@ -24,12 +25,13 @@
   "homepage": "https://github.com/anhdungle93/zkKYC#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
-    "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "@typechain/hardhat": "^6.1.2",
     "@types/mocha": "^9.1.0",
+    "chalk": "^4",
     "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",
@@ -38,18 +40,17 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "ethers": "^5.7.2",
+    "@openzeppelin/contracts": "^4.0.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/truffle-v5": "^8.0.2",
     "@typechain/web3-v1": "^6.0.2",
     "bignumber.js": "^9.0.1",
-    "circom2": "^0.2.5",
+    "circom2": "^0.2.13",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
-    "hardhat-circom": "^3.3.1",
-    "keccak256": "^1.0.6",
-    "snarkit2": "^0.2.0",
-    "@openzeppelin/contracts": "^4.0.0"
+    "ethers": "^5.7.2",
+    "hardhat-circom": "^3.3.2",
+    "keccak256": "^1.0.6"
   }
 }

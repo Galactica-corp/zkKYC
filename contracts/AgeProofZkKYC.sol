@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./Ownable.sol";
@@ -15,7 +16,28 @@ contract AgeProofZkKYC is Ownable{
     IGalacticaInstitution public galacticaInstitution;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
 
-    constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) public {
+    // indices of the ZKP public input array
+    uint8 public constant INDEX_USER_PUBKEY_AX = 0;
+    uint8 public constant INDEX_USER_PUBKEY_AY = 1;
+    uint8 public constant INDEX_ENCRYPTED_DATA_0 = 2;
+    uint8 public constant INDEX_ENCRYPTED_DATA_1 = 3;
+    uint8 public constant INDEX_IS_VALID = 4;
+    uint8 public constant INDEX_VERIFICATION_EXPIRATION = 5;
+    uint8 public constant INDEX_ROOT = 6;
+    uint8 public constant INDEX_CURRENT_TIME = 7;
+    uint8 public constant INDEX_USER_ADDRESS = 8;
+    uint8 public constant INDEX_CURRENT_YEAR = 9;
+    uint8 public constant INDEX_CURRENT_MONTH = 10;
+    uint8 public constant INDEX_CURRENT_DAY = 11;
+    uint8 public constant INDEX_AGE_THRESHOLD = 12;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 13;
+    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 14;
+    uint8 public constant INDEX_HUMAN_ID = 15;
+    uint8 public constant INDEX_DAPP_ID = 16;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AX = 17;
+    uint8 public constant INDEX_PROVIDER_PUBKEY_AY = 18;
+
+    constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
         galacticaInstitution = IGalacticaInstitution(_galacticaInstitution);
@@ -34,20 +56,19 @@ contract AgeProofZkKYC is Ownable{
     }
 
     //a, b, c are the proof
-    // input array contains the public parameters: isValid, root, currentTime, userAddress, currentYear, currentMonth, currentDay, ageThreshold, userPubKey, investigationInstitutionPubKey, encryptedData, humanID, dAppID
     function verifyProof(
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[16] memory input
+            uint[19] memory input
         ) public view returns (bool) {
         
-        require(input[0] == 1, "the proof output is not valid");
+        require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
 
-        bytes32 proofRoot = bytes32(input[1]);
+        bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(KYCRegistry.rootHistory(proofRoot), "the root in the proof doesn't match");
         
-        uint proofCurrentTime = input[2];
+        uint proofCurrentTime = input[INDEX_CURRENT_TIME];
         uint onchainTime = block.timestamp;
         uint timeDiff;
         if (proofCurrentTime > onchainTime) {
@@ -58,17 +79,17 @@ contract AgeProofZkKYC is Ownable{
         require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
 
         // tx.origin is used here so user doesn't need to submit proof directly to this SC but can also submit through dApp
-        require(tx.origin == address(uint160(input[3])), "transaction submitter is not authorized to use this proof");
+        require(tx.origin == address(uint160(input[INDEX_USER_ADDRESS])), "transaction submitter is not authorized to use this proof");
 
         (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
 
-        require(onchainYear == input[4], "the current year is incorrect");
-        require(onchainMonth == input[5], "the current month is incorrect");
-        require(onchainDay == input[6], "the current day is incorrect");
+        require(onchainYear == input[INDEX_CURRENT_YEAR], "the current year is incorrect");
+        require(onchainMonth == input[INDEX_CURRENT_MONTH], "the current month is incorrect");
+        require(onchainDay == input[INDEX_CURRENT_DAY], "the current day is incorrect");
 
         // check that the institution public key corresponds to the onchain one;
-        require(galacticaInstitution.institutionPubKey(0) == input[9], "the first part of institution pubkey is incorrect");
-        require(galacticaInstitution.institutionPubKey(1) == input[10], "the second part of institution pubkey is incorrect");
+        require(galacticaInstitution.institutionPubKey(0) == input[INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX], "the first part of institution pubkey is incorrect");
+        require(galacticaInstitution.institutionPubKey(1) == input[INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY], "the second part of institution pubkey is incorrect");
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
         return true;

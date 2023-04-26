@@ -1,7 +1,7 @@
 import { Scalar, utils } from 'ffjavascript';
 
 import { eddsaPrimeFieldMod, formatPrivKeyForBabyJub } from './keyManagement';
-import { zkKYCContentFields } from './zkCertStandards';
+import { humanIDFieldOrder, zkKYCContentFields } from './zkCertStandards';
 import { ZkCertStandard } from './zkCertStandards';
 import { encryptFraudInvestigationData } from './SBTData';
 import { buildEddsa } from 'circomlibjs';
@@ -147,7 +147,7 @@ export class ZKCertificate {
    * @param providerKey EdDSA Private key of the KYC provider
    * @returns ProviderData struct
    */
-  public getProviderData(providerKey: string): ProviderData {
+  public signWithProvider(providerKey: string): ProviderData {
     const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
     const message: BigInt = this.fieldPoseidon.toObject(
       this.poseidon([this.contentHash, this.holderCommitment])
@@ -246,29 +246,32 @@ export class ZKCertificate {
       ),
     };
   }
+
+  /**
+   * @description Calculate dApp specific human ID from zkKYC and dApp address.
+   * 
+   * @param dAppAddress Address of the dApp.
+   * @returns Human ID as string.
+   */
+  public getHumanID(dAppAddress:string): string {    
+    return this.poseidon.F.toObject(
+      this.poseidon(
+        // fill needed fields from zkKYC with dAppAddress added at the correct place
+        humanIDFieldOrder.map((field) => field == "dAppAddress" ? dAppAddress : this.fields[field]),
+        undefined,
+        1
+      )
+    ).toString();
+  }
+
   public getHumanIDProofInput(
-    dAppID: string,
+    dAppAddress: string,
     passportID: string
   ): HumanIDProofInput {
     return {
-      dAppID: dAppID,
+      dAppAddress: dAppAddress,
       passportID: passportID,
-      humanID: this.poseidon.F.toObject(
-        this.poseidon(
-          [
-            this.fields.surname,
-            this.fields.forename,
-            this.fields.middlename,
-            this.fields.yearOfBirth,
-            this.fields.monthOfBirth,
-            this.fields.dayOfBirth,
-            passportID,
-            dAppID,
-          ],
-          undefined,
-          1
-        )
-      ).toString(),
+      humanID: this.getHumanID(dAppAddress),
     };
   }
 }
@@ -315,6 +318,6 @@ export interface FraudInvestigationDataEncryptionProofInput {
 
 export interface HumanIDProofInput {
   passportID: string;
-  dAppID: string;
+  dAppAddress: string;
   humanID: string;
 }

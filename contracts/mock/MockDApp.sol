@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../VerificationSBT.sol";
@@ -25,7 +26,7 @@ contract MockDApp {
     VerificationSBT public SBT;
     IVerifierWrapper public verifierWrapper; 
 
-    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) public {
+    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -44,16 +45,17 @@ contract MockDApp {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[16] memory input
+        uint[19] memory input
     ) public {
+        bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
             
-            bytes32 humanID = bytes32(input[14]);
-            uint dAppID = input[15];
+            humanID = bytes32(input[15]);
+            uint dAppAddress = input[16];
 
-            // check that the public dAppID is correct
-            require(dAppID == uint(uint160(address(this))), "incorrect dAppID");
+            // check that the public dAppAddress is correct
+            require(dAppAddress == uint(uint160(address(this))), "incorrect dAppAddress");
 
             // check the zk proof
             require(IAgeProofZkKYCVerifier(address(verifierWrapper)).verifyProof(a, b, c, input), "zk proof is invalid");
@@ -61,16 +63,17 @@ contract MockDApp {
             
 
             //afterwards we mint the verification SBT
-            bytes32[2] memory encryptedData = [bytes32(input[12]), bytes32(input[13])];
-            uint256[2] memory userPubKey = [input[8], input[9]];
-            SBT.mintVerificationSBT(msg.sender, verifierWrapper, 1990878924, encryptedData, userPubKey, humanID);
+            uint256[2] memory userPubKey = [input[0], input[1]];
+            bytes32[2] memory encryptedData = [bytes32(input[2]), bytes32(input[3])];
+            uint expirationTime = input[5];
+            uint256[2] memory providerPubKey = [input[17], input[18]];
+            SBT.mintVerificationSBT(msg.sender, verifierWrapper, expirationTime, encryptedData, userPubKey, humanID, providerPubKey);
         }
 
-        bytes32 humanID = SBT.getHumanID(msg.sender, address(this));
+        humanID = SBT.getHumanID(msg.sender, address(this));
 
         // if everything is good then we transfer the airdrop
         // then mark it in the mapping
-        ERC20 token;
         if (tokenIndex==1) {
             require(!hasReceivedToken1[humanID], "this humandID has already received this airdrop");
             token1.transfer(msg.sender, token1AirdropAmount);

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const circomlibjs_1 = require("circomlibjs");
 const zkCertificate_1 = require("../lib/zkCertificate");
+const keyManagement_1 = require("../lib/keyManagement");
 const config_1 = require("hardhat/config");
 const argumentTypes_1 = require("hardhat/internal/core/params/argumentTypes");
 const lib_1 = require("../lib");
@@ -14,6 +15,8 @@ const lib_1 = require("../lib");
  */
 async function main(args, hre) {
     console.log("Creating zkKYC certificate");
+    const [provider] = await hre.ethers.getSigners();
+    console.log(`Using provider ${provider.address} to sign the zkKYC certificate`);
     console.log("holderCommitment", args.holderCommitment);
     console.log("randomSalt", args.randomSalt);
     console.log(`reading KYC data from ${args.kycDataFile}`);
@@ -34,6 +37,8 @@ async function main(args, hre) {
         "town",
         "region",
         "country",
+        "citizenship",
+        "passportID",
     ];
     const zkKYCFields = {};
     for (let field of lib_1.zkKYCContentFields.filter((field) => !exceptions.includes(field))) {
@@ -50,7 +55,9 @@ async function main(args, hre) {
     }
     // TODO: create ZkKYC subclass requiring all the other fields
     let zkKYC = new zkCertificate_1.ZKCertificate(args.holderCommitment, lib_1.ZkCertStandard.zkKYC, eddsa, args.randomSalt, zkKYCFields);
-    // TODO: let provider sign the zkKYC
+    // let provider sign the zkKYC
+    const providerEdDSAKey = await (0, keyManagement_1.getEddsaKeyFromEthSigner)(provider);
+    zkKYC.signWithProvider(providerEdDSAKey);
     console.log("zkKYC", zkKYC.exportJson());
     console.log("done");
 }

@@ -3,14 +3,10 @@ import { ZKCertificate } from '../lib/zkCertificate';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
-  formatPrivKeyForBabyJub,
-  eddsaPrimeFieldMod,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
-import fs from 'fs';
 import { ZkCertStandard } from '../lib';
-import { Scalar } from 'ffjavascript';
 
 // sample field inputs
 export const fields = {
@@ -27,7 +23,10 @@ export const fields = {
   town: '23423453234234',
   region: '23423453234234',
   country: '23423453234234',
+  citizenship: '23423453234234',
+  passportID: '3095472098',
 };
+
 export async function generateZKKYCInput() {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -65,7 +64,7 @@ export async function generateZKKYCInput() {
   // some default provider private key
   // providerData needs to be created before leafHash computation
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-  const providerData = zkKYC.getProviderData(providerEdDSAKey);
+  const providerData = zkKYC.signWithProvider(providerEdDSAKey);
   zkKYCInput.providerAx = providerData.Ax;
   zkKYCInput.providerAy = providerData.Ay;
   zkKYCInput.providerS = providerData.S;
@@ -89,11 +88,10 @@ export async function generateZKKYCInput() {
       encryptionPrivKey
     );
 
-  let passportID = '3095472098';
   //placeholder for now, later on we need to be able to change it to deployed dApp address on-chain
   // probably the generateZKKYCInput will need to read inputs from a json file
-  let dAppID = '2093684589645';
-  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppID, passportID);
+  let dAppAddress = '2093684589645';
+  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress, fields.passportID);
 
   // initiate an empty merkle tree
   let merkleTree = new MerkleTree(32, eddsa.poseidon);
@@ -130,36 +128,12 @@ export async function generateZKKYCInput() {
   // add fraud investigation data
   zkKYCInput.userPrivKey =
     fraudInvestigationDataEncryptionProofInput.userPrivKey;
-  zkKYCInput.userPubKey = fraudInvestigationDataEncryptionProofInput.userPubKey;
   zkKYCInput.investigationInstitutionPubKey =
     fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey;
-  zkKYCInput.encryptedData =
-    fraudInvestigationDataEncryptionProofInput.encryptedData;
 
   // add humanID data
-  zkKYCInput.passportID = humanIDProofInput.passportID;
-  zkKYCInput.dAppID = humanIDProofInput.dAppID;
+  zkKYCInput.dAppAddress = humanIDProofInput.dAppAddress;
   zkKYCInput.humanID = humanIDProofInput.humanID;
 
   return zkKYCInput;
 }
-
-/**
- * @description Script for creating proof input for a zkKYC certificate
- */
-async function main() {
-  const zkKYCInput = await generateZKKYCInput();
-
-  fs.writeFileSync(
-    './circuits/input/zkKYC.json',
-    JSON.stringify(zkKYCInput, null, 2),
-    'utf8'
-  );
-}
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});

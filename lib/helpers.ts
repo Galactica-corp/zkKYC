@@ -157,14 +157,3 @@ export function processProof(proof: any) {
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((x: any) => fromDecToHex(x, true));
 }
-
-export const fieldOrder = [
-  'surname',
-  'forename',
-  'middlename',
-  'yearOfBirth',
-  'monthOfBirth',
-  'dayOfBirth',
-  'passportID',
-  'dAppID',
-];

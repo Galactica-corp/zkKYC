@@ -13,3 +13,4 @@ export declare const zkCertCommonFields: string[];
  * It does not include fields that are common to all zkCerts.
  */
 export declare const zkKYCContentFields: string[];
+export declare const humanIDFieldOrder: string[];

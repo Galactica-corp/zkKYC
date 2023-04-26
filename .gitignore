@@ -27,5 +27,7 @@ artifacts
 circuits/build
 contracts/*Verifier.sol
 
-
-
+# ignore build files that do not need to be pushed as library
+dist/scripts
+dist/tasks
+dist/hardhat.config*

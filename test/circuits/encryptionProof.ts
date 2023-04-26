@@ -45,8 +45,6 @@ describe('Encryption Proof', () => {
       await getEddsaKeyFromEthSigner(receiver)
     ).toString();
 
-    const senderPub = eddsa.prv2pub(senderPriv);
-
     const receiverPub = eddsa.prv2pub(receiverPriv);
 
 
@@ -54,9 +52,6 @@ describe('Encryption Proof', () => {
 
     const circuitInputs = {
       senderPrivKey: formatPrivKeyForBabyJub(senderPriv, eddsa),
-      senderPubKey: senderPub.map((p: any) =>
-        eddsa.poseidon.F.toObject(p).toString()
-      ),
       receiverPubKey: receiverPub.map((p: any) =>
         eddsa.poseidon.F.toObject(p).toString()
       ),
