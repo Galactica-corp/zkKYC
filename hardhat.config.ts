@@ -28,8 +28,17 @@ const config: HardhatUserConfig = {
   },
   networks: {
     galaTestnet: {
+      url: "https://evm-rpc-http-devnet-41233.galactica.com/",
+      accounts: [ 
+        process.env.GalaTestnetDeployerPrivateKey!, // deployer
+        process.env.GalaTestnetDeployerPrivateKey!, // deployer
+        process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
+      ],
+    },
+    galaInternalDevnet: {
       url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
       accounts: [ 
+        process.env.GalaTestnetDeployerPrivateKey!, // deployer
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
         process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
       ],
@@ -38,16 +47,25 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       galaTestnet: "something"!, // not needed for now, I guess
+      galaInternalDevnet: "something"!, // not needed for now, I guess
     },
     customChains: [
       {
         network: "galaTestnet",
+        chainId: 41233,
+        urls: {
+          apiURL: "https://explorer-devnet-41233.galactica.com/api",
+          browserURL: "https://explorer-devnet-41233.galactica.com/"
+        }
+      },
+      {
+        network: "galaInternalDevnet",
         chainId: 31233,
         urls: {
           apiURL: "http://10.51.0.5:4040/api",
           browserURL: "http://10.51.0.5:4040/"
         }
-      }
+      },
     ]
   },
   circom: {

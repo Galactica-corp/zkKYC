@@ -4,8 +4,8 @@ import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
 async function main() {
   // parameters
-  const centerRegistryAddr = '0xfE9e52d5B8D27cDeBF8582FeDc0E3cFd225e01Ca';
-  const recordRegistryAddr = '0x6c7B2DfEF78a7CC20C17725153f60eE908069912';
+  const centerRegistryAddr = '0x2547a64b4CDe45ad691BC393aBe20D405cD5139D';
+  const recordRegistryAddr = '0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5';
   const zkKYCLeafHashes = [
     '19630604862894493237865119507631642105595355222686969752403793856928034143008',
     '913338630289763938167212770624253461411251029088142596559861590717003723041',
