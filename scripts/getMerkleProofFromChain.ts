@@ -2,6 +2,7 @@ import { buildPoseidon } from "circomlibjs";
 import { MerkleTree } from "../lib/merkleTree";
 import { ethers } from 'hardhat';
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
+import { Provider } from "@ethersproject/abstract-provider";
 
 
 /**
@@ -20,13 +21,13 @@ async function main() {
     // input
     const merkleDepth = 32;
 
-    const leaves = await queryOnChainLeaves(registryAddress, poseidonAddress);
+    const leaves = await queryOnChainLeaves(ethers.provider, registryAddress, poseidonAddress);
 
     // build merkle tree
     const merkleTree = new MerkleTree(merkleDepth, poseidon);
     const batchSize = 10_000;
     for (let i = 0; i < leaves.length; i += batchSize){
-        merkleTree.insertleaves(leaves.slice(i, i+batchSize));
+        merkleTree.insertLeaves(leaves.slice(i, i+batchSize));
     }
 
     console.log(`Merkle leaves: ${merkleTree.tree[0]}`)
@@ -46,7 +47,7 @@ async function main() {
 
 }
 
-async function queryOnChainLeaves(contractAddr: string, poseidonAddr: string, firstBlock: number = 1): Promise<string[]> {
+async function queryOnChainLeaves(provider: Provider, contractAddr: string, poseidonAddr: string, firstBlock: number = 1): Promise<string[]> {
     const factory = await ethers.getContractFactory("KYCRecordRegistry", {
         libraries: {
             PoseidonT3: poseidonAddr,
@@ -54,7 +55,7 @@ async function queryOnChainLeaves(contractAddr: string, poseidonAddr: string, fi
     });
     const contract = factory.attach(contractAddr) as KYCRecordRegistry;
 
-    const currentBlock = await ethers.provider.getBlockNumber();
+    const currentBlock = await provider.getBlockNumber();
     let res : string[] = [];
 
     const maxBlockInterval = 10000;
