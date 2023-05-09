@@ -65,3 +65,17 @@ The resulting zkCert can be issued on chain with the following script after adju
 npx hardhat run scripts/issueZkKYC.ts --network galaTestnet
 ```
 Then you can send the zkCert data to the user, so that he/she can create zk proofs with it.
+
+## Publish this repo on npm
+First make sure that the tests run successfully
+```shell 
+npm run test
+```
+
+Build code into js files and publish it on NPM
+```shell
+npm run build
+npm publish
+```
+
+Create a new release version on GitHub [here](https://github.com/Galactica-corp/zkKYC/releases/new).
