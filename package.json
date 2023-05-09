@@ -5,7 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "/dist"
+    "/dist",
+    "!/dist/hardhat.config.*",
+    "/circuits",
+    "!/circuits/*.ptau",
+    "!/circuits/build",
+    "/contracts"
   ],
   "scripts": {
     "test": "hardhat smartCircuitBuild --verbose && hardhat test",
