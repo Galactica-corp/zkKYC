@@ -17,9 +17,9 @@ async function main() {
   // also create example for ageProofZkKYC
   const ageProofZkKYCInput = {
     ...zkKYCInput,
-    yearOfBirth: 1969,
-    monthOfBirth: 5,
-    dayOfBirth: 7,
+    currentYear: 2023,
+    currentMonth: 5,
+    currentDay: 9,
     ageThreshold: 18,
   };
 
