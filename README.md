@@ -1,10 +1,19 @@
 # zkKYC
-circom circuits and test for private KYC on EVM-compatible chains
+Repository for Galactica Network's zero-knowledge Know Your Customer (zkKYC) solution.
+
+ZkKYC is a solution concept for meeting KYC obligations while preserving user privacy. It utilizes zero-knowledge cryptography to prove statements without sharing any personal details. For example users can prove that they have passed KYC and are grown up without disclosing personal details, such as names or birthdays.
+
+This repo contains
+- Library of ZK circuits
+- Smart contracts for on-chain storage of zkKYCs and verification
+- Library of tools and scripts for building, creating, issuing and querying zkKYCs
 
 The project is based on:
-- harhat for Solidity development
+- hardhat for Solidity development
 - Circom for the zero knowledge part to write SNARK circuits
 - SnarkJS for creating zk proofs
+
+The documentation can be found [here](https://app.gitbook.com/o/IbmhhVJSM8rZ0aECe2R3/s/NMoORBGBxztthVlosoIF/galactica-concepts/zero-knowledge-kyc).
 
 ## Install
 ```shell

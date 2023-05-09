@@ -1,7 +1,7 @@
 {
-  "name": "zkkyc",
-  "version": "1.0.0",
-  "description": "zero knowledge circuits for private KYC",
+  "name": "@galactica-corp/zkkyc",
+  "version": "0.5.0",
+  "description": "Galactica Network's zero-knowledge Know Your Customer (zkKYC) library containing ZK circuit and blockchain library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
