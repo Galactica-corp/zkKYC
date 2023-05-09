@@ -98,7 +98,7 @@ export async function generateZKKYCInput() {
   let merkleTree = new MerkleTree(32, eddsa.poseidon);
 
   // add leaf hash as a leaf to this merkle tree
-  merkleTree.insertleaves([leafHash]);
+  merkleTree.insertLeaves([leafHash]);
 
   let merkleRoot = merkleTree.root;
 
