@@ -18,7 +18,7 @@ async function main() {
 
     // calculate merkle tree
     const merkleTree = new MerkleTree(merkleDepth, poseidon);
-    merkleTree.insertleaves(leaves);
+    merkleTree.insertLeaves(leaves);
 
     for (const leaf of leaves) {
         const merkleProof = merkleTree.createProof(leaf);
