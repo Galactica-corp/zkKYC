@@ -126,6 +126,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_encryptionProof.circom',
         input: 'input/encryptionProof.json',
       },
+      {
+        name: 'polynomial',
+        circuit: 'test/test_polynomial.circom',
+        input: 'input/polynomial.json',
+      },
     ],
   },
 };
