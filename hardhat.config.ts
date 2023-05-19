@@ -131,6 +131,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_polynomial.circom',
         input: 'input/polynomial.json',
       },
+      {
+        name: 'shamirsSecretSharing',
+        circuit: 'test/test_shamirsSecretSharing.circom',
+        input: 'input/shamirsSecretSharing.json',
+      },
     ],
   },
 };
