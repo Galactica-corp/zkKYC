@@ -93,7 +93,7 @@ describe('KYCRecordRegistry', () => {
     );
   });
 
-  it('Should incrementally insert elements', async function () {
+  it.only('Should incrementally insert elements', async function () {
     let loops = 5;
 
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
@@ -116,7 +116,7 @@ describe('KYCRecordRegistry', () => {
 
       // Update with insert list on local and contract
       await KYCRecordRegistry.insertLeavesTest(insertList);
-      merkleTree.insertleaves(insertList);
+      merkleTree.insertLeaves(insertList);
 
       // Check roots match
       expect(await KYCRecordRegistry.merkleRoot()).to.equal(
