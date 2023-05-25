@@ -93,7 +93,7 @@ describe('KYCRecordRegistry', () => {
     );
   });
 
-  it.only('Should incrementally insert elements', async function () {
+  it('Should incrementally insert elements', async function () {
     let loops = 5;
 
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);

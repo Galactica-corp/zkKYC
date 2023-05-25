@@ -8,6 +8,7 @@ import {
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import { ZkCertStandard } from '../lib';
+import { formatPrivKeyForBabyJub } from '../lib/keyManagement';
 
 // sample field inputs
 export const fields = {
@@ -28,14 +29,18 @@ export const fields = {
   passportID: '3095472098',
 };
 
-export async function generateZKKYCInput() {
+export async function generateZKKYCInput(amountInstitutions: number) {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user, encryptionAccount, institution, KYCProvider] =
-    await ethers.getSigners();
+  const [holder, user, encryptionAccount, KYCProvider] =
+  await ethers.getSigners();
+  let institutions = [];
+  for (let i = 0; i < amountInstitutions; i++) {
+    institutions.push((await ethers.getSigners())[4+i]);
+  }
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
@@ -78,16 +83,6 @@ export async function generateZKKYCInput() {
   let encryptionPrivKey = BigInt(
     await getEddsaKeyFromEthSigner(encryptionAccount)
   ).toString();
-  let institutionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(institution)
-  ).toString();
-  let institutionPub = eddsa.prv2pub(institutionPrivKey);
-
-  let fraudInvestigationDataEncryptionProofInput =
-    await zkKYC.getFraudInvestigationDataEncryptionProofInput(
-      institutionPub,
-      encryptionPrivKey
-    );
 
   //placeholder for now, later on we need to be able to change it to deployed dApp address on-chain
   // probably the generateZKKYCInput will need to read inputs from a json file
@@ -127,10 +122,23 @@ export async function generateZKKYCInput() {
   zkKYCInput.R8y2 = authorizationProofInput.R8y;
 
   // add fraud investigation data
-  zkKYCInput.userPrivKey =
-    fraudInvestigationDataEncryptionProofInput.userPrivKey;
-  zkKYCInput.investigationInstitutionPubKey =
-    fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey;
+  zkKYCInput.userPrivKey = formatPrivKeyForBabyJub(encryptionPrivKey, eddsa).toString();
+  zkKYCInput.investigationInstitutionPubKey = [];
+  for (let i = 0; i < institutions.length; i++) {
+    let institutionPrivKey = BigInt(
+      await getEddsaKeyFromEthSigner(institutions[i])
+    ).toString();
+    let institutionPub = eddsa.prv2pub(institutionPrivKey);
+  
+    let fraudInvestigationDataEncryptionProofInput =
+      await zkKYC.getFraudInvestigationDataEncryptionProofInput(
+        institutionPub,
+        encryptionPrivKey
+      );
+    zkKYCInput.investigationInstitutionPubKey.push(
+      fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey
+    );
+  }
 
   // add humanID data
   zkKYCInput.dAppAddress = humanIDProofInput.dAppAddress;

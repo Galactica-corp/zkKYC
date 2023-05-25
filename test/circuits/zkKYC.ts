@@ -12,7 +12,7 @@ describe('zkKYC Circuit Component', () => {
 
   before(async () => {
     circuit = await hre.circuitTest.setup('zkKYC');
-    sampleInput = await generateZKKYCInput();
+    sampleInput = await generateZKKYCInput(0);
   });
 
   it('produces a witness with valid constraints', async () => {

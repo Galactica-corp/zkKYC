@@ -137,9 +137,9 @@ const config: HardhatUserConfig = {
         input: 'input/shamirsSecretSharing.json',
       },
       {
-        name: 'investigableZkKYC',
-        circuit: 'test/test_investigableZkKYC.circom',
-        input: 'input/investigableZkKYC.json',
+        name: 'investigatableZkKYC',
+        circuit: 'test/test_investigatableZkKYC.circom',
+        input: 'input/investigatableZkKYC.json',
       },
     ],
   },

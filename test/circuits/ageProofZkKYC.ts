@@ -14,7 +14,7 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
   before(async () => {
     circuit = await hre.circuitTest.setup('ageProofZkKYC');
     // inputs to create proof
-    sampleInput = await generateZKKYCInput();
+    sampleInput = await generateZKKYCInput(0);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;

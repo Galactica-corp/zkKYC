@@ -67,9 +67,8 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     // age threshold
     signal input ageThreshold;
 
-    //inputs for encryption of fraud investigation data
+    //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
-    signal input investigationInstitutionPubKey[2*shamirN]; // should be public so we can check that it is the same as the current fraud investigation institution public key
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -89,9 +88,12 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // final result
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
-    signal output encryptedData[2*shamirN]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
     signal output verificationExpiration; 
+
+    // variable length part of public input at the end to simplify indexing in the smart contract
+    signal input investigationInstitutionPubKey[shamirN][2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal output encryptedData[shamirN][2]; // becomes public as part of the output to be stored in the verification SBT
 
     component zkKYC = ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN);
     zkKYC.holderCommitment <== holderCommitment;
@@ -112,8 +114,9 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.passportID <== passportID;
     zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
-    for (var i = 0; i < 2*shamirN; i++) {
-        zkKYC.investigationInstitutionPubKey[i] <== investigationInstitutionPubKey[i];
+    for (var i = 0; i < shamirN; i++) {
+        zkKYC.investigationInstitutionPubKey[i][0] <== investigationInstitutionPubKey[i][0];
+        zkKYC.investigationInstitutionPubKey[i][1] <== investigationInstitutionPubKey[i][1];
     }
     zkKYC.providerAx <== providerAx;
     zkKYC.providerAy <== providerAy;
@@ -139,8 +142,9 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.dAppAddress <== dAppAddress;
     userPubKey[0] <== zkKYC.userPubKey[0];
     userPubKey[1] <== zkKYC.userPubKey[1];
-    for (var i = 0; i < 2*shamirN; i++) {
-        encryptedData[i] <== zkKYC.encryptedData[i];
+    for (var i = 0; i < shamirN; i++) {
+        encryptedData[i][0] <== zkKYC.encryptedData[i][0];
+        encryptedData[i][1] <== zkKYC.encryptedData[i][1];
     }
     verificationExpiration <== zkKYC.verificationExpiration;
 

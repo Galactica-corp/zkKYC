@@ -69,9 +69,8 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input R8x2;
     signal input R8y2;
 
-    //inputs for encryption of fraud investigation data
+    //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
-    signal input investigationInstitutionPubKey[2*shamirN]; // should be public so we can check that it is the same as the current fraud investigation institution public key
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -85,9 +84,12 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input providerAy;
 
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
-    signal output encryptedData[2*shamirN]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
     signal output verificationExpiration; 
+
+    // variable length part of public input at the end to simplify indexing in the smart contract
+    signal input investigationInstitutionPubKey[shamirN][2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal output encryptedData[shamirN][2]; // becomes public as part of the output to be stored in the verification SBT
 
 
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
@@ -182,13 +184,13 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
         for (var i = 0; i < shamirN; i++) {
             encryptionProof[i] = encryptionProof();
             encryptionProof[i].senderPrivKey <== userPrivKey;
-            encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[2*i];
-            encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[2*i+1];
+            encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[i][0];
+            encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[i][1];
             encryptionProof[i].msg[0] <== providerAx;  // this is actually not needed because the KYC guardian is already a public input
             encryptionProof[i].msg[1] <== zkCertHash.zkCertHash;
 
-            encryptedData[2*i] <== encryptionProof[i].encryptedMsg[0];
-            encryptedData[2*i+1] <== encryptionProof[i].encryptedMsg[1];
+            encryptedData[i][0]<== encryptionProof[i].encryptedMsg[0];
+            encryptedData[i][1] <== encryptionProof[i].encryptedMsg[1];
         }   
         // The user pubkey should be the same each time
         userPubKey[0] <== encryptionProof[0].senderPubKey[0];
