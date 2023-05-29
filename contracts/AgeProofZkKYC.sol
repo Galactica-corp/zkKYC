@@ -13,34 +13,60 @@ import "hardhat/console.sol";
 contract AgeProofZkKYC is Ownable{
     IAgeProofZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;
-    IGalacticaInstitution public galacticaInstitution;
+    IGalacticaInstitution[] public fraudInvestigationInstitutions;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
-    uint8 public constant INDEX_USER_PUBKEY_AX = 0;
-    uint8 public constant INDEX_USER_PUBKEY_AY = 1;
-    uint8 public constant INDEX_ENCRYPTED_DATA_0 = 2;
-    uint8 public constant INDEX_ENCRYPTED_DATA_1 = 3;
-    uint8 public constant INDEX_IS_VALID = 4;
-    uint8 public constant INDEX_VERIFICATION_EXPIRATION = 5;
-    uint8 public constant INDEX_ROOT = 6;
-    uint8 public constant INDEX_CURRENT_TIME = 7;
-    uint8 public constant INDEX_USER_ADDRESS = 8;
-    uint8 public constant INDEX_CURRENT_YEAR = 9;
-    uint8 public constant INDEX_CURRENT_MONTH = 10;
-    uint8 public constant INDEX_CURRENT_DAY = 11;
-    uint8 public constant INDEX_AGE_THRESHOLD = 12;
-    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX = 13;
-    uint8 public constant INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY = 14;
-    uint8 public constant INDEX_HUMAN_ID = 15;
-    uint8 public constant INDEX_DAPP_ID = 16;
-    uint8 public constant INDEX_PROVIDER_PUBKEY_AX = 17;
-    uint8 public constant INDEX_PROVIDER_PUBKEY_AY = 18;
+    uint8 public immutable INDEX_USER_PUBKEY_AX;
+    uint8 public immutable INDEX_USER_PUBKEY_AY;
+    uint8 public immutable INDEX_IS_VALID;
+    uint8 public immutable INDEX_VERIFICATION_EXPIRATION;
+    uint8 public immutable START_INDEX_ENCRYPTED_DATA;
+    uint8 public immutable INDEX_ROOT;
+    uint8 public immutable INDEX_CURRENT_TIME;
+    uint8 public immutable INDEX_USER_ADDRESS;
+    uint8 public immutable INDEX_CURRENT_YEAR;
+    uint8 public immutable INDEX_CURRENT_MONTH ;
+    uint8 public immutable INDEX_CURRENT_DAY ;
+    uint8 public immutable INDEX_AGE_THRESHOLD ;
+    uint8 public immutable INDEX_HUMAN_ID ;
+    uint8 public immutable INDEX_DAPP_ID ;
+    uint8 public immutable INDEX_PROVIDER_PUBKEY_AX ;
+    uint8 public immutable INDEX_PROVIDER_PUBKEY_AY ;
+    uint8 public immutable START_INDEX_INVESTIGATION_INSTITUTIONS ;
 
-    constructor(address _owner, address _verifier, address _KYCRegistry, address _galacticaInstitution) Ownable(_owner) {
+    constructor(address _owner, address _verifier, address _KYCRegistry, address[] memory _fraudInvestigationInstitutions) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
-        galacticaInstitution = IGalacticaInstitution(_galacticaInstitution);
+        for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
+            fraudInvestigationInstitutions.push(IGalacticaInstitution(_fraudInvestigationInstitutions[i]));
+        }
+
+        // set public input indices according to the number of institutions
+        INDEX_USER_PUBKEY_AX = 0;
+        INDEX_USER_PUBKEY_AY = 1;
+        INDEX_IS_VALID = 2;
+        INDEX_VERIFICATION_EXPIRATION = 3;
+
+        // for each institution there are two fields containing the encrypted data of the shamir shares
+        START_INDEX_ENCRYPTED_DATA = 4;
+        uint8 institutionKeyEntries = 2 * uint8(fraudInvestigationInstitutions.length);
+
+        INDEX_ROOT = 4 + institutionKeyEntries;
+        INDEX_CURRENT_TIME = 5 + institutionKeyEntries;
+        INDEX_USER_ADDRESS = 6 + institutionKeyEntries;
+        INDEX_CURRENT_YEAR = 7 + institutionKeyEntries;
+        INDEX_CURRENT_MONTH = 8 + institutionKeyEntries;
+        INDEX_CURRENT_DAY = 9 + institutionKeyEntries;
+        INDEX_AGE_THRESHOLD = 10 + institutionKeyEntries;
+        INDEX_HUMAN_ID = 11 + institutionKeyEntries;
+        INDEX_DAPP_ID = 12 + institutionKeyEntries;
+        INDEX_PROVIDER_PUBKEY_AX = 13 + institutionKeyEntries;
+        INDEX_PROVIDER_PUBKEY_AY = 14 + institutionKeyEntries;
+
+        // The following indices are for the fraud investigation institutions and depend on the number of institutions
+        // It includes pubkeys Ax and Ay for each institution
+        START_INDEX_INVESTIGATION_INSTITUTIONS = 15 + institutionKeyEntries;
     }
 
     function setVerifier(IAgeProofZkKYCVerifier newVerifier) public onlyOwner {
@@ -51,8 +77,8 @@ contract AgeProofZkKYC is Ownable{
         KYCRegistry = newKYCRegistry;
     }
 
-    function setGalacticaInstituion(IGalacticaInstitution newGalacticaInstitution) public onlyOwner {
-        galacticaInstitution = newGalacticaInstitution;
+    function setGalacticaInstituion(IGalacticaInstitution[] calldata _fraudInvestigationInstitutions) public onlyOwner {
+        fraudInvestigationInstitutions = _fraudInvestigationInstitutions;
     }
 
     //a, b, c are the proof
@@ -60,9 +86,9 @@ contract AgeProofZkKYC is Ownable{
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[19] memory input
+            uint[] memory input
         ) public view returns (bool) {
-        
+        require(input.length == 15 + 4 * fraudInvestigationInstitutions.length, "the public proof input has an incorrect length (also considering the amount of investigation institutions)");
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
@@ -88,8 +114,16 @@ contract AgeProofZkKYC is Ownable{
         require(onchainDay == input[INDEX_CURRENT_DAY], "the current day is incorrect");
 
         // check that the institution public key corresponds to the onchain one;
-        require(galacticaInstitution.institutionPubKey(0) == input[INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX], "the first part of institution pubkey is incorrect");
-        require(galacticaInstitution.institutionPubKey(1) == input[INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY], "the second part of institution pubkey is incorrect");
+        for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
+            require(
+                fraudInvestigationInstitutions[i].institutionPubKey(0) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i],
+                "the first part of institution pubkey is incorrect"
+            );
+            require(
+                fraudInvestigationInstitutions[i].institutionPubKey(1) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i + 1],
+                "the second part of institution pubkey is incorrect"
+            );
+        }
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
         return true;

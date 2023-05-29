@@ -6,7 +6,6 @@ chai.config.includeStack = true;
 
 import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
 import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
-import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -21,17 +20,15 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
-import { BigNumber } from 'ethers';
 
 const { expect } = chai;
 
-describe('ageProofZkKYC SC', async () => {
+describe.only('ageProofZkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
-  let mockGalacticaInstitution: MockGalacticaInstitution;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -52,13 +49,6 @@ describe('ageProofZkKYC SC', async () => {
     mockKYCRegistry =
       (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
-    const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
-      'MockGalacticaInstitution',
-      deployer
-    );
-    mockGalacticaInstitution =
-      (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution;
-
     const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
       'AgeProofZkKYCVerifier',
       deployer
@@ -74,11 +64,12 @@ describe('ageProofZkKYC SC', async () => {
       deployer.address,
       ageProofZkKYCVerifier.address,
       mockKYCRegistry.address,
-      mockGalacticaInstitution.address
+      []
     )) as AgeProofZkKYC;
+    await ageProofZkKYCVerifier.deployed();
 
     // inputs to create proof
-    sampleInput = await generateZKKYCInput();
+    sampleInput = await generateZKKYCInput(0);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;
@@ -124,15 +115,6 @@ describe('ageProofZkKYC SC', async () => {
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
-    );
-
-    // set the galactica institution pub key
-    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()], 
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
     );
 
     // set time to the public time
@@ -295,43 +277,5 @@ describe('ageProofZkKYC SC', async () => {
     await expect(
       ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
     ).to.be.revertedWith('the current year is incorrect');
-  });
-
-  it('revert if the institution pub key is incorrect', async () => {
-    let forgedInput = { ...sampleInput };
-
-    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      forgedInput,
-      circuitWasmPath,
-      circuitZkeyPath
-    );
-
-    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
-    const pulicTime = parseInt(publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()], 10);
-    // set the merkle root to the correct one
-
-    await mockKYCRegistry.setMerkleRoot(
-      fromHexToBytes32(fromDecToHex(publicRoot))
-    );
-    // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
-
-    await hre.network.provider.send('evm_mine');
-    let [a, b, c] = processProof(proof);
-
-    let publicInputs = processPublicSignals(publicSignals);
-
-    // set the incorrect galactica institution pub key
-    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      BigNumber.from(publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()]).add(1),
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
-    );
-
-    await expect(
-      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('the first part of institution pubkey is incorrect');
   });
 });

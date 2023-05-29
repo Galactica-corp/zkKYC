@@ -122,7 +122,7 @@ describe('Verification SBT Smart contract', async () => {
     await mockDApp.setToken2(token2.address);
 
     // inputs to create proof
-    sampleInput = await generateZKKYCInput();
+    sampleInput = await generateZKKYCInput(0);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;

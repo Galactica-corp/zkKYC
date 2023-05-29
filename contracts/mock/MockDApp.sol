@@ -45,14 +45,14 @@ contract MockDApp {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[19] memory input
+        uint[] memory input
     ) public {
         bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
             
-            humanID = bytes32(input[15]);
-            uint dAppAddress = input[16];
+            humanID = bytes32(input[11]);
+            uint dAppAddress = input[12];
 
             // check that the public dAppAddress is correct
             require(dAppAddress == uint(uint160(address(this))), "incorrect dAppAddress");
@@ -66,7 +66,7 @@ contract MockDApp {
             uint256[2] memory userPubKey = [input[0], input[1]];
             bytes32[2] memory encryptedData = [bytes32(input[2]), bytes32(input[3])];
             uint expirationTime = input[5];
-            uint256[2] memory providerPubKey = [input[17], input[18]];
+            uint256[2] memory providerPubKey = [input[13], input[14]];
             SBT.mintVerificationSBT(msg.sender, verifierWrapper, expirationTime, encryptedData, userPubKey, humanID, providerPubKey);
         }
 
