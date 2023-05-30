@@ -11,12 +11,12 @@ const log = console.log;
 
 async function main() {
   // wallets
-  const [ deployer, institutionSigner ] = await hre.ethers.getSigners();
+  const [ deployer, institution1, institution2, institution3 ] = await hre.ethers.getSigners();
 
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  log(`Using account ${institutionSigner.address} as institution for fraud investigation`);
+  log(`Using account ${institution1.address} as institution for fraud investigation`);
 
   // get poseidon from library
   await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
@@ -34,23 +34,27 @@ async function main() {
     },
     [centerRegistry.address]
   );
-  const ageProofZkKYCVerifier = await deploySC('AgeProofZkKYCVerifier', true);
+  const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
   
-  const galacticaInstitution = await deploySC('MockGalacticaInstitution', true);
-  let institutionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(institutionSigner)
-  ).toString();
-  const eddsa = await buildEddsa();
-  let institutionPub = eddsa.prv2pub(institutionPrivKey);
-  // convert pubkey uint8array to decimal string
-  institutionPub = institutionPub.map((x: Uint8Array) => eddsa.poseidon.F.toObject(x).toString());
-  console.log('Institution pubkey: ', institutionPub);
-  await galacticaInstitution.setInstitutionPubkey(institutionPub);
+  const institutionContracts = [];
+  for (const inst of [institution1, institution2, institution3]) {
+    const galacticaInstitution = await deploySC('MockGalacticaInstitution', true);
+    let institutionPrivKey = BigInt(
+      await getEddsaKeyFromEthSigner(inst)
+    ).toString();
+    const eddsa = await buildEddsa();
+    let institutionPub = eddsa.prv2pub(institutionPrivKey);
+    // convert pubkey uint8array to decimal string
+    institutionPub = institutionPub.map((x: Uint8Array) => eddsa.poseidon.F.toObject(x).toString());
+    console.log('Institution pubkey: ', institutionPub);
+    await galacticaInstitution.setInstitutionPubkey(institutionPub);
+    institutionContracts.push(galacticaInstitution);
+  }
 
   const ageProofZkKYC = await deploySC('AgeProofZkKYC',
     true,
     {},
-    [deployer.address, ageProofZkKYCVerifier.address, recordRegistry.address, galacticaInstitution.address]
+    [deployer.address, zkpVerifier.address, recordRegistry.address, institutionContracts.map((x) => x.address)]
   );
   const verificationSBT = await deploySC('VerificationSBT', true);
 }
