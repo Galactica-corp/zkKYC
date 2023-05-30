@@ -128,4 +128,8 @@ contract AgeProofZkKYC is Ownable{
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
         return true;
     }
+
+    function getAmountFraudInvestigationInstitutions() public view returns (uint) {
+        return fraudInvestigationInstitutions.length;
+    }
 }

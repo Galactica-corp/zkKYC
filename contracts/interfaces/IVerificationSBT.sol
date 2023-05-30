@@ -11,7 +11,7 @@ interface IVerificationSBT {
         IVerifierWrapper verifierWrapper;
         uint256 expirationTime;
         bytes32 verifierCodehash;
-        bytes32[2] encryptedData;
+        bytes32[] encryptedData;  // containing two fields for each institutions
         uint256[2] userPubKey;
         bytes32 humanID;
         uint256[2] providerPubKey;
@@ -21,7 +21,7 @@ interface IVerificationSBT {
         address user, 
         IVerifierWrapper _verifierWrapper, 
         uint _expirationTime, 
-        bytes32[2] calldata _encryptedData, 
+        bytes32[] calldata _encryptedData, 
         uint256[2] calldata _userPubKey, 
         bytes32 _humanID,
         uint256[2] calldata _providerPubKey

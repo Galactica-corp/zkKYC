@@ -173,7 +173,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
         derivedShamirSalt.inputs[2] <== zkCertHash.zkCertHash;
         
         // distribute secret into multiple shares, one for each institution
-        // because the encryption step requires two inputs, we split both the zkKYC DID and provider into shares
+        // the encryption step requires two inputs, one will be the shamir share
         // if there are more than two secret fields to disclose to authorities using shamir's secret sharing,
         // it would make sense to share the decryption key instead
         shamir = ShamirsSecretSharing(shamirN, shamirK);
@@ -186,10 +186,10 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
             encryptionProof[i].senderPrivKey <== userPrivKey;
             encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[i][0];
             encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[i][1];
-            encryptionProof[i].msg[0] <== providerAx;  // this is actually not needed because the KYC guardian is already a public input
-            encryptionProof[i].msg[1] <== zkCertHash.zkCertHash;
+            encryptionProof[i].msg[0] <== shamir.shares[i];
+            encryptionProof[i].msg[1] <== providerAx;  // this is actually not needed because the KYC guardian is already a public input
 
-            encryptedData[i][0]<== encryptionProof[i].encryptedMsg[0];
+            encryptedData[i][0] <== encryptionProof[i].encryptedMsg[0];
             encryptedData[i][1] <== encryptionProof[i].encryptedMsg[1];
         }   
         // The user pubkey should be the same each time

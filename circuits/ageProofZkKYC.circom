@@ -57,8 +57,6 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input R8x2;
     signal input R8y2;
 
-
-
     // public variables related to age proof circuit
     signal input currentYear;
     signal input currentMonth;
@@ -75,7 +73,6 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input humanID;
     //dAppAddress is public so it can be checked by the dApp
     signal input dAppAddress;
-
 
     // pub key of the provider
     signal input providerAx;

@@ -29,7 +29,35 @@ export const fields = {
   passportID: '3095472098',
 };
 
-export async function generateZKKYCInput(amountInstitutions: number) {
+export async function generateSampleZkKYC(): Promise<ZKCertificate> {
+  // and eddsa instance for signing
+  const eddsa = await buildEddsa();
+
+  // you can change the holder to another address, the script just needs to be able to sign a message with it
+  const [holder, _1, _2, KYCProvider] =  await ethers.getSigners();
+
+  const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
+  const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
+  // TODO: create ZkKYC subclass requiring all the other fields
+  let zkKYC = new ZKCertificate(
+    holderCommitment,
+    ZkCertStandard.zkKYC,
+    eddsa,
+    1773
+  );
+
+  // set the fields in zkKYC object
+  zkKYC.setFields(fields);
+
+  // some default provider private key
+  // providerData needs to be created before leafHash computation
+  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
+  zkKYC.signWithProvider(providerEdDSAKey);
+
+  return zkKYC;
+}
+
+export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstitutions: number): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -43,14 +71,6 @@ export async function generateZKKYCInput(amountInstitutions: number) {
   }
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
-  const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
-  // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(
-    holderCommitment,
-    ZkCertStandard.zkKYC,
-    eddsa,
-    1773
-  );
 
   // create json output file for ownership test
   let ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
@@ -61,21 +81,14 @@ export async function generateZKKYCInput(amountInstitutions: number) {
 
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
-  // set the fields in zkKYC object
-  zkKYC.setFields(fields);
-
   //construct the zkKYC inputs
   let zkKYCInput: any = { ...fields };
 
-  // some default provider private key
-  // providerData needs to be created before leafHash computation
-  const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-  const providerData = zkKYC.signWithProvider(providerEdDSAKey);
-  zkKYCInput.providerAx = providerData.Ax;
-  zkKYCInput.providerAy = providerData.Ay;
-  zkKYCInput.providerS = providerData.S;
-  zkKYCInput.providerR8x = providerData.R8x;
-  zkKYCInput.providerR8y = providerData.R8y;
+  zkKYCInput.providerAx = zkKYC.providerData.Ax;
+  zkKYCInput.providerAy = zkKYC.providerData.Ay;
+  zkKYCInput.providerS = zkKYC.providerData.S;
+  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
+  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
 
   // calculate zkKYC leaf hash
   let leafHash = zkKYC.leafHash;

@@ -19,11 +19,12 @@ import {
   processPublicSignals,
   fromHexToBytes32,
 } from '../../lib/helpers';
-import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/generateZKKYCInput';
+import { ZKCertificate } from '../../lib/zkCertificate';
 
 const { expect } = chai;
 
-describe.only('ageProofZkKYC SC', async () => {
+describe('ageProofZkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
@@ -33,6 +34,7 @@ describe.only('ageProofZkKYC SC', async () => {
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let randomUser: SignerWithAddress;
+  let zkKYC: ZKCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
@@ -69,7 +71,8 @@ describe.only('ageProofZkKYC SC', async () => {
     await ageProofZkKYCVerifier.deployed();
 
     // inputs to create proof
-    sampleInput = await generateZKKYCInput(0);
+    zkKYC = await generateSampleZkKYC();
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;

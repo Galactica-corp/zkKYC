@@ -2,7 +2,7 @@
 import { assert } from 'chai';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
-import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { generateZkKYCProofInput, generateSampleZkKYC } from '../../scripts/generateZKKYCInput';
 
 describe('zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
@@ -12,7 +12,8 @@ describe('zkKYC Circuit Component', () => {
 
   before(async () => {
     circuit = await hre.circuitTest.setup('zkKYC');
-    sampleInput = await generateZKKYCInput(0);
+    const zkKYC = await generateSampleZkKYC();
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
   });
 
   it('produces a witness with valid constraints', async () => {

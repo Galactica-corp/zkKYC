@@ -2,11 +2,13 @@
 import { assert } from 'chai';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
-import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/generateZKKYCInput';
+import { ZKCertificate } from '../../lib';
 
 describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
+  let zkKYC: ZKCertificate;
   let sampleInput: any;
 
   const sanityCheck = true;
@@ -14,7 +16,8 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
   before(async () => {
     circuit = await hre.circuitTest.setup('ageProofZkKYC');
     // inputs to create proof
-    sampleInput = await generateZKKYCInput(0);
+    zkKYC = await generateSampleZkKYC();
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;
