@@ -59,7 +59,7 @@ contract MockDApp {
             require(verifierWrapper.verifyProof(a, b, c, input), "zk proof is invalid");            
 
             //afterwards we mint the verification SBT
-            uint256[2] memory userPubKey = [input[verifierWrapper.INDEX_USER_PUBKEY_AX()], input[verifierWrapper.INDEX_USER_PUBKEY_AX()]];
+            uint256[2] memory userPubKey = [input[verifierWrapper.INDEX_USER_PUBKEY_AX()], input[verifierWrapper.INDEX_USER_PUBKEY_AY()]];
             uint amountInstitutions = verifierWrapper.getAmountFraudInvestigationInstitutions();
             bytes32[] memory encryptedData = new bytes32[](amountInstitutions*2);
             for (uint i=0; i<amountInstitutions; i++) {
