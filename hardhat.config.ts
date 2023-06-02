@@ -21,14 +21,11 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.17',
       },
-      {
-        version: '0.8.17',
-      },
     ],
   },
   networks: {
     galaTestnet: {
-      url: "http://10.51.0.3:8545",  // requires gala dev wireguard connection
+      url: "https://evm-rpc-http-devnet-41233.galactica.com/",  // requires gala dev wireguard connection
       accounts: [ 
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
         process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
@@ -42,10 +39,10 @@ const config: HardhatUserConfig = {
     customChains: [
       {
         network: "galaTestnet",
-        chainId: 31233,
+        chainId: 41233,
         urls: {
-          apiURL: "http://10.51.0.5:4040/api",
-          browserURL: "http://10.51.0.5:4040/"
+          apiURL: "https://explorer-devnet-41233.galactica.com/api",
+          browserURL: "https://explorer-devnet-41233.galactica.com/"
         }
       }
     ]
