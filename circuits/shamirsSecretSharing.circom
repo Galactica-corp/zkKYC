@@ -39,18 +39,20 @@ template ShamirsSecretSharing(n, k) {
     }
     
     // Generate the shares = points from the polynomial
-    component polyPoints[n];
+    component polynomial = Polynomial(k, n);
+    // input secret as the first coefficient and the rest from the coefGen
+    // meaning that poly(0) = secret
+    polynomial.coef[0] <== secret;
+    for (var j = 1; j < k; j++) {
+        polynomial.coef[j] <== coefGen[j-1].out;
+    }
+    // calculate shares for each institution, which is identified by it's index
     for (var i = 0; i < n; i++) {
-        polyPoints[i] = Polynomial(k);
-        // input secret as the first coefficient and the rest from the coefGen
-        // meaning that poly(0) = secret
-        polyPoints[i].coef[0] <== secret;
-        for (var j = 1; j < k; j++) {
-            polyPoints[i].coef[j] <== coefGen[j-1].out;
-        }
-
         // input x = i+1 (ensuring that no share is f(0)=secret )
-        polyPoints[i].x <== i+1;
-        shares[i] <== polyPoints[i].y;
+        polynomial.x[i] <== i+1;
+    }
+    // second loop to pass outputs because outputs are only available after all inputs are set
+    for (var i = 0; i < n; i++) {
+        shares[i] <== polynomial.y[i];
     }
 }
