@@ -3,20 +3,20 @@ pragma circom 2.1.4;
 
 /*
     Polynomial with k coefficients (degree k-1)
+    Computing y = Sum(coef[i] * x^i)
 */
 template Polynomial(k) {
     signal input coef[k];
     signal input x;
     signal output y;
 
-    signal powerOfX[k];
-    powerOfX[0] <== 1;
-    signal summingUp[k];
-    summingUp[0] <== coef[0];
-
+    // Calculate the polynomial by adding up terms
+    // We can reduce the number of multiplication by a factor of 2 if we calculate the polynomial from the other side,
+    // i.e. f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 = a_0 + x(a_1 + x(a_2 + xa_3))
+    signal summingUp[k+1];
+    summingUp[0] <== coef[k-1];
     for (var i = 1; i < k; i++) {
-        powerOfX[i] <== powerOfX[i-1] * x;
-        summingUp[i] <== summingUp[i-1] + coef[i] * powerOfX[i];
+        summingUp[i] <== summingUp[i-1] * x + coef[k-i-1];
     }
 
     y <== summingUp[k-1];
