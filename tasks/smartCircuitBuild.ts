@@ -40,6 +40,8 @@ async function smartCircuitBuild(
       ];
       
       const sourceFiles = findAllImportedSourceFiles(circuit.circuit, []);
+      // recompile also needed if a new ptau file is used
+      sourceFiles.push(hre.config.circom.ptau);
       
       // check build file existance
       let buildNeeded = false;
