@@ -15,8 +15,12 @@ async function smartCircuitBuild(
   hre: HardhatRuntimeEnvironment) {
     console.log("Smart circuit build:");
     
-    // read the list of circuits from a config file
-    
+    // Check that the trusted setup file exists
+    if (!fs.existsSync(hre.config.circom.ptau)) {
+      throw new Error(`Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`);
+    }
+
+    // read the list of circuits from a config file    
     for (const circuit of hre.config.circom.circuits) {
       const rootPath = hre.config.paths.root;
       
