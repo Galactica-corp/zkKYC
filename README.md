@@ -28,12 +28,11 @@ This repo contains several parts that can be compiled:
 
 ### Circuits
 To compile the circuits, you first need the parameters from the trusted setup ceremony. It is the basis for keeping the computation in the ZKPs private.
-You can download it from [here](https://drive.google.com/drive/folders/1gpZKQBdeg7yYyTgEyzxfUDRxk82DldOz?usp=sharing) and place it in the `circuits` folder.
-
-TODO: Command line download automation once the trusted setup is available somewhere on galactica.com.
+You can download it from [here](https://galactica.com/trusted-setup/dev/pot17_final.ptau) and place it in the `circuits` folder.
 
 The following hardhat task takes care of compiling the circuits, testing it with available input files and postprocessing the output.
 ```shell
+wget https://galactica.com/trusted-setup/dev/pot17_final.ptau -O circuits/pot17_final.ptau
 npx hardhat smartCircuitBuild --verbose
 ```
 It only rebuilds the circuits for which the source changed since the last build.
