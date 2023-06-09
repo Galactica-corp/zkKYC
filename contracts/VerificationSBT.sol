@@ -28,7 +28,7 @@ contract VerificationSBT is IVerificationSBT {
         address user,
         IVerifierWrapper _verifierWrapper,
         uint _expirationTime,
-        bytes32[2] calldata _encryptedData,
+        bytes32[] calldata _encryptedData,
         uint256[2] calldata _userPubKey,
         bytes32 _humanID,
         uint256[2] calldata _providerPubKey

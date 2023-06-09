@@ -26,6 +26,7 @@ artifacts
 # circom and snarkjs
 circuits/build
 contracts/*Verifier.sol
+circuits/pot*.ptau
 
 # ignore build files that do not need to be pushed as library
 dist

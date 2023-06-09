@@ -28,7 +28,9 @@ const config: HardhatUserConfig = {
       url: "https://evm-rpc-http-devnet-41233.galactica.com/",  // requires gala dev wireguard connection
       accounts: [ 
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
-        process.env.GalaTestnetInstitutionPrivateKey!, // institution for decrypting fraud investigation data in verification SBTs
+        process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
+        process.env.GalaTestnetInstitution2PrivateKey!, // test institution for fraud investigation
+        process.env.GalaTestnetInstitution3PrivateKey!, // test institution for fraud investigation
       ],
     }
   },
@@ -53,7 +55,7 @@ const config: HardhatUserConfig = {
     // Base path for files being output, defaults to `./circuits/`
     outputBasePath: './circuits/build',
     // The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
-    ptau: 'pot15_final.ptau',
+    ptau: 'pot17_final.ptau',
     // Each object in this array refers to a separate circuit
     circuits: [
       {
@@ -125,6 +127,26 @@ const config: HardhatUserConfig = {
         name: 'encryptionProof',
         circuit: 'test/test_encryptionProof.circom',
         input: 'input/encryptionProof.json',
+      },
+      {
+        name: 'polynomial',
+        circuit: 'test/test_polynomial.circom',
+        input: 'input/polynomial.json',
+      },
+      {
+        name: 'shamirsSecretSharing',
+        circuit: 'test/test_shamirsSecretSharing.circom',
+        input: 'input/shamirsSecretSharing.json',
+      },
+      {
+        name: 'investigatableZkKYC',
+        circuit: 'test/test_investigatableZkKYC.circom',
+        input: 'input/investigatableZkKYC.json',
+      },
+      {
+        name: 'exampleMockDApp',
+        circuit: 'test/test_exampleMockDApp.circom',
+        input: 'input/exampleMockDApp.json',
       },
     ],
   },

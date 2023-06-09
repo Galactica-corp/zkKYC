@@ -10,14 +10,17 @@ include "./ownership.circom";
 include "./encryptionProof.circom";
 include "./humanID.circom";
 include "./providerSignatureCheck.circom";
+include "./shamirsSecretSharing.circom";
 
 /**
  * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ * @param shamirK - number of shares needed from investigation authorities to reconstruct the zkKYC DID
+ * @param shamirN - number of investigation authorities to generate shares for. (Use 0 to disable fraud investigations)
  */
-template ZKKYC(levels, maxExpirationLengthDays){
+template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -66,9 +69,8 @@ template ZKKYC(levels, maxExpirationLengthDays){
     signal input R8x2;
     signal input R8y2;
 
-    //inputs for encryption of fraud investigation data
+    //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
-    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
 
     //humanID related variable
     //humanID as public input, so dApp can use it
@@ -82,9 +84,12 @@ template ZKKYC(levels, maxExpirationLengthDays){
     signal input providerAy;
 
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
-    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
     signal output verificationExpiration; 
+
+    // variable length part of public input at the end to simplify indexing in the smart contract
+    signal input investigationInstitutionPubKey[shamirN][2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal output encryptedData[shamirN][2]; // becomes public as part of the output to be stored in the verification SBT
 
 
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
@@ -135,39 +140,62 @@ template ZKKYC(levels, maxExpirationLengthDays){
     providerSignatureCheck.providerR8y <== providerR8y;
 
     // calculation using a Poseidon component
-    component _zkCertHash = CalculateZkCertHash();
-    _zkCertHash.contentHash <== contentHash.out;
-    _zkCertHash.providerAx <== providerAx;
-    _zkCertHash.providerAy <== providerAy;
-    _zkCertHash.providerS <== providerS;
-    _zkCertHash.providerR8x <== providerR8x;
-    _zkCertHash.providerR8y <== providerR8y;
-    _zkCertHash.holderCommitment <== holderCommitment;
-    _zkCertHash.randomSalt <== randomSalt;
+    component zkCertHash = CalculateZkCertHash();
+    zkCertHash.contentHash <== contentHash.out;
+    zkCertHash.providerAx <== providerAx;
+    zkCertHash.providerAy <== providerAy;
+    zkCertHash.providerS <== providerS;
+    zkCertHash.providerR8x <== providerR8x;
+    zkCertHash.providerR8y <== providerR8y;
+    zkCertHash.holderCommitment <== holderCommitment;
+    zkCertHash.randomSalt <== randomSalt;
 
     // use the merkle proof component to calculate the root
-    component _merkleProof = MerkleProof(levels);
-    _merkleProof.leaf <== _zkCertHash.zkCertHash;
+    component merkleProof = MerkleProof(levels);
+    merkleProof.leaf <== zkCertHash.zkCertHash;
     for (var i = 0; i < levels; i++) {
-        _merkleProof.pathElements[i] <== pathElements[i];
+        merkleProof.pathElements[i] <== pathElements[i];
     }
-    _merkleProof.pathIndices <== pathIndices;
+    merkleProof.pathIndices <== pathIndices;
 
     // check that the calculated root is equal to the public root
-    root === _merkleProof.root;
+    root === merkleProof.root;
 
-    //check that the encrypted fraud investigation data is correctly created
-    component _encryptionProof = encryptionProof();
-    _encryptionProof.senderPrivKey <== userPrivKey;
-    _encryptionProof.receiverPubKey[0] <== investigationInstitutionPubKey[0];
-    _encryptionProof.receiverPubKey[1] <== investigationInstitutionPubKey[1];
-    _encryptionProof.msg[0] <== providerAx;
-    _encryptionProof.msg[1] <== _zkCertHash.zkCertHash;
+    component shamir;
+    component derivedShamirSalt;
+    component encryptionProof[shamirN];
+    if (shamirN > 0){
+        // serive pseudorandom salt from input. Using the following fields to make sure that 
+        //  it is not guessable by KYC guardians or institutions completing other fraud investigations
+        derivedShamirSalt = Poseidon(3);
+        derivedShamirSalt.inputs[0] <== currentTime;
+        derivedShamirSalt.inputs[1] <== userPrivKey;
+        derivedShamirSalt.inputs[2] <== zkCertHash.zkCertHash;
+        
+        // distribute secret into multiple shares, one for each institution
+        // the encryption step requires two inputs, one will be the shamir share
+        // if there are more than two secret fields to disclose to authorities using shamir's secret sharing,
+        // it would make sense to share the decryption key instead
+        shamir = ShamirsSecretSharing(shamirN, shamirK);
+        shamir.secret <== zkCertHash.zkCertHash;
+        shamir.salt <== derivedShamirSalt.out;
 
-    userPubKey[0] <== _encryptionProof.senderPubKey[0];
-    userPubKey[1] <== _encryptionProof.senderPubKey[1];
-    encryptedData[0] <== _encryptionProof.encryptedMsg[0];
-    encryptedData[1] <== _encryptionProof.encryptedMsg[1];
+        // encrypt shamir shares for each of the receiving institutions
+        for (var i = 0; i < shamirN; i++) {
+            encryptionProof[i] = encryptionProof();
+            encryptionProof[i].senderPrivKey <== userPrivKey;
+            encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[i][0];
+            encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[i][1];
+            encryptionProof[i].msg[0] <== shamir.shares[i];
+            encryptionProof[i].msg[1] <== providerAx;  // this is actually not needed because the KYC guardian is already a public input
+
+            encryptedData[i][0] <== encryptionProof[i].encryptedMsg[0];
+            encryptedData[i][1] <== encryptionProof[i].encryptedMsg[1];
+        }   
+        // The user pubkey should be the same each time
+        userPubKey[0] <== encryptionProof[0].senderPubKey[0];
+        userPubKey[1] <== encryptionProof[0].senderPubKey[1];
+    }
 
     component calculateHumanId = HumanID();
     calculateHumanId.surname <== surname;

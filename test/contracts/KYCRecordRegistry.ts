@@ -116,7 +116,7 @@ describe('KYCRecordRegistry', () => {
 
       // Update with insert list on local and contract
       await KYCRecordRegistry.insertLeavesTest(insertList);
-      merkleTree.insertleaves(insertList);
+      merkleTree.insertLeaves(insertList);
 
       // Check roots match
       expect(await KYCRecordRegistry.merkleRoot()).to.equal(

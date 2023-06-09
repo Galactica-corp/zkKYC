@@ -7,13 +7,14 @@ chai.config.includeStack = true;
 import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
 import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
 import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
+import { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
 import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import { humanIDFieldOrder } from '../../lib/zkCertStandards';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateZKKYCInput, fields } from '../../scripts/generateZKKYCInput';
+import { generateZkKYCProofInput, generateSampleZkKYC } from '../../scripts/generateZKKYCInput';
+import { reconstructShamirSecret } from '../../lib/shamirTools';
 
 const snarkjs = require('snarkjs');
 import { buildPoseidon } from 'circomlibjs';
@@ -25,24 +26,21 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
-import {
-  getEddsaKeyFromEthSigner,
-  createHolderCommitment,
-} from '../../lib/keyManagement';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 import { ZKCertificate } from '../../lib/zkCertificate';
-import { ZkCertStandard } from '../../lib';
 import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 
 import { buildEddsa } from 'circomlibjs';
-import { BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 
 const { expect } = chai;
 
 describe('Verification SBT Smart contract', async () => {
   let ageProofZkKYC: AgeProofZkKYC;
-  let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
+  let exampleMockDAppVerifier: ExampleMockDAppVerifier;
   let mockKYCRegistry: MockKYCRegistry;
-  let mockGalacticaInstitution: MockGalacticaInstitution;
+  let mockGalacticaInstitutions: MockGalacticaInstitution[];
+  const amountInstitutions = 3;
   let mockDApp: MockDApp;
   let verificationSBT: VerificationSBT;
   let token1, token2;
@@ -50,16 +48,22 @@ describe('Verification SBT Smart contract', async () => {
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
-  let institution: SignerWithAddress;
+  let institutions: SignerWithAddress[] = [];
   let KYCProvider: SignerWithAddress;
-  let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
+  let zkKYC: ZKCertificate;
+  let sampleInput: any;
+  let circuitWasmPath: string;
+  let circuitZkeyPath: string;
 
   beforeEach(async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, encryptionAccount, institution, KYCProvider] =
+    [deployer, user, encryptionAccount, KYCProvider] =
       await hre.ethers.getSigners();
+    for (let i = 0; i < amountInstitutions; i++) {
+      institutions.push((await ethers.getSigners())[4+i]);
+    }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
@@ -73,15 +77,19 @@ describe('Verification SBT Smart contract', async () => {
       'MockGalacticaInstitution',
       deployer
     );
-    mockGalacticaInstitution =
-      (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution;
+    mockGalacticaInstitutions = [];
+    for (let i = 0; i < amountInstitutions; i++) {
+      mockGalacticaInstitutions.push(
+        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution
+      );
+    }
 
-    const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
-      'AgeProofZkKYCVerifier',
+    const exampleMockDAppVerifierFactory = await ethers.getContractFactory(
+      'ExampleMockDAppVerifier',
       deployer
     );
-    ageProofZkKYCVerifier =
-      (await ageProofZkKYCVerifierFactory.deploy()) as AgeProofZkKYCVerifier;
+    exampleMockDAppVerifier =
+      (await exampleMockDAppVerifierFactory.deploy()) as ExampleMockDAppVerifier;
 
     const ageProofZkKYCFactory = await ethers.getContractFactory(
       'AgeProofZkKYC',
@@ -89,9 +97,9 @@ describe('Verification SBT Smart contract', async () => {
     );
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
-      ageProofZkKYCVerifier.address,
+      exampleMockDAppVerifier.address,
       mockKYCRegistry.address,
-      mockGalacticaInstitution.address
+      mockGalacticaInstitutions.map((inst) => inst.address)
     )) as AgeProofZkKYC;
 
     const verificationSBTFactory = await ethers.getContractFactory(
@@ -122,7 +130,8 @@ describe('Verification SBT Smart contract', async () => {
     await mockDApp.setToken2(token2.address);
 
     // inputs to create proof
-    sampleInput = await generateZKKYCInput();
+    zkKYC = await generateSampleZkKYC();
+    sampleInput = await generateZkKYCProofInput(zkKYC, amountInstitutions);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;
@@ -150,8 +159,8 @@ describe('Verification SBT Smart contract', async () => {
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
-    circuitWasmPath = './circuits/build/ageProofZkKYC.wasm';
-    circuitZkeyPath = './circuits/build/ageProofZkKYC.zkey';
+    circuitWasmPath = './circuits/build/exampleMockDApp.wasm';
+    circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
   });
 
   it('if the proof is correct the verification SBT is minted', async () => {
@@ -169,13 +178,16 @@ describe('Verification SBT Smart contract', async () => {
     );
 
     // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()], 
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ] as [BigNumberish, BigNumberish];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
-    );
+    // set the institution pub keys
+    for (let i = 0; i < amountInstitutions; i++) {
+      const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i],
+        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i + 1]
+      ];
+      await mockGalacticaInstitutions[i].setInstitutionPubkey(
+        galacticaInstitutionPubKey
+      );
+    }
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
@@ -229,40 +241,33 @@ describe('Verification SBT Smart contract', async () => {
     ).to.be.equal(true);
 
     // test decryption
-
-    const galaInstitutionPriv = BigInt(
-      await getEddsaKeyFromEthSigner(institution)
-    ).toString();
     const userPriv = BigInt(
       await getEddsaKeyFromEthSigner(encryptionAccount)
     ).toString();
 
     const eddsa = await buildEddsa();
     const userPub = eddsa.prv2pub(userPriv);
-    const decryptedData = await decryptFraudInvestigationData(
-      galaInstitutionPriv,
-      userPub,
-      verificationSBTInfo.encryptedData
-    );
 
-    expect(decryptedData[0]).to.be.equal(sampleInput.providerAx);
+    // let all institutions decrypt their shamir secret sharing part
+    let decryptedData: any[][] = [];
+    for (let i = 0; i < amountInstitutions; i++) {
+      const galaInstitutionPriv = BigInt(
+        await getEddsaKeyFromEthSigner(institutions[i])
+      ).toString();
 
-    const holderEdDSAKey = await getEddsaKeyFromEthSigner(deployer);
-    const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
-    let zkKYC = new ZKCertificate(
-      holderCommitment,
-      ZkCertStandard.zkKYC,
-      eddsa,
-      1773
-    );
+      decryptedData[i] = await decryptFraudInvestigationData(
+        galaInstitutionPriv,
+        userPub,
+        [verificationSBTInfo.encryptedData[2*i], verificationSBTInfo.encryptedData[2*i + 1]]
+      );
+    }
 
-    // set the fields in zkKYC object
-    zkKYC.setFields(fields);
-
-    const providerEdDSAKey = await getEddsaKeyFromEthSigner(KYCProvider);
-    zkKYC.signWithProvider(providerEdDSAKey);
-
-    expect(decryptedData[1]).to.be.equal(zkKYC.leafHash);
+    // test if the first two investigation institutions can decrypt the data (2 of 3 shamir secret sharing)
+    const reconstructedSecret = reconstructShamirSecret(eddsa.F, 2, [
+      [1, decryptedData[0][0]],
+      [2, decryptedData[1][0]]
+    ]);
+    expect(reconstructedSecret, "Fraud investigation should be able to reconstruct the secret").to.be.equal(zkKYC.leafHash);
 
     // check that the verification SBT can be found by the frontend
     const loggedSBTs = await queryVerificationSBTs(verificationSBT.address, user.address);
@@ -287,14 +292,6 @@ describe('Verification SBT Smart contract', async () => {
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
 
-    // set the galactica institution pub key
-    const galacticaInstitutionPubKey = [
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
-      publicSignals[await ageProofZkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ] as [BigNumberish, BigNumberish];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
-    );
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');

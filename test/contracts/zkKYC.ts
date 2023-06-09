@@ -12,7 +12,6 @@ import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const snarkjs = require('snarkjs');
-import { readFileSync } from 'fs';
 const hre = require('hardhat');
 import {
   fromDecToHex,
@@ -20,22 +19,25 @@ import {
   processPublicSignals,
   fromHexToBytes32,
 } from '../../lib/helpers';
-import { generateZKKYCInput } from '../../scripts/generateZKKYCInput';
+import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/generateZKKYCInput';
 import { BigNumber } from 'ethers';
+import { ZKCertificate } from '../../lib/zkCertificate';
 
 const { expect } = chai;
 
 describe('zkKYC SC', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
-  let zkKYC: ZkKYC;
+  let zkKYCContract: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
-  let mockGalacticaInstitution: MockGalacticaInstitution;
+  let mockGalacticaInstitutions: MockGalacticaInstitution[];
+  const amountInstitutions = 3;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let randomUser: SignerWithAddress;
+  let zkKYC: ZKCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
@@ -56,8 +58,12 @@ describe('zkKYC SC', async () => {
       'MockGalacticaInstitution',
       deployer
     );
-    mockGalacticaInstitution =
-      (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution;
+    mockGalacticaInstitutions = [];
+    for (let i = 0; i < amountInstitutions; i++) {
+      mockGalacticaInstitutions.push(
+        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution
+      );
+    }
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -66,14 +72,15 @@ describe('zkKYC SC', async () => {
     zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYC = (await zkKYCFactory.deploy(
+    zkKYCContract = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockKYCRegistry.address,
-      mockGalacticaInstitution.address
+      []
     )) as ZkKYC;
 
-    sampleInput = await generateZKKYCInput();
+    zkKYC = await generateSampleZkKYC();
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -85,18 +92,18 @@ describe('zkKYC SC', async () => {
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      zkKYC.connect(user).setVerifier(user.address)
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+      zkKYCContract.connect(user).setVerifier(user.address)
+    ).to.be.rejectedWith('Ownable: caller is not the owner');
     await expect(
-      zkKYC.connect(user).setKYCRegistry(user.address)
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+      zkKYCContract.connect(user).setKYCRegistry(user.address)
+    ).to.be.rejectedWith('Ownable: caller is not the owner');
 
     //owner can change addresses
-    await zkKYC.connect(deployer).setVerifier(user.address);
-    await zkKYC.connect(deployer).setKYCRegistry(user.address);
+    await zkKYCContract.connect(deployer).setVerifier(user.address);
+    await zkKYCContract.connect(deployer).setKYCRegistry(user.address);
 
-    expect(await zkKYC.verifier()).to.be.equal(user.address);
-    expect(await zkKYC.KYCRegistry()).to.be.equal(user.address);
+    expect(await zkKYCContract.verifier()).to.be.equal(user.address);
+    expect(await zkKYCContract.KYCRegistry()).to.be.equal(user.address);
   });
 
   it('correct proof can be verified onchain', async () => {
@@ -106,19 +113,11 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
-    );
-    // set the galactica institution pub key
-    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()],
-      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
     );
 
     // set time to the public time
@@ -128,7 +127,7 @@ describe('zkKYC SC', async () => {
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await zkKYC.connect(user).verifyProof(a, b, c, publicInputs);
+    await zkKYCContract.connect(user).verifyProof(a, b, c, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
@@ -138,7 +137,7 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -148,8 +147,8 @@ describe('zkKYC SC', async () => {
     let publicInputs = processPublicSignals(publicSignals);
 
     // switch c, a to get an incorrect proof
-    await expect(zkKYC.connect(user).verifyProof(c, b, a, publicInputs)).to.be
-      .reverted;
+    await expect(zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs)).to.be
+      .rejected;
   });
 
   it('revert if proof output is invalid', async () => {
@@ -162,8 +161,8 @@ describe('zkKYC SC', async () => {
       circuitWasmPath,
       circuitZkeyPath
     );
-    expect(publicSignals[await zkKYC.INDEX_IS_VALID()]).to.be.equal('0');
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
+    expect(publicSignals[await zkKYCContract.INDEX_IS_VALID()]).to.be.equal('0');
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -174,8 +173,8 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('the proof output is not valid');
+      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.rejectedWith('the proof output is not valid');
   });
 
   it('revert if public output merkle root does not match with the one onchain', async () => {
@@ -192,8 +191,8 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith("the root in the proof doesn't match");
+      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.rejectedWith("the root in the proof doesn't match");
   });
 
   it('revert if time is too far from current time', async () => {
@@ -203,8 +202,8 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
 
     await mockKYCRegistry.setMerkleRoot(
@@ -220,8 +219,8 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('the current time is incorrect');
+      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs)
+    ).to.be.rejectedWith('the current time is incorrect');
   });
 
   it('unauthorized user cannot use the proof', async () => {
@@ -231,8 +230,8 @@ describe('zkKYC SC', async () => {
       circuitZkeyPath
     );
 
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
@@ -245,44 +244,75 @@ describe('zkKYC SC', async () => {
 
     let publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith(
+      zkKYCContract.connect(randomUser).verifyProof(c, b, a, publicInputs)
+    ).to.be.rejectedWith(
       'transaction submitter is not authorized to use this proof'
     );
   });
 
-  it('revert if the institution pub key is incorrect', async () => {
-    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      sampleInput,
-      circuitWasmPath,
-      circuitZkeyPath
+  it('should work with investigation institutions and shamir secret sharing', async () => {
+    // for fraud investigation, we have different circuit parameters and therefore different input and verifier
+    zkKYC = await generateSampleZkKYC();
+    const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions);
+    
+    const zkKYCVerifierFactory = await ethers.getContractFactory(
+      'InvestigableZkKYCVerifier',
+      deployer
     );
+    const verifierSC = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
-    const publicRoot = publicSignals[await zkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(publicSignals[await zkKYC.INDEX_CURRENT_TIME()], 10);
+    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
+    const investigatableZkKYC = (await zkKYCFactory.deploy(
+      deployer.address,
+      verifierSC.address,
+      mockKYCRegistry.address,
+      mockGalacticaInstitutions.map((inst) => inst.address),
+    )) as ZkKYC;
+
+    let { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      inputWithInstitutions,
+      './circuits/build/investigatableZkKYC.wasm',
+      './circuits/build/investigatableZkKYC.zkey'
+    );
+    
+    // set the institution pub keys
+    for (let i = 0; i < amountInstitutions; i++) {
+      const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i],
+        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i + 1]
+      ];
+      await mockGalacticaInstitutions[i].setInstitutionPubkey(
+        galacticaInstitutionPubKey
+      );
+    }
+
+    const publicRoot = publicSignals[await investigatableZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(publicSignals[await investigatableZkKYC.INDEX_CURRENT_TIME()], 10);
     // set the merkle root to the correct one
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot))
     );
+
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    // set the incorrect galactica institution pub key
-
-    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      BigNumber.from(publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AX()]).add('1'),
-      publicSignals[await zkKYC.INDEX_INVESTIGATION_INSTITUTION_PUBKEY_AY()]
-    ];
-    await mockGalacticaInstitution.setInstitutionPubkey(
-      galacticaInstitutionPubKey
-    );
-
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
+    await investigatableZkKYC.connect(user).verifyProof(a, b, c, publicInputs);
+
+    // also check that it correctly reverts if an institution key is wrong
+    // set different institution pub key
+    const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      BigNumber.from(publicSignals[await zkKYCContract.START_INDEX_INVESTIGATION_INSTITUTIONS()]).add('1'),
+      publicSignals[await zkKYCContract.START_INDEX_INVESTIGATION_INSTITUTIONS() + 1]
+    ];
+    await mockGalacticaInstitutions[2].setInstitutionPubkey(
+      galacticaInstitutionPubKey
+    );  
     await expect(
-      zkKYC.connect(user).verifyProof(c, b, a, publicInputs)
-    ).to.be.revertedWith('the first part of institution pubkey is incorrect');
+      investigatableZkKYC.connect(user).verifyProof(a, b, c, publicInputs)
+    ).to.be.rejectedWith('the first part of institution pubkey is incorrect');
   });
 });

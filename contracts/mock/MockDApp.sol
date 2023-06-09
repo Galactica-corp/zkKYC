@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../VerificationSBT.sol";
 import "../interfaces/IAgeProofZkKYCVerifier.sol";
-import "../interfaces/IVerifierWrapper.sol";
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
@@ -24,9 +23,9 @@ contract MockDApp {
     uint public constant token1AirdropAmount = 100;
     uint public constant token2AirdropAmount = 100;
     VerificationSBT public SBT;
-    IVerifierWrapper public verifierWrapper; 
+    IAgeProofZkKYCVerifier public verifierWrapper; 
 
-    constructor(VerificationSBT _SBT, IVerifierWrapper _verifierWrapper) {
+    constructor(VerificationSBT _SBT, IAgeProofZkKYCVerifier _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -45,28 +44,30 @@ contract MockDApp {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[19] memory input
+        uint[] memory input
     ) public {
         bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
         if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
-            
-            humanID = bytes32(input[15]);
-            uint dAppAddress = input[16];
+            humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
+            uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
 
             // check that the public dAppAddress is correct
             require(dAppAddress == uint(uint160(address(this))), "incorrect dAppAddress");
 
             // check the zk proof
-            require(IAgeProofZkKYCVerifier(address(verifierWrapper)).verifyProof(a, b, c, input), "zk proof is invalid");
-
-            
+            require(verifierWrapper.verifyProof(a, b, c, input), "zk proof is invalid");            
 
             //afterwards we mint the verification SBT
-            uint256[2] memory userPubKey = [input[0], input[1]];
-            bytes32[2] memory encryptedData = [bytes32(input[2]), bytes32(input[3])];
+            uint256[2] memory userPubKey = [input[verifierWrapper.INDEX_USER_PUBKEY_AX()], input[verifierWrapper.INDEX_USER_PUBKEY_AY()]];
+            uint amountInstitutions = verifierWrapper.getAmountFraudInvestigationInstitutions();
+            bytes32[] memory encryptedData = new bytes32[](amountInstitutions*2);
+            for (uint i=0; i<amountInstitutions; i++) {
+                encryptedData[2*i]     = bytes32(input[verifierWrapper.START_INDEX_ENCRYPTED_DATA() + 2*i]);
+                encryptedData[2*i + 1] = bytes32(input[verifierWrapper.START_INDEX_ENCRYPTED_DATA() + 2*i + 1]);
+            }
             uint expirationTime = input[5];
-            uint256[2] memory providerPubKey = [input[17], input[18]];
+            uint256[2] memory providerPubKey = [input[13], input[14]];
             SBT.mintVerificationSBT(msg.sender, verifierWrapper, expirationTime, encryptedData, userPubKey, humanID, providerPubKey);
         }
 

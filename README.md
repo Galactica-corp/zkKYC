@@ -21,14 +21,32 @@ npm install
 ```
 
 ## Compile
-Compile the SNARK circuit and build the verifyer.sol contract
-Before you can set test input variables in `circuits/init.json`.
+This repo contains several parts that can be compiled:
+1. The zero-knowledge circuits
+2. The smart contracts 
+3. The typescript library functions
+
+### Circuits
+To compile the circuits, you first need the parameters from the trusted setup ceremony. It is the basis for keeping the computation in the ZKPs private.
+You can download it from [here](https://galactica.com/trusted-setup/dev/pot17_final.ptau) and place it in the `circuits` folder.
+
+The following hardhat task takes care of compiling the circuits, testing it with available input files and postprocessing the output.
 ```shell
+wget https://galactica.com/trusted-setup/dev/pot17_final.ptau -O circuits/pot17_final.ptau
 npx hardhat smartCircuitBuild --verbose
 ```
-This only rebuilds the circuits for which the source changed since the last build.
+It only rebuilds the circuits for which the source changed since the last build.
 
 If the circuits were changed, the compilation requires a valid input file for the circuit. They can be found in `circuits/input/`. They can be modified by hand. For complex circuits using hashes, such as zkKYC, you can use the `npx hardhat run scripts/writeExampleZKKYCInputs.ts` to generate the file inlcuding hashes and merkle tree data.
+
+### Smart Contracts
+The simplest way to compile the smart contracts is to run the tests. This automatically compiles them.
+```shell
+npm run test
+```
+
+### Library functions
+The libary functions only need to be compiled if you want to publish them to NPM or make it available to some other JavaScript project. Usually, this can be skipped because you can run scripts with `npx hardhat run <file>`.
 
 To compile the library functions into a node module, you can run:
 ```shell

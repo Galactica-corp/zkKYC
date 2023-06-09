@@ -10,8 +10,10 @@ include "./zkKYC.circom";
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
+ * @param shamirK - number of shares needed from investigation authorities to reconstruct the zkKYC DID
+ * @param shamirN - number of investigation authorities to generate shares for. (Use 0 to disable fraud investigations)
  */
-template AgeProofZkKYC(levels, maxExpirationLengthDays){
+template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -55,8 +57,6 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays){
     signal input R8x2;
     signal input R8y2;
 
-
-
     // public variables related to age proof circuit
     signal input currentYear;
     signal input currentMonth;
@@ -65,16 +65,14 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays){
     // age threshold
     signal input ageThreshold;
 
-    //inputs for encryption of fraud investigation data
+    //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
-    signal input investigationInstitutionPubKey[2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
 
     //humanID related variable
     //humanID as public input, so dApp can use it
     signal input humanID;
     //dAppAddress is public so it can be checked by the dApp
     signal input dAppAddress;
-
 
     // pub key of the provider
     signal input providerAx;
@@ -87,11 +85,14 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays){
 
     // final result
     signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
-    signal output encryptedData[2]; // becomes public as part of the output to be stored in the verification SBT
     signal output valid;
     signal output verificationExpiration; 
 
-    component zkKYC = ZKKYC(levels, maxExpirationLengthDays);
+    // variable length part of public input at the end to simplify indexing in the smart contract
+    signal input investigationInstitutionPubKey[shamirN][2]; // should be public so we can check that it is the same as the current fraud investigation institution public key
+    signal output encryptedData[shamirN][2]; // becomes public as part of the output to be stored in the verification SBT
+
+    component zkKYC = ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN);
     zkKYC.holderCommitment <== holderCommitment;
     zkKYC.randomSalt <== randomSalt;
     zkKYC.surname <== surname;
@@ -110,8 +111,10 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays){
     zkKYC.passportID <== passportID;
     zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
-    zkKYC.investigationInstitutionPubKey[0] <== investigationInstitutionPubKey[0];
-    zkKYC.investigationInstitutionPubKey[1] <== investigationInstitutionPubKey[1];
+    for (var i = 0; i < shamirN; i++) {
+        zkKYC.investigationInstitutionPubKey[i][0] <== investigationInstitutionPubKey[i][0];
+        zkKYC.investigationInstitutionPubKey[i][1] <== investigationInstitutionPubKey[i][1];
+    }
     zkKYC.providerAx <== providerAx;
     zkKYC.providerAy <== providerAy;
     zkKYC.providerS <== providerS;
@@ -136,8 +139,10 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays){
     zkKYC.dAppAddress <== dAppAddress;
     userPubKey[0] <== zkKYC.userPubKey[0];
     userPubKey[1] <== zkKYC.userPubKey[1];
-    encryptedData[0] <== zkKYC.encryptedData[0];
-    encryptedData[1] <== zkKYC.encryptedData[1];
+    for (var i = 0; i < shamirN; i++) {
+        encryptedData[i][0] <== zkKYC.encryptedData[i][0];
+        encryptedData[i][1] <== zkKYC.encryptedData[i][1];
+    }
     verificationExpiration <== zkKYC.verificationExpiration;
 
     component ageProof = AgeProof();

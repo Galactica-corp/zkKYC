@@ -15,8 +15,12 @@ async function smartCircuitBuild(
   hre: HardhatRuntimeEnvironment) {
     console.log("Smart circuit build:");
     
-    // read the list of circuits from a config file
-    
+    // Check that the trusted setup file exists
+    if (!fs.existsSync(hre.config.circom.ptau)) {
+      throw new Error(`Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`);
+    }
+
+    // read the list of circuits from a config file    
     for (const circuit of hre.config.circom.circuits) {
       const rootPath = hre.config.paths.root;
       
@@ -36,6 +40,8 @@ async function smartCircuitBuild(
       ];
       
       const sourceFiles = findAllImportedSourceFiles(circuit.circuit, []);
+      // recompile also needed if a new ptau file is used
+      sourceFiles.push(hre.config.circom.ptau);
       
       // check build file existance
       let buildNeeded = false;
@@ -86,9 +92,13 @@ async function smartCircuitBuild(
         console.log(`Compiling circuit ${circuit.name}. This might take a while...`);
         await hre.run("circom", {circuit: circuit.name})
 
-        // Make contract names unique so that hardhat does not complain
         const contentBefore = fs.readFileSync(verifierPath, 'utf8');
-        var contentAfter = contentBefore.replace(/contract Verifier {/g, `contract ${verifierName}Verifier {`);
+        var contentAfter = contentBefore.
+          // Make contract names unique so that hardhat does not complain
+          replace(/contract Verifier {/g, `contract ${verifierName}Verifier {`).
+          // Allow dynamic length array as input (including spaces to only replace the instance in the verifier function)
+          replace(/            uint\[[0-9]*\] memory input/g, `            uint[] memory input`);
+
         fs.writeFileSync(verifierPath, contentAfter, 'utf8');
 
         // Write JSON of build config for that circuit to detect changes
