@@ -76,12 +76,9 @@ npx hardhat run scripts/deployExampleDApp.ts --network galaTestnet
 First collect the certificate data and holder commitment from the user. For example as in [the zkKYC example](example/kycFields.json).
 Then you can sign it using the following hardhat task (replace holder commitment and file)
 ```shell
-npx hardhat createZkKYC --holder-commitment 2548540024400520720751029171633903682525672775622781811599241942877782733224 --kyc-data-file example/kycFields.json
+npx hardhat createZkKYC --holder-commitment 839160718446872147271060736034559178228117322331346628862983451058562783963 --kyc-data-file example/test.json --random-salt 1773 --registry-address 0x855d8DeF49d550df733Afb848aC723AEEBa58adF --network galaTestnet
 ```
-The resulting zkCert can be issued on chain with the following script after adjusting the parameters in it.
-```shell
-npx hardhat run scripts/issueZkKYC.ts --network galaTestnet
-```
+The task issues the resulting zkCert on-chain and provides a merkle proof for it.
 Then you can send the zkCert data to the user, so that he/she can create zk proofs with it.
 
 ## Publish this repo on npm
