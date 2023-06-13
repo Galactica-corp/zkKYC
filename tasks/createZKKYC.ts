@@ -1,5 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import fs from 'fs'
+import path from 'path';
 import chalk from "chalk";
 
 import { task, types } from "hardhat/config";
@@ -20,7 +21,8 @@ import { ZkCertStandard, zkKYCContentFields } from '../lib/zkCertStandards';
 
 
 /**
- * @description Script for creating a zkKYC certificate
+ * @description Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
+ * @param args See task definition below or 'npx hardhat createZkKYC --help'
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log("Creating zkKYC certificate");
@@ -126,7 +128,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green("This ZkKYC can be imported in a wallet"));
 
   // write output to file
-  const outputFileName = args.outputFile || `${zkKYC.leafHash}.json`;
+  const outputFileName = args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
+  fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
   console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
 

@@ -2,7 +2,13 @@
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
-
+/**
+ * @description Query the on-chain Merkle tree leaves needed as input for the Merkle tree
+ * @param ethers Ethers instance
+ * @param contractAddr Address of the KYCRecordRegistry contract
+ * @param firstBlock First block to query (ideally the contract creation block)
+ * @returns Promise of an array of Merkle tree leaves
+ */
 export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractAddr: string, firstBlock: number = 1): Promise<string[]> {
   const contract = await ethers.getContractAt("KYCRecordRegistry", contractAddr) as KYCRecordRegistry;
 
