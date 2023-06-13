@@ -97,6 +97,14 @@ export class ZKCertificate {
    * @returns JSON string
    */
   public exportJson(): string {
+    return JSON.stringify(this.export(), null, 2);
+  }
+
+  /**
+   * Export the zkCert as object containing only the fields relevant for import in a wallet
+   * @returns ZkCert object
+   */
+  public export(): any {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
@@ -106,7 +114,7 @@ export class ZKCertificate {
       providerData: this.providerData,
       randomSalt: this.randomSalt,
     };
-    return JSON.stringify(doc, null, 2);
+    return doc;
   }
 
   /**
