@@ -39,7 +39,7 @@ async function main() {
         let output = {
             root: merkleTree.root,
             pathIndices: merkleProof.pathIndices,
-            pathElements: merkleProof.path,
+            pathElements: merkleProof.pathElements,
         }
 
         console.log(`Merkle proof for ${leaf}:\n`, JSON.stringify(output, null, 2));
