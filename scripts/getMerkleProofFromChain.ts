@@ -8,7 +8,7 @@ import { queryOnChainLeaves } from "../lib/queryMerkleTree";
  * @description Script for creating a merkle tree for testing from a list of UTXOs, benchmark version
  */
 async function main() {
-    const registryAddress = "0x9dC3856A0D3e2d008B6F7A97594A5AD77383FA72";
+    const registryAddress = "0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5";
     const leavesToProve = [
         "19630604862894493237865119507631642105595355222686969752403793856928034143008",
     ];
@@ -34,6 +34,7 @@ async function main() {
         const merkleProof = merkleTree.createProof(leaf);
 
         let output = {
+            leaf: leaf,
             root: merkleTree.root,
             pathIndices: merkleProof.pathIndices,
             pathElements: merkleProof.pathElements,
