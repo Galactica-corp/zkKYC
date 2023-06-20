@@ -25,9 +25,9 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
       printProgress(`${Math.round(((maxBlock-firstBlock) / (currentBlock-firstBlock)) * 100)}`);
   
       // go through all logs adding a verification SBT for the user
-      const createStakeLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
+      const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
 
-      for (let log of createStakeLogs) {
+      for (let log of leafAddedLogs) {
           const leafHex = log.args[0];
           const leafDecimalString = BigInt(leafHex).toString();
           res.push(leafDecimalString);
