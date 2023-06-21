@@ -116,7 +116,7 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
 
-  zkKYCInput.pathElements = merkleProof.path;
+  zkKYCInput.pathElements = merkleProof.pathElements;
   zkKYCInput.pathIndices = merkleProof.pathIndices;
   zkKYCInput.root = merkleRoot;
   zkKYCInput.currentTime = currentTimestamp;

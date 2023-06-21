@@ -30,3 +30,6 @@ circuits/pot*.ptau
 
 # ignore build files that do not need to be pushed as library
 dist
+
+# ignore created zkKYC files
+issuedZkKYCs/*.json
