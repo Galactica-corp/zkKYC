@@ -44,8 +44,8 @@ contract KYCRecordRegistry is Initializable {
 
 
   KYCCenterRegistry public _KYCCenterRegistry;
-  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
-  event zkKYCRecordRevocation(bytes32 indexed zkKYCRecordLeafHash, address indexedKYCCenter);
+  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter, uint index);
+  event zkKYCRecordRevocation(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter, uint index);
 
   /**
    * @notice Calculates initial values for Merkle Tree
@@ -81,25 +81,25 @@ contract KYCRecordRegistry is Initializable {
       currentZero = hashLeftRight(currentZero, currentZero);
     }
 
-    // Set merkle root and store root to quickly retrieve later
-    newTreeRoot = merkleRoot = currentZero;
+    // Set merkle root
+    merkleRoot = currentZero;
     _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
   }
 
-  function addZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] calldata merkleProof) public {
+  function addZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] memory merkleProof) public {
         // since we are adding a new zkKYC record, we assume that the leaf is of zero value
         bytes32 currentLeafHash = ZERO_VALUE;
       require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
       _changeLeafHash(leafIndex, currentLeafHash, zkKYCRecordHash, merkleProof);
-      emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
+      emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
   }
 
-  function revokeZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] calldata merkleProof) public {
+  function revokeZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] memory merkleProof) public {
         // since we are deleting the content of a leaf, the new value is the zero value
         bytes32 newLeafHash = ZERO_VALUE;
         require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
         _changeLeafHash(leafIndex, zkKYCRecordHash, newLeafHash, merkleProof);
-        emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender);
+        emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender, leafIndex);
   }
 
     /** @notice Function change the leaf content at a certain index
@@ -108,7 +108,7 @@ contract KYCRecordRegistry is Initializable {
     * @param newLeafHash the new content we want to write into the leaf
     * @param merkleProof the merkle sibling path
     **/ 
-  function _changeLeafHash(uint256 index, bytes32 currentLeafHash, bytes32 newLeafHash, bytes32[] merkleProof) internal {
+  function _changeLeafHash(uint256 index, bytes32 currentLeafHash, bytes32 newLeafHash, bytes32[] memory merkleProof) internal {
     require(
 			validate(merkleProof, index, currentLeafHash, merkleRoot),
 		  	"merkle proof is not valid"
@@ -130,27 +130,27 @@ contract KYCRecordRegistry is Initializable {
     * @notice function to validate a leaf content at a certain index with its merkle proof against a certain merkle root
      */
   function validate(
-		bytes32[] calldata merkleProof,
+		bytes32[] memory merkleProof,
       	uint256 index,
       	bytes32 leafHash,
-	 	bytes32 merkleRoot
-	) internal pure returns (bool) {
-		return (compute(merkleProof, index, leafHash) == merkleRoot);
+	 	bytes32 _merkleRoot
+	) internal view returns (bool) {
+		return (compute(merkleProof, index, leafHash) == _merkleRoot);
 	}
 
     function compute(
-      bytes32[] calldata merkleProof,
+      bytes32[] memory merkleProof,
       uint256 index,
       bytes32 leafHash
-    ) internal pure returns (bytes32) {
-        require(_index < TREE_SIZE, "_index bigger than tree size");
-        require(_proofs.length != TREE_DEPTH, "Invalid _proofs length");
+    ) internal view returns (bytes32) {
+        require(index < TREE_SIZE, "_index bigger than tree size");
+        require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
 
      	for (uint256 d = 0; d < TREE_DEPTH; d++) {
-        	if ((_index & 1) == 1) {
-                leafHash = hash(merkleProof[d], leafHash);
+        	if ((index & 1) == 1) {
+                leafHash = hashLeftRight(merkleProof[d], leafHash);
         	} else {
-                leafHash = hash(leafHash, merkleProof[d]);
+                leafHash = hashLeftRight(leafHash, merkleProof[d]);
         	}
         	index = index >> 1;
       	}
