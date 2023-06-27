@@ -9,11 +9,16 @@ import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistr
  * @param firstBlock First block to query (ideally the contract creation block)
  * @returns Promise of an array of Merkle tree leaves
  */
-export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractAddr: string, firstBlock: number = 1): Promise<string[]> {
+
+export interface LeafLogResult {
+  leafHash: string;
+    index: BigInt;
+}
+export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractAddr: string, firstBlock: number = 1): (Promise<LeafLogResult[]>) {
   const contract = await ethers.getContractAt("KYCRecordRegistry", contractAddr) as KYCRecordRegistry;
 
   const currentBlock = await ethers.provider.getBlockNumber();
-  let res : string[] = [];
+    let res : LeafLogResult[] = [];
 
   const maxBlockInterval = 10000;
   console.log(`Getting Merkle tree leaves by reading blockchain log from ${firstBlock} to ${currentBlock}`);
@@ -26,11 +31,24 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
   
       // go through all logs adding a verification SBT for the user
       const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
+      const leafRevokedLogs = await contract.queryFilter(contract.filter.zkKYCRecordRevocation(), i, maxBlock);
 
       for (let log of leafAddedLogs) {
           const leafHex = log.args[0];
-          const leafDecimalString = BigInt(leafHex).toString();
-          res.push(leafDecimalString);
+          let leafRevoked = false;
+          for (let log2 of leafRevokedLogs) {
+              if (leafHex === log2.args[0]) {
+                  leafRevoked = true;
+                  break;
+              }
+          }
+          if (!leafRevoked) {
+            const index = log.args[2];
+            const indexBigInt = BigInt(index);
+            const leafDecimalString = BigInt(leafHex).toString();
+            res.push({leafHash: leafDecimalString, index: indexBigInt});
+          }
+
       }
   }
   printProgress(`100`);

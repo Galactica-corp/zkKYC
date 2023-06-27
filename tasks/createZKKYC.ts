@@ -12,7 +12,7 @@ import { buildEddsa, buildPoseidon } from "circomlibjs";
 import { ZKCertificate } from "../lib/zkCertificate";
 import { getEddsaKeyFromEthSigner } from "../lib/keyManagement";
 import { fromDecToHex, fromHexToBytes32, hashStringToFieldNumber } from "../lib/helpers";
-import { MerkleTree } from "../lib/merkleTree";
+import { SparseMerkleTree } from "../lib/sparseMerkleTree";
 import { queryOnChainLeaves } from "../lib/queryMerkleTree";
 
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
@@ -93,9 +93,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     throw new Error(`Provider ${provider.address} is not a guardian yet. Please register it first using the script .`);
   }
   const leafBytes = fromHexToBytes32(fromDecToHex(zkKYC.leafHash));
-  let tx = await recordRegistry.addZkKYCRecord(leafBytes);
-  await tx.wait();
-  console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain`));
 
   if (!args.merkleProof) {
     console.log("zkKYC", zkKYC.exportJson());
@@ -107,21 +104,40 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
   const poseidon = await buildPoseidon();
   const merkleDepth = 32;
-  const leaves = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
-  const merkleTree = new MerkleTree(merkleDepth, poseidon);
+    const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
+    const leafHashes = leafLogResults.map(x => x.leafHash);
+    const leafIndices = leafLogResults.map(x => x.index);
+  const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
-  for (let i = 0; i < leaves.length; i += batchSize) {
-    merkleTree.insertLeaves(leaves.slice(i, i + batchSize));
-  }
+    for (let i = 0; i < leafLogResults.length; i += batchSize) {
+      
+    merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
+    }
+    
+    // find the smallest index of an empty list
+    let index = 0;
+    leafIndices.sort();
+    while (true) {
+        if (leafIndices.includes(index)) {
+            break;
+        } else {
+            index++;
+        }
+    }
 
   // create Merkle proof
-  const merkleProof = merkleTree.createProof(zkKYC.leafHash);
+  const merkleProof = merkleTree.createProof(index);
   let output = zkKYC.export();
   output.merkleProof = {
     root: merkleTree.root,
     pathIndices: merkleProof.pathIndices,
-    pathElements: merkleProof.pathElements,
+    pathElements: merkleProof.path,
   }
+    
+    // now we have the merkle proof to add a new leaf
+    let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path);
+  await tx.wait();
+  console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
 
   console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
   console.log(zkKYC.exportJson());

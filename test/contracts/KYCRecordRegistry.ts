@@ -115,7 +115,7 @@ describe('KYCRecordRegistry', () => {
         let merkleProof = merkleTree.createProof(leafIndices[i]);
         let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
         await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
-        merkleTree.insertleaves([leafHashes[i]], [leafIndices[i]]);
+        merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
 
         // Check roots match
         expect(await KYCRecordRegistry.merkleRoot()).to.equal(
@@ -147,14 +147,14 @@ describe('KYCRecordRegistry', () => {
         let merkleProof = merkleTree.createProof(leafIndices[i]);
         let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
         await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
-        merkleTree.insertleaves([leafHashes[i]], [leafIndices[i]]);
+        merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
     }
       
     // now we will try to nullify the first added leaf
     let merkleProof = merkleTree.createProof(leafIndices[0]);
     let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
     await KYCRecordRegistry.revokeZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath);
-    merkleTree.insertleaves([merkleTree.emptyLeaf], [leafIndices[0]]);
+    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[0]]);
     
     // Check roots match
     expect(await KYCRecordRegistry.merkleRoot()).to.equal(

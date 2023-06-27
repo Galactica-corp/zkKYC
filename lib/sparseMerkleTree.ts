@@ -104,7 +104,7 @@ export class SparseMerkleTree {
      * 
      * @param leaves Array of leaf hashes to insert
      */
-    insertleaves(leaves: string[], indices: number[]): void {
+    insertLeaves(leaves: string[], indices: number[]): void {
         if (leaves.length != indices.length) {
             throw new Error('lenghts of leaves and indices have to be equal');
         }
