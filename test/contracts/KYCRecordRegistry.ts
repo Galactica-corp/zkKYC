@@ -18,7 +18,7 @@ import {
 import { poseidonContract } from 'circomlibjs';
 
 
-describe('KYCRecordRegistry', () => {
+describe.only('KYCRecordRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {

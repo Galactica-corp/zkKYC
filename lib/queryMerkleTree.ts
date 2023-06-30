@@ -31,7 +31,7 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
   
       // go through all logs adding a verification SBT for the user
       const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
-      const leafRevokedLogs = await contract.queryFilter(contract.filter.zkKYCRecordRevocation(), i, maxBlock);
+      const leafRevokedLogs = await contract.queryFilter(contract.filters.zkKYCRecordRevocation(), i, maxBlock);
 
       for (let log of leafAddedLogs) {
           const leafHex = log.args[0];

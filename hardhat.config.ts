@@ -7,6 +7,7 @@ import 'hardhat-circom';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
+import './tasks/revokeZKKYC';
 
 
 const config: HardhatUserConfig = {
@@ -28,9 +29,9 @@ const config: HardhatUserConfig = {
       url: "https://evm-rpc-http-devnet-41233.galactica.com/",  // requires gala dev wireguard connection
       accounts: [ 
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
-        /* process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
+        process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
         process.env.GalaTestnetInstitution2PrivateKey!, // test institution for fraud investigation
-        process.env.GalaTestnetInstitution3PrivateKey!, // test institution for fraud investigation */
+        process.env.GalaTestnetInstitution3PrivateKey!, // test institution for fraud investigation
       ],
     }
   },

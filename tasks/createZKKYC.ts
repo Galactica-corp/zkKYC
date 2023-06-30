@@ -104,26 +104,26 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
   const poseidon = await buildPoseidon();
   const merkleDepth = 32;
-    const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
-    const leafHashes = leafLogResults.map(x => x.leafHash);
-    const leafIndices = leafLogResults.map(x => x.index);
+  const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
+  const leafHashes = leafLogResults.map(x => x.leafHash);
+  const leafIndices = leafLogResults.map(x => x.index);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
-  const batchSize = 10_000;
+    const batchSize = 10_000;
+    console.log(`Adding leaves to the merkle tree`);
     for (let i = 0; i < leafLogResults.length; i += batchSize) {
-      
     merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
-    }
-    
-    // find the smallest index of an empty list
-    let index = 0;
+  }
+
+  // find the smallest index of an empty list
+  let index = 0;
     leafIndices.sort();
     while (true) {
-        if (leafIndices.includes(index)) {
-            break;
-        } else {
-            index++;
-        }
+    if (!leafIndices.includes(index)) {
+        break;
+    } else {
+        index++;
     }
+  }
 
   // create Merkle proof
   const merkleProof = merkleTree.createProof(index);
@@ -135,7 +135,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
     
     // now we have the merkle proof to add a new leaf
-    let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path);
+    let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
   console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
 
