@@ -102,19 +102,19 @@ contract KYCRecordRegistry is Initializable {
         emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender, leafIndex);
   }
 
-    /** @notice Function change the leaf content at a certain index
-    * @param index the index of the overwritten leaf in the last level
-    * @param currentLeafHash the current content of the leaf
-    * @param newLeafHash the new content we want to write into the leaf
-    * @param merkleProof the merkle sibling path
-    **/ 
+  /** @notice Function change the leaf content at a certain index
+  * @param index the index of the overwritten leaf in the last level
+  * @param currentLeafHash the current content of the leaf
+  * @param newLeafHash the new content we want to write into the leaf
+  * @param merkleProof the merkle sibling path
+  **/ 
   function _changeLeafHash(uint256 index, bytes32 currentLeafHash, bytes32 newLeafHash, bytes32[] memory merkleProof) internal {
     require(
-			validate(merkleProof, index, currentLeafHash, merkleRoot),
-		  	"merkle proof is not valid"
-		);
-        // we update the merkle tree accordingly
-        merkleRoot = compute(merkleProof, index, newLeafHash);
+      validate(merkleProof, index, currentLeafHash, merkleRoot),
+      "merkle proof is not valid"
+    );
+    // we update the merkle tree accordingly
+    merkleRoot = compute(merkleProof, index, newLeafHash);
   }
 
   /**
@@ -130,31 +130,30 @@ contract KYCRecordRegistry is Initializable {
     * @notice function to validate a leaf content at a certain index with its merkle proof against a certain merkle root
      */
   function validate(
-		bytes32[] memory merkleProof,
-      	uint256 index,
-      	bytes32 leafHash,
-	 	bytes32 _merkleRoot
-	) internal pure returns (bool) {
-		return (compute(merkleProof, index, leafHash) == _merkleRoot);
-	}
+    bytes32[] memory merkleProof,
+    uint256 index,
+    bytes32 leafHash,
+    bytes32 _merkleRoot
+  ) internal pure returns (bool) {
+	return (compute(merkleProof, index, leafHash) == _merkleRoot);
+  }
 
-    function compute(
-      bytes32[] memory merkleProof,
-      uint256 index,
-      bytes32 leafHash
-    ) internal pure returns (bytes32) {
-        require(index < TREE_SIZE, "_index bigger than tree size");
-        require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
+  function compute(
+    bytes32[] memory merkleProof,
+    uint256 index,
+    bytes32 leafHash
+  ) internal pure returns (bytes32) {
+    require(index < TREE_SIZE, "_index bigger than tree size");
+    require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
 
-     	for (uint256 d = 0; d < TREE_DEPTH; d++) {
-        	if ((index & 1) == 1) {
-                leafHash = hashLeftRight(merkleProof[d], leafHash);
-        	} else {
-                leafHash = hashLeftRight(leafHash, merkleProof[d]);
-        	}
-        	index = index >> 1;
-      	}
+    for (uint256 d = 0; d < TREE_DEPTH; d++) {
+      if ((index & 1) == 1) {
+        leafHash = hashLeftRight(merkleProof[d], leafHash);
+      } else {
+        leafHash = hashLeftRight(leafHash, merkleProof[d]);
+      }
+        index = index >> 1;
+      }
 		return leafHash;
-    }
-
+  }
 }
