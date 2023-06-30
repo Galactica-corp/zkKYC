@@ -18,38 +18,37 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
   const contract = await ethers.getContractAt("KYCRecordRegistry", contractAddr) as KYCRecordRegistry;
 
   const currentBlock = await ethers.provider.getBlockNumber();
-    let res : LeafLogResult[] = [];
+  let res : LeafLogResult[] = [];
 
   const maxBlockInterval = 10000;
   console.log(`Getting Merkle tree leaves by reading blockchain log from ${firstBlock} to ${currentBlock}`);
 
   // get logs in batches of 10000 blocks because of rpc call size limit
   for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
-      const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
-      // display progress in %
-      printProgress(`${Math.round(((maxBlock-firstBlock) / (currentBlock-firstBlock)) * 100)}`);
-  
-      // go through all logs adding a verification SBT for the user
-      const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
-      const leafRevokedLogs = await contract.queryFilter(contract.filters.zkKYCRecordRevocation(), i, maxBlock);
+    const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
+    // display progress in %
+    printProgress(`${Math.round(((maxBlock-firstBlock) / (currentBlock-firstBlock)) * 100)}`);
 
-      for (let log of leafAddedLogs) {
-          const leafHex = log.args[0];
-          let leafRevoked = false;
-          for (let log2 of leafRevokedLogs) {
-              if (leafHex === log2.args[0]) {
-                  leafRevoked = true;
-                  break;
-              }
-          }
-          if (!leafRevoked) {
-            const index = log.args[2];
-            const indexBigInt = BigInt(index);
-            const leafDecimalString = BigInt(leafHex).toString();
-            res.push({leafHash: leafDecimalString, index: indexBigInt});
-          }
+    // go through all logs adding a verification SBT for the user
+    const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
+    const leafRevokedLogs = await contract.queryFilter(contract.filters.zkKYCRecordRevocation(), i, maxBlock);
 
+    for (let log of leafAddedLogs) {
+      const leafHex = log.args[0];
+      let leafRevoked = false;
+      for (let log2 of leafRevokedLogs) {
+        if (leafHex === log2.args[0]) {
+          leafRevoked = true;
+            break;
+          }
       }
+      if (!leafRevoked) {
+        const index = log.args[2];
+        const indexBigInt = BigInt(index);
+        const leafDecimalString = BigInt(leafHex).toString();
+        res.push({leafHash: leafDecimalString, index: indexBigInt});
+      }
+    }
   }
   printProgress(`100`);
   console.log(``);
