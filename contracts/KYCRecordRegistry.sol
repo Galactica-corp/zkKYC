@@ -134,7 +134,7 @@ contract KYCRecordRegistry is Initializable {
       	uint256 index,
       	bytes32 leafHash,
 	 	bytes32 _merkleRoot
-	) internal view returns (bool) {
+	) internal pure returns (bool) {
 		return (compute(merkleProof, index, leafHash) == _merkleRoot);
 	}
 
@@ -142,7 +142,7 @@ contract KYCRecordRegistry is Initializable {
       bytes32[] memory merkleProof,
       uint256 index,
       bytes32 leafHash
-    ) internal view returns (bytes32) {
+    ) internal pure returns (bytes32) {
         require(index < TREE_SIZE, "_index bigger than tree size");
         require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
 
