@@ -108,9 +108,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafHashes = leafLogResults.map(x => x.leafHash);
   const leafIndices = leafLogResults.map(x => x.index);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
-    const batchSize = 10_000;
-    console.log(`Adding leaves to the merkle tree`);
-    for (let i = 0; i < leafLogResults.length; i += batchSize) {
+  const batchSize = 10_000;
+  console.log(`Adding leaves to the merkle tree`);
+  for (let i = 0; i < leafLogResults.length; i += batchSize) {
     merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
   }
 
@@ -134,8 +134,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     pathElements: merkleProof.path,
   }
     
-    // now we have the merkle proof to add a new leaf
-    let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  // now we have the merkle proof to add a new leaf
+  let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
   console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
 
