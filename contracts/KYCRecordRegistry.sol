@@ -42,6 +42,10 @@ contract KYCRecordRegistry is Initializable {
   // Caching these values is essential to efficient appends.
   bytes32[TREE_DEPTH] public zeros;
 
+  // a mapping to store which KYC center manages which ZKKYCRecords
+  mapping(bytes32 => address) public ZKKYCRecordToCenter;
+
+
 
   KYCCenterRegistry public _KYCCenterRegistry;
   event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter, uint index);
@@ -87,18 +91,20 @@ contract KYCRecordRegistry is Initializable {
   }
 
   function addZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] memory merkleProof) public {
-        // since we are adding a new zkKYC record, we assume that the leaf is of zero value
-        bytes32 currentLeafHash = ZERO_VALUE;
-      require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
-      _changeLeafHash(leafIndex, currentLeafHash, zkKYCRecordHash, merkleProof);
-      emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
+    // since we are adding a new zkKYC record, we assume that the leaf is of zero value
+    bytes32 currentLeafHash = ZERO_VALUE;
+    require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
+    _changeLeafHash(leafIndex, currentLeafHash, zkKYCRecordHash, merkleProof);
+    ZKKYCRecordToCenter[zkKYCRecordHash] = msg.sender;
+    emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
   }
 
   function revokeZkKYCRecord(uint256 leafIndex, bytes32 zkKYCRecordHash, bytes32[] memory merkleProof) public {
         // since we are deleting the content of a leaf, the new value is the zero value
         bytes32 newLeafHash = ZERO_VALUE;
-        require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
+        require(ZKKYCRecordToCenter[zkKYCRecordHash] == msg.sender, "KYCRecordRegistry: not the corresponding KYC Center");
         _changeLeafHash(leafIndex, zkKYCRecordHash, newLeafHash, merkleProof);
+        ZKKYCRecordToCenter[zkKYCRecordHash] = address(0);
         emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender, leafIndex);
   }
 
