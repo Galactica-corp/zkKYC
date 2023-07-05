@@ -62,7 +62,7 @@ describe('Verification SBT Smart contract', async () => {
     [deployer, user, encryptionAccount, KYCProvider] =
       await hre.ethers.getSigners();
     for (let i = 0; i < amountInstitutions; i++) {
-      institutions.push((await ethers.getSigners())[4+i]);
+      institutions.push((await ethers.getSigners())[4 + i]);
     }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
@@ -131,7 +131,7 @@ describe('Verification SBT Smart contract', async () => {
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, amountInstitutions);
+    sampleInput = await generateZkKYCProofInput(zkKYC, amountInstitutions, mockDApp.address);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;
@@ -143,18 +143,6 @@ describe('Verification SBT Smart contract', async () => {
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
-
-    // we need to change the dAppAddress to the address of the MockDApp created here
-    sampleInput.dAppAddress = mockDApp.address;
-
-    let poseidon = await buildPoseidon();
-    sampleInput.humanID = poseidon.F.toObject(
-      poseidon(
-        humanIDFieldOrder.map((field) => sampleInput[field]),
-        undefined,
-        1
-      )
-    ).toString();
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -181,8 +169,8 @@ describe('Verification SBT Smart contract', async () => {
     // set the institution pub keys
     for (let i = 0; i < amountInstitutions; i++) {
       const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i],
-        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i + 1]
+        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2 * i],
+        publicSignals[await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2 * i + 1]
       ];
       await mockGalacticaInstitutions[i].setInstitutionPubkey(
         galacticaInstitutionPubKey
@@ -258,7 +246,7 @@ describe('Verification SBT Smart contract', async () => {
       decryptedData[i] = await decryptFraudInvestigationData(
         galaInstitutionPriv,
         userPub,
-        [verificationSBTInfo.encryptedData[2*i], verificationSBTInfo.encryptedData[2*i + 1]]
+        [verificationSBTInfo.encryptedData[2 * i], verificationSBTInfo.encryptedData[2 * i + 1]]
       );
     }
 
