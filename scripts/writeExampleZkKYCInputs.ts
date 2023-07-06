@@ -7,7 +7,7 @@ import { generateSampleZkKYC, generateZkKYCProofInput } from './generateZKKYCInp
  */
 async function main() {
   const zkKYC = await generateSampleZkKYC();
-  const zkKYCInput = await generateZkKYCProofInput(zkKYC, 0);
+  const zkKYCInput = await generateZkKYCProofInput(zkKYC, 0, "0x0");
 
   fs.writeFileSync(
     './circuits/input/zkKYC.json',
