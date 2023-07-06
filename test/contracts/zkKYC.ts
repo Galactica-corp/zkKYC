@@ -256,7 +256,7 @@ describe('zkKYC SC', async () => {
     const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions, zkKYCContract.address);
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
-      'InvestigableZkKYCVerifier',
+      'InvestigatableZkKYCVerifier',
       deployer
     );
     const verifierSC = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
