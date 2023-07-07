@@ -80,7 +80,7 @@ describe('zkKYC SC', async () => {
     )) as ZkKYC;
 
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, zkKYCContract.address);
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -253,10 +253,10 @@ describe('zkKYC SC', async () => {
   it('should work with investigation institutions and shamir secret sharing', async () => {
     // for fraud investigation, we have different circuit parameters and therefore different input and verifier
     zkKYC = await generateSampleZkKYC();
-    const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions);
-    
+    const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions, zkKYCContract.address);
+
     const zkKYCVerifierFactory = await ethers.getContractFactory(
-      'InvestigableZkKYCVerifier',
+      'InvestigatableZkKYCVerifier',
       deployer
     );
     const verifierSC = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
@@ -274,12 +274,12 @@ describe('zkKYC SC', async () => {
       './circuits/build/investigatableZkKYC.wasm',
       './circuits/build/investigatableZkKYC.zkey'
     );
-    
+
     // set the institution pub keys
     for (let i = 0; i < amountInstitutions; i++) {
       const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i],
-        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2*i + 1]
+        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2 * i],
+        publicSignals[await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS() + 2 * i + 1]
       ];
       await mockGalacticaInstitutions[i].setInstitutionPubkey(
         galacticaInstitutionPubKey
@@ -310,7 +310,7 @@ describe('zkKYC SC', async () => {
     ];
     await mockGalacticaInstitutions[2].setInstitutionPubkey(
       galacticaInstitutionPubKey
-    );  
+    );
     await expect(
       investigatableZkKYC.connect(user).verifyProof(a, b, c, publicInputs)
     ).to.be.rejectedWith('the first part of institution pubkey is incorrect');

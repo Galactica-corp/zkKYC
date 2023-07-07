@@ -34,7 +34,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   const eddsa = await buildEddsa();
 
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, _1, _2, KYCProvider] =  await ethers.getSigners();
+  const [holder, _1, _2, KYCProvider] = await ethers.getSigners();
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
@@ -57,17 +57,17 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   return zkKYC;
 }
 
-export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstitutions: number): Promise<any> {
+export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstitutions: number, dAppAddress: string): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
   const [holder, user, encryptionAccount, KYCProvider] =
-  await ethers.getSigners();
+    await ethers.getSigners();
   let institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
-    institutions.push((await ethers.getSigners())[4+i]);
+    institutions.push((await ethers.getSigners())[4 + i]);
   }
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
@@ -97,9 +97,6 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
     await getEddsaKeyFromEthSigner(encryptionAccount)
   ).toString();
 
-  //placeholder for now, later on we need to be able to change it to deployed dApp address on-chain
-  // probably the generateZKKYCInput will need to read inputs from a json file
-  let dAppAddress = '2093684589645';
   let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress, fields.passportID);
 
   // initiate an empty merkle tree
@@ -142,7 +139,7 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
       await getEddsaKeyFromEthSigner(institutions[i])
     ).toString();
     let institutionPub = eddsa.prv2pub(institutionPrivKey);
-  
+
     let fraudInvestigationDataEncryptionProofInput =
       await zkKYC.getFraudInvestigationDataEncryptionProofInput(
         institutionPub,

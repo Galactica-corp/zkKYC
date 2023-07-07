@@ -13,7 +13,7 @@ describe('zkKYC Circuit Component', () => {
   before(async () => {
     circuit = await hre.circuitTest.setup('zkKYC');
     const zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, "0x0");
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -40,7 +40,7 @@ describe('zkKYC Circuit Component', () => {
 
     assert.propertyVal(witness, 'main.valid', '1', "proof should be valid");
 
-    const maxValidityLength = 60*24*60*60; // 60 days according to parameter
+    const maxValidityLength = 60 * 24 * 60 * 60; // 60 days according to parameter
     assert.propertyVal(
       witness,
       'main.verificationExpiration',
