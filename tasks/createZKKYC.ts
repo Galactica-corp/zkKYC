@@ -116,14 +116,26 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // find the smallest index of an empty list
   let index = 0;
-    leafIndices.sort();
-    while (true) {
-    if (!leafIndices.includes(index)) {
+  // firstly we sort the list of indices
+  leafIndices.sort();
+  // if the list is not empty and the first index is 0 then we proceed to find the gap
+  // otherwise the index remains 0
+  if (leafIndices.length >= 1 && leafIndices[0] == 0) {
+    for (let i = 0; i < (leafIndices.length - 1); i++) {
+      if (leafIndices[i+1] - leafIndices[i] >= 2) {
+        index = parseInt(leafIndices[i]) + 1;
         break;
-    } else {
-        index++;
+      } 
+    }
+    // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
+    if (index == 0) {
+      index = parseInt(leafIndices[leafIndices.length - 1]) + 1;
     }
   }
+
+  console.log(`found index ${index}`);
+  console.log(`offchain merkle root is ${merkleTree.root}`);
+  console.log(`onchain merkle root is ${await recordRegistry.merkleRoot()}`);
 
   // create Merkle proof
   const merkleProof = merkleTree.createProof(index);
