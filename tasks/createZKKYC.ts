@@ -107,6 +107,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
   const leafHashes = leafLogResults.map(x => x.leafHash);
   const leafIndices = leafLogResults.map(x => x.index);
+  console.log(`leafLogResult is ${leafLogResults}`);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
   console.log(`Adding leaves to the merkle tree`);
@@ -132,10 +133,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       index = parseInt(leafIndices[leafIndices.length - 1]) + 1;
     }
   }
-
-  console.log(`found index ${index}`);
-  console.log(`offchain merkle root is ${merkleTree.root}`);
-  console.log(`onchain merkle root is ${await recordRegistry.merkleRoot()}`);
 
   // create Merkle proof
   const merkleProof = merkleTree.createProof(index);

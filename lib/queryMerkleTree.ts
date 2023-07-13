@@ -18,6 +18,8 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
   const contract = await ethers.getContractAt("KYCRecordRegistry", contractAddr) as KYCRecordRegistry;
 
   const currentBlock = await ethers.provider.getBlockNumber();
+  let resAdded: LeafLogResult[] = [];
+  let resRevoked: LeafLogResult[] = [];
   let res : LeafLogResult[] = [];
 
   const maxBlockInterval = 10000;
@@ -33,21 +35,27 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
     const leafAddedLogs = await contract.queryFilter(contract.filters.zkKYCRecordAddition(), i, maxBlock);
     const leafRevokedLogs = await contract.queryFilter(contract.filters.zkKYCRecordRevocation(), i, maxBlock);
 
+
     for (let log of leafAddedLogs) {
-      const leafHex = log.args[0];
-      let leafRevoked = false;
-      for (let log2 of leafRevokedLogs) {
-        if (leafHex === log2.args[0]) {
-          leafRevoked = true;
+        resAdded.push({leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2])});
+    }
+
+    for (let log of leafRevokedLogs) {
+        resRevoked.push({leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2])});
+    }
+  }
+  
+  for (let logResult of resAdded) {
+    let leafRevoked = false;
+    //looping through the revocation log to see if the zkKYC record has been revoked
+    for (let logResult2 of resRevoked) {
+        if (logResult.leafHash === logResult2.leafHash) {
+        leafRevoked = true;
             break;
-          }
-      }
-      if (!leafRevoked) {
-        const index = log.args[2];
-        const indexBigInt = BigInt(index);
-        const leafDecimalString = BigInt(leafHex).toString();
-        res.push({leafHash: leafDecimalString, index: indexBigInt});
-      }
+        }
+    }
+    if (!leafRevoked) {
+        res.push(logResult);
     }
   }
   printProgress(`100`);
