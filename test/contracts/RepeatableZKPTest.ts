@@ -57,6 +57,7 @@ describe('RepeatableZKPTest', async () => {
       'ZkKYCVerifier',
       deployer
     );
+
     zkKYCVerifier =
       await zkKYCVerifierFactory.deploy() as ZkKYCVerifier;
 

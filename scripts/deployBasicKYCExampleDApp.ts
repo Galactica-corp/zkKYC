@@ -4,14 +4,11 @@ import { deploySC } from '../lib/hardhatHelpers';
 
 const log = console.log;
 
-/**
- * Deploys a simple contract that everyone can use to test issuing zkKYCs without having to be whitelisted as guardians first.
- * Meant for the devnet.
- */
+
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x4De49e2047eE726B833fa815bf7392958245832d';
-  const recordRegistryAddr = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
+  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
+  const zkKYC = '0x4568bBf22031930e35F13E1A15BdF7a619a60539'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
@@ -19,12 +16,9 @@ async function main() {
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [recordRegistryAddr]);
-  log(`DevnetGuardian deployed to: ${devnetGuardian.address}`);
-
-  const centerRegistry = await hre.ethers.getContractAt('KYCCenterRegistry', centerRegistryAddr);
-  centerRegistry.grantKYCCenterRole(devnetGuardian.address);
-  log(`DevnetGuardian whitelisted as KYC Guardian in KYCCenterRegistry`);
+  await deploySC('BasicKYCExampleDApp', true, {},
+    [verificationSBT, zkKYC]
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

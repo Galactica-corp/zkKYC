@@ -7,14 +7,14 @@ const log = console.log;
 
 async function main() {
   // parameters
-  const verificationSBT = '0x4E49d2383158568F5d4A30075e63614Dd7459060';
-  const ageProofZkKYC = '0x71d80ea7744302E5b1cFD61a7a26153FF221ca9E';
+  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
+  const ageProofZkKYC = '0x7790dDa9E7569bc3580E675D75Ad115E7B35c6ff';
 
   // wallets
-  const [ deployer ] = await hre.ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
-  
+
   // deploying everything
   const mockDApp = await deploySC('MockDApp', true, {},
     [verificationSBT, ageProofZkKYC]
