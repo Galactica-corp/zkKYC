@@ -2,7 +2,7 @@
 import { Signer } from "ethers";
 import createBlakeHash from "blake-hash";
 import { Scalar, utils }  from "ffjavascript";
-
+import { Buffer } from 'buffer';
 
 
 export const eddsaKeyGenerationMessage = "Signing this message generates your EdDSA private key. Only do this on pages you trust to manage your zkCertificates.";

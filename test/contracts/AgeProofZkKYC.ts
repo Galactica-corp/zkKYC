@@ -72,7 +72,7 @@ describe('ageProofZkKYC SC', async () => {
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, ageProofZkKYC.address);
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;

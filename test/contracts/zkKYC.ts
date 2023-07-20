@@ -80,7 +80,7 @@ describe('zkKYC SC', async () => {
     )) as ZkKYC;
 
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0);
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, zkKYCContract.address);
 
     // get signer object authorized to use the zkKYC record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -253,7 +253,7 @@ describe('zkKYC SC', async () => {
   it('should work with investigation institutions and shamir secret sharing', async () => {
     // for fraud investigation, we have different circuit parameters and therefore different input and verifier
     zkKYC = await generateSampleZkKYC();
-    const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions);
+    const inputWithInstitutions = await generateZkKYCProofInput(zkKYC, amountInstitutions, zkKYCContract.address);
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'InvestigatableZkKYCVerifier',

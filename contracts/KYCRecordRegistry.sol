@@ -11,7 +11,6 @@ import {PoseidonT3} from "./helpers/Poseidon.sol";
 
 import {KYCCenterRegistry} from "./KYCCenterRegistry.sol";
 
-
 /**
  * @title KYCRecordRegistry
  * @author Galactica dev team
@@ -99,6 +98,12 @@ contract KYCRecordRegistry is Initializable {
         _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
     }
 
+    /**
+     * @notice addZkKYCRecord issues a zkKYC record by adding it to the Merkle tree
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record leaf being free
+     */
     function addZkKYCRecord(
         uint256 leafIndex,
         bytes32 zkKYCRecordHash,
@@ -120,6 +125,12 @@ contract KYCRecordRegistry is Initializable {
         emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
     }
 
+    /**
+     * @notice revokeZkKYCRecord removes a previously issued zkKYC from the registry by setting the content of the merkle leaf to zero.
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record being in the tree
+     */
     function revokeZkKYCRecord(
         uint256 leafIndex,
         bytes32 zkKYCRecordHash,
