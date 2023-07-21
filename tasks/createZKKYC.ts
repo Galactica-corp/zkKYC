@@ -123,10 +123,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // otherwise the index remains 0
   if (leafIndices.length >= 1 && leafIndices[0] == 0) {
     for (let i = 0; i < (leafIndices.length - 1); i++) {
-      if (leafIndices[i+1] - leafIndices[i] >= 2) {
+      if (leafIndices[i + 1] - leafIndices[i] >= 2) {
         index = parseInt(leafIndices[i]) + 1;
         break;
-      } 
+      }
     }
     // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
     if (index == 0) {
@@ -135,24 +135,28 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
 
   // create Merkle proof
-  const merkleProof = merkleTree.createProof(index);
-  let output = zkKYC.export();
-  output.merkleProof = {
-    root: merkleTree.root,
-    pathIndices: merkleProof.pathIndices,
-    pathElements: merkleProof.path,
-  }
-    
+  let merkleProof = merkleTree.createProof(index);
+
   // now we have the merkle proof to add a new leaf
   let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
   console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
+
+  // update the merkle tree according to the new leaf
+  merkleTree.insertLeaves([zkKYC.leafHash], [index]);
+  merkleProof = merkleTree.createProof(index);
 
   console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
   console.log(zkKYC.exportJson());
   console.log(chalk.green("This ZkKYC can be imported in a wallet"));
 
   // write output to file
+  let output = zkKYC.export();
+  output.merkleProof = {
+    root: merkleTree.root,
+    pathIndices: merkleProof.pathIndices,
+    pathElements: merkleProof.path,
+  }
   const outputFileName = args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
