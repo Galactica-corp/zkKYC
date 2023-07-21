@@ -11,13 +11,15 @@ import {PoseidonT3} from "./helpers/Poseidon.sol";
 
 import {KYCCenterRegistry} from "./KYCCenterRegistry.sol";
 
+import {IKYCRegistry} from "./interfaces/IKYCRegistry.sol";
+
 /**
  * @title KYCRecordRegistry
  * @author Galactica dev team
  * @notice Batch Incremental Merkle Tree for zkKYC records
  * Relevant external contract calls should be in those functions, not here
  */
-contract KYCRecordRegistry is Initializable {
+contract KYCRecordRegistry is Initializable, IKYCRegistry {
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
     // variable at the end of this file

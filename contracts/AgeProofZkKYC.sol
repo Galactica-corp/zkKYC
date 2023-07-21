@@ -10,7 +10,7 @@ import "hardhat/console.sol";
 
 /// @author Galactica dev team
 /// @title A wrapper for verifier with age condition
-contract AgeProofZkKYC is Ownable{
+contract AgeProofZkKYC is Ownable {
     IAgeProofZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
@@ -26,20 +26,27 @@ contract AgeProofZkKYC is Ownable{
     uint8 public immutable INDEX_CURRENT_TIME;
     uint8 public immutable INDEX_USER_ADDRESS;
     uint8 public immutable INDEX_CURRENT_YEAR;
-    uint8 public immutable INDEX_CURRENT_MONTH ;
-    uint8 public immutable INDEX_CURRENT_DAY ;
-    uint8 public immutable INDEX_AGE_THRESHOLD ;
-    uint8 public immutable INDEX_HUMAN_ID ;
-    uint8 public immutable INDEX_DAPP_ID ;
-    uint8 public immutable INDEX_PROVIDER_PUBKEY_AX ;
-    uint8 public immutable INDEX_PROVIDER_PUBKEY_AY ;
-    uint8 public immutable START_INDEX_INVESTIGATION_INSTITUTIONS ;
+    uint8 public immutable INDEX_CURRENT_MONTH;
+    uint8 public immutable INDEX_CURRENT_DAY;
+    uint8 public immutable INDEX_AGE_THRESHOLD;
+    uint8 public immutable INDEX_HUMAN_ID;
+    uint8 public immutable INDEX_DAPP_ID;
+    uint8 public immutable INDEX_PROVIDER_PUBKEY_AX;
+    uint8 public immutable INDEX_PROVIDER_PUBKEY_AY;
+    uint8 public immutable START_INDEX_INVESTIGATION_INSTITUTIONS;
 
-    constructor(address _owner, address _verifier, address _KYCRegistry, address[] memory _fraudInvestigationInstitutions) Ownable(_owner) {
+    constructor(
+        address _owner,
+        address _verifier,
+        address _KYCRegistry,
+        address[] memory _fraudInvestigationInstitutions
+    ) Ownable(_owner) {
         verifier = IAgeProofZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
         for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
-            fraudInvestigationInstitutions.push(IGalacticaInstitution(_fraudInvestigationInstitutions[i]));
+            fraudInvestigationInstitutions.push(
+                IGalacticaInstitution(_fraudInvestigationInstitutions[i])
+            );
         }
 
         // set public input indices according to the number of institutions
@@ -50,7 +57,8 @@ contract AgeProofZkKYC is Ownable{
 
         // for each institution there are two fields containing the encrypted data of the shamir shares
         START_INDEX_ENCRYPTED_DATA = 4;
-        uint8 institutionKeyEntries = 2 * uint8(fraudInvestigationInstitutions.length);
+        uint8 institutionKeyEntries = 2 *
+            uint8(fraudInvestigationInstitutions.length);
 
         INDEX_ROOT = 4 + institutionKeyEntries;
         INDEX_CURRENT_TIME = 5 + institutionKeyEntries;
@@ -77,23 +85,31 @@ contract AgeProofZkKYC is Ownable{
         KYCRegistry = newKYCRegistry;
     }
 
-    function setGalacticaInstituion(IGalacticaInstitution[] calldata _fraudInvestigationInstitutions) public onlyOwner {
+    function setGalacticaInstituion(
+        IGalacticaInstitution[] calldata _fraudInvestigationInstitutions
+    ) public onlyOwner {
         fraudInvestigationInstitutions = _fraudInvestigationInstitutions;
     }
 
     //a, b, c are the proof
     function verifyProof(
-            uint[2] memory a,
-            uint[2][2] memory b,
-            uint[2] memory c,
-            uint[] memory input
-        ) public view returns (bool) {
-        require(input.length == 15 + 4 * fraudInvestigationInstitutions.length, "the public proof input has an incorrect length (also considering the amount of investigation institutions)");
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) public view returns (bool) {
+        require(
+            input.length == 15 + 4 * fraudInvestigationInstitutions.length,
+            "the public proof input has an incorrect length (also considering the amount of investigation institutions)"
+        );
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
-        require(KYCRegistry.rootHistory(proofRoot), "the root in the proof doesn't match");
-        
+        require(
+            KYCRegistry.merkleRoot() == proofRoot,
+            "the root in the proof doesn't match"
+        );
+
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];
         uint onchainTime = block.timestamp;
         uint timeDiff;
@@ -102,25 +118,46 @@ contract AgeProofZkKYC is Ownable{
         } else {
             timeDiff = onchainTime - proofCurrentTime;
         }
-        require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
+        require(
+            timeDiff <= timeDifferenceTolerance,
+            "the current time is incorrect"
+        );
 
         // tx.origin is used here so user doesn't need to submit proof directly to this SC but can also submit through dApp
-        require(tx.origin == address(uint160(input[INDEX_USER_ADDRESS])), "transaction submitter is not authorized to use this proof");
+        require(
+            tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
+            "transaction submitter is not authorized to use this proof"
+        );
 
-        (uint onchainYear, uint onchainMonth, uint onchainDay) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
+        (
+            uint onchainYear,
+            uint onchainMonth,
+            uint onchainDay
+        ) = BokkyPooBahsDateTimeLibrary.timestampToDate(onchainTime);
 
-        require(onchainYear == input[INDEX_CURRENT_YEAR], "the current year is incorrect");
-        require(onchainMonth == input[INDEX_CURRENT_MONTH], "the current month is incorrect");
-        require(onchainDay == input[INDEX_CURRENT_DAY], "the current day is incorrect");
+        require(
+            onchainYear == input[INDEX_CURRENT_YEAR],
+            "the current year is incorrect"
+        );
+        require(
+            onchainMonth == input[INDEX_CURRENT_MONTH],
+            "the current month is incorrect"
+        );
+        require(
+            onchainDay == input[INDEX_CURRENT_DAY],
+            "the current day is incorrect"
+        );
 
         // check that the institution public key corresponds to the onchain one;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(
-                fraudInvestigationInstitutions[i].institutionPubKey(0) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i],
+                fraudInvestigationInstitutions[i].institutionPubKey(0) ==
+                    input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i],
                 "the first part of institution pubkey is incorrect"
             );
             require(
-                fraudInvestigationInstitutions[i].institutionPubKey(1) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i + 1],
+                fraudInvestigationInstitutions[i].institutionPubKey(1) ==
+                    input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i + 1],
                 "the second part of institution pubkey is incorrect"
             );
         }
@@ -129,7 +166,11 @@ contract AgeProofZkKYC is Ownable{
         return true;
     }
 
-    function getAmountFraudInvestigationInstitutions() public view returns (uint) {
+    function getAmountFraudInvestigationInstitutions()
+        public
+        view
+        returns (uint)
+    {
         return fraudInvestigationInstitutions.length;
     }
 }
