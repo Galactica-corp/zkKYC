@@ -122,10 +122,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // otherwise the index remains 0
   if (leafIndices.length >= 1 && leafIndices[0] == 0) {
     for (let i = 0; i < (leafIndices.length - 1); i++) {
-      if (leafIndices[i+1] - leafIndices[i] >= 2) {
+      if (leafIndices[i + 1] - leafIndices[i] >= 2) {
         index = parseInt(leafIndices[i]) + 1;
         break;
-      } 
+      }
     }
     // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
     if (index == 0) {
@@ -145,7 +145,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     pathIndices: merkleProof.pathIndices,
     pathElements: merkleProof.path,
   }
-    
+
   // now we have the merkle proof to add a new leaf
   let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
@@ -164,7 +164,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green("done"));
 }
 
-task("createZkKYC", "Task to create a zkKYC certificate with input parameters")
+task("reissuekKYC", "Task to create a zkKYC certificate with input parameters")
   .addParam("holderCommitment", "The holder commitment fixing the address of the holder without disclosing it to the provider", undefined, string, false)
   .addParam("randomSalt", "Random salt to input into zkCert hashing", 0, types.int, true)
   .addParam("kycDataFile", "The file containing the KYC data", undefined, types.string, false)
