@@ -10,14 +10,14 @@ const log = console.log;
  */
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x2547a64b4CDe45ad691BC393aBe20D405cD5139D';
-  const recordRegistryAddr = '0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5';
+  const centerRegistryAddr = '0x91505781da1E7AFaCcE258f33d407F32897f84A9';
+  const recordRegistryAddr = '0xA27bDB666ec0A9C1Fc5f3476bf2325Fa80394790';
 
   // wallets
-  const [ deployer ] = await hre.ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
-  
+
   // deploying everything
   const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [recordRegistryAddr]);
   log(`DevnetGuardian deployed to: ${devnetGuardian.address}`);
