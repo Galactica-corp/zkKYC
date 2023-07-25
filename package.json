@@ -1,5 +1,5 @@
 {
-  "name": "@galactica-corp/zkkyc",
+  "name": "@galactica-net/zkkyc",
   "version": "0.6.2",
   "description": "Galactica Network's zero-knowledge Know Your Customer (zkKYC) library containing ZK circuit and blockchain library",
   "main": "dist/index.js",
