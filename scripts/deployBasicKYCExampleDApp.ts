@@ -8,7 +8,7 @@ const log = console.log;
 async function main() {
   // parameters
   const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
-  const ageProofZkKYC = '0x7790dDa9E7569bc3580E675D75Ad115E7B35c6ff';
+  const zkKYC = '0x4568bBf22031930e35F13E1A15BdF7a619a60539'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
@@ -16,14 +16,9 @@ async function main() {
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  const mockDApp = await deploySC('MockDApp', true, {},
-    [verificationSBT, ageProofZkKYC]
+  await deploySC('BasicKYCExampleDApp', true, {},
+    [verificationSBT, zkKYC]
   );
-  const token1 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [mockDApp.address]);
-  const token2 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [mockDApp.address]);
-
-  await mockDApp.setToken1(token1.address);
-  await mockDApp.setToken2(token2.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

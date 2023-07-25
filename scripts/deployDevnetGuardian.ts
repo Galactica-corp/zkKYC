@@ -4,11 +4,14 @@ import { deploySC } from '../lib/hardhatHelpers';
 
 const log = console.log;
 
-
+/**
+ * Deploys a simple contract that everyone can use to test issuing zkKYCs without having to be whitelisted as guardians first.
+ * Meant for the devnet.
+ */
 async function main() {
   // parameters
-  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
-  const ageProofZkKYC = '0x7790dDa9E7569bc3580E675D75Ad115E7B35c6ff';
+  const centerRegistryAddr = '0x4De49e2047eE726B833fa815bf7392958245832d';
+  const recordRegistryAddr = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
@@ -16,14 +19,12 @@ async function main() {
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  const mockDApp = await deploySC('MockDApp', true, {},
-    [verificationSBT, ageProofZkKYC]
-  );
-  const token1 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [mockDApp.address]);
-  const token2 = await deploySC('contracts/mock/MockToken.sol:MockToken', true, {}, [mockDApp.address]);
+  const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [recordRegistryAddr]);
+  log(`DevnetGuardian deployed to: ${devnetGuardian.address}`);
 
-  await mockDApp.setToken1(token1.address);
-  await mockDApp.setToken2(token2.address);
+  const centerRegistry = await hre.ethers.getContractAt('KYCCenterRegistry', centerRegistryAddr);
+  centerRegistry.grantKYCCenterRole(devnetGuardian.address);
+  log(`DevnetGuardian whitelisted as KYC Guardian in KYCCenterRegistry`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

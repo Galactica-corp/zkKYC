@@ -8,9 +8,9 @@ import { queryOnChainLeaves } from "../lib/queryMerkleTree";
  * @description Script for creating a merkle tree for testing from a list of UTXOs, benchmark version
  */
 async function main() {
-    const registryAddress = "0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5";
+    const registryAddress = "0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF";
     const leavesToProve = [
-        "19630604862894493237865119507631642105595355222686969752403793856928034143008",
+        "1722999490154515264044226908745492848723838509493895212716723397473228533371",
     ];
 
     // Create a new poseidon instance for hashing
@@ -23,8 +23,8 @@ async function main() {
     const merkleTree = new MerkleTree(merkleDepth, poseidon);
     const leaves = await queryOnChainLeaves(ethers, registryAddress);
     const batchSize = 10_000;
-    for (let i = 0; i < leaves.length; i += batchSize){
-        merkleTree.insertLeaves(leaves.slice(i, i+batchSize));
+    for (let i = 0; i < leaves.length; i += batchSize) {
+        merkleTree.insertLeaves(leaves.slice(i, i + batchSize));
     }
 
     console.log(`Merkle leaves: ${merkleTree.tree[0]}`)
@@ -43,7 +43,7 @@ async function main() {
         console.log(`Merkle proof for ${leaf}:\n`, JSON.stringify(output, null, 2));
     }
 }
-  
+
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {

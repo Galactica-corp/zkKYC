@@ -8,7 +8,7 @@ import "./interfaces/IGalacticaInstitution.sol";
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
-contract ZkKYC is Ownable{
+contract ZkKYC is Ownable {
     IZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
@@ -30,11 +30,18 @@ contract ZkKYC is Ownable{
     uint8 public immutable START_INDEX_ENCRYPTED_DATA;
     uint8 public immutable START_INDEX_INVESTIGATION_INSTITUTIONS;
 
-    constructor(address _owner, address _verifier, address _KYCRegistry, address[] memory _fraudInvestigationInstitutions) Ownable(_owner) {
+    constructor(
+        address _owner,
+        address _verifier,
+        address _KYCRegistry,
+        address[] memory _fraudInvestigationInstitutions
+    ) Ownable(_owner) {
         verifier = IZkKYCVerifier(_verifier);
         KYCRegistry = IKYCRegistry(_KYCRegistry);
         for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
-            fraudInvestigationInstitutions.push(IGalacticaInstitution(_fraudInvestigationInstitutions[i]));
+            fraudInvestigationInstitutions.push(
+                IGalacticaInstitution(_fraudInvestigationInstitutions[i])
+            );
         }
 
         // set public input indices according to the number of institutions
@@ -45,7 +52,8 @@ contract ZkKYC is Ownable{
 
         // for each institution there are two fields containing the encrypted data of the shamir shares
         START_INDEX_ENCRYPTED_DATA = 4;
-        uint8 institutionKeyEntries = 2 * uint8(fraudInvestigationInstitutions.length);
+        uint8 institutionKeyEntries = 2 *
+            uint8(fraudInvestigationInstitutions.length);
 
         INDEX_ROOT = 4 + institutionKeyEntries;
         INDEX_CURRENT_TIME = 5 + institutionKeyEntries;
@@ -68,25 +76,32 @@ contract ZkKYC is Ownable{
         KYCRegistry = newKYCRegistry;
     }
 
-    function setFraudInvestigationInstituions(IGalacticaInstitution[] calldata _fraudInvestigationInstitutions) public onlyOwner {
+    function setFraudInvestigationInstituions(
+        IGalacticaInstitution[] calldata _fraudInvestigationInstitutions
+    ) public onlyOwner {
         fraudInvestigationInstitutions = _fraudInvestigationInstitutions;
     }
 
     //a, b, c are the proof
     // input array contains the public parameters: isValid, root, currentTime
     function verifyProof(
-            uint[2] memory a,
-            uint[2][2] memory b,
-            uint[2] memory c,
-            uint[] memory input
-        ) public view {
-        
-        require(input.length == 11 + 4 * fraudInvestigationInstitutions.length, "the public proof input has an incorrect length (also considering the amount of investigation institutions)");
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) public view returns (bool) {
+        require(
+            input.length == 11 + 4 * fraudInvestigationInstitutions.length,
+            "the public proof input has an incorrect length (also considering the amount of investigation institutions)"
+        );
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
-        require(KYCRegistry.rootHistory(proofRoot), "the root in the proof doesn't match");
-        
+        require(
+            KYCRegistry.rootHistory(proofRoot),
+            "the root in the proof doesn't match"
+        );
+
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];
         uint timeDiff;
         if (proofCurrentTime > block.timestamp) {
@@ -94,23 +109,40 @@ contract ZkKYC is Ownable{
         } else {
             timeDiff = block.timestamp - proofCurrentTime;
         }
-        require(timeDiff <= timeDifferenceTolerance, "the current time is incorrect");
+        require(
+            timeDiff <= timeDifferenceTolerance,
+            "the current time is incorrect"
+        );
 
         // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
-        require(tx.origin == address(uint160(input[INDEX_USER_ADDRESS])), "transaction submitter is not authorized to use this proof");
+        require(
+            tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
+            "transaction submitter is not authorized to use this proof"
+        );
 
         // check that the institution public keys corresponds to the onchain ones;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(
-                fraudInvestigationInstitutions[i].institutionPubKey(0) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i],
+                fraudInvestigationInstitutions[i].institutionPubKey(0) ==
+                    input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i],
                 "the first part of institution pubkey is incorrect"
             );
             require(
-                fraudInvestigationInstitutions[i].institutionPubKey(1) == input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2*i + 1],
+                fraudInvestigationInstitutions[i].institutionPubKey(1) ==
+                    input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i + 1],
                 "the second part of institution pubkey is incorrect"
             );
         }
 
         require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+        return true;
+    }
+
+    function getAmountFraudInvestigationInstitutions()
+        public
+        view
+        returns (uint)
+    {
+        return fraudInvestigationInstitutions.length;
     }
 }
