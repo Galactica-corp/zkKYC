@@ -62,5 +62,9 @@
     "ethers": "^5.7.2",
     "hardhat-circom": "^3.3.2",
     "keccak256": "^1.0.6"
+  },
+  "overrides": {
+    "flat": "^5.0.2",
+    "snarkjs": "^0.7.0"
   }
 }
