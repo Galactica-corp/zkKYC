@@ -6,10 +6,10 @@ import "./IVerifierWrapper.sol";
 /// @author Galactica dev team
 interface IZkKYCVerifier is IVerifierWrapper {
     function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint[2] calldata a,
+        uint[2][2] calldata b,
+        uint[2] calldata c,
+        uint[11] calldata input
     ) external view returns (bool);
 
     function fraudInvestigationInstitutions()

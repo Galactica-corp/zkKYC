@@ -5,11 +5,12 @@ import "./Ownable.sol";
 import "./interfaces/IZkKYCVerifier.sol";
 import "./interfaces/IKYCRegistry.sol";
 import "./interfaces/IGalacticaInstitution.sol";
+import "./interfaces/IVerifierWrapper.sol";
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
-contract ZkKYC is Ownable {
-    IZkKYCVerifier public verifier;
+contract ZkKYC is Ownable, IVerifierWrapper {
+    address public verifier;
     IKYCRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
     uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
@@ -36,7 +37,7 @@ contract ZkKYC is Ownable {
         address _KYCRegistry,
         address[] memory _fraudInvestigationInstitutions
     ) Ownable(_owner) {
-        verifier = IZkKYCVerifier(_verifier);
+        verifier = _verifier;
         KYCRegistry = IKYCRegistry(_KYCRegistry);
         for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
             fraudInvestigationInstitutions.push(
@@ -68,7 +69,7 @@ contract ZkKYC is Ownable {
         START_INDEX_INVESTIGATION_INSTITUTIONS = 11 + institutionKeyEntries;
     }
 
-    function setVerifier(IZkKYCVerifier newVerifier) public onlyOwner {
+    function setVerifier(address newVerifier) public onlyOwner {
         verifier = newVerifier;
     }
 
@@ -134,7 +135,18 @@ contract ZkKYC is Ownable {
             );
         }
 
-        require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+        uint[input.length] memory mInput;
+        assembly {
+            mInput := add(input, 32)
+        }
+        // for (uint i = 0; i < mInput.length; i++) {
+        //     mInput[i] = input[i];
+        // }
+
+        require(
+            IZkKYCVerifier(verifier).verifyProof(a, b, c, mInput),
+            "the proof is incorrect"
+        );
         return true;
     }
 

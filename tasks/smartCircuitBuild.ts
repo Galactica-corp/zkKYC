@@ -97,7 +97,7 @@ async function smartCircuitBuild(
         // Make contract names unique so that hardhat does not complain
         replace(/contract Groth16Verifier {/g, `contract ${verifierName}Verifier {`).
         // Allow dynamic length array as input (including spaces to only replace the instance in the verifier function)
-        replace(/            uint\[[0-9]*\] memory input/g, `            uint[] memory input`);
+        replace(/uint\[[0-9]*\] calldata _pubSignals/g, `uint[] calldata _pubSignals`);
 
       fs.writeFileSync(verifierPath, contentAfter, 'utf8');
 

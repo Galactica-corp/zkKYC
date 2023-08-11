@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 import "./VerificationSBT.sol";
-import "./interfaces/IZkKYCVerifier.sol";
+import "./ZkKYC.sol";
+import "./interfaces/IVerifierWrapper.sol";
 
 /**
  * @title BasicKYCExampleDApp
@@ -12,9 +13,9 @@ import "./interfaces/IZkKYCVerifier.sol";
  */
 contract BasicKYCExampleDApp {
     VerificationSBT public SBT;
-    IZkKYCVerifier public verifierWrapper;
+    ZkKYC public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
+    constructor(VerificationSBT _SBT, ZkKYC _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -75,7 +76,7 @@ contract BasicKYCExampleDApp {
         ];
         SBT.mintVerificationSBT(
             msg.sender,
-            verifierWrapper,
+            IVerifierWrapper(address(verifierWrapper)),
             expirationTime,
             encryptedData,
             userPubKey,

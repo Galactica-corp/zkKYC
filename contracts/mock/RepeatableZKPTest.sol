@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 import "../VerificationSBT.sol";
-import "../interfaces/IZkKYCVerifier.sol";
+import "../ZkKYC.sol";
 
 /**
  * @title RepeatableZKPTest is a simple smart contract that can be used to test ZKP submission to create a verification SBT
@@ -10,9 +10,9 @@ import "../interfaces/IZkKYCVerifier.sol";
 
 contract RepeatableZKPTest {
     VerificationSBT public SBT;
-    IZkKYCVerifier public verifierWrapper;
+    ZkKYC public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
+    constructor(VerificationSBT _SBT, ZkKYC _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
