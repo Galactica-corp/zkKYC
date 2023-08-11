@@ -122,6 +122,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     pathIndices: merkleProof.pathIndices,
     pathElements: merkleProof.pathElements,
   }
+  output.registryAddr = recordRegistry.address;
 
   console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
   console.log(zkKYC.exportJson());
