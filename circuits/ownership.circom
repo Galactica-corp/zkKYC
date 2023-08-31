@@ -22,7 +22,7 @@ template Ownership(){
     signal input ax;
     signal input ay;
     // EdDSA signature
-    signal input S;
+    signal input s;
     signal input r8x;
     signal input r8y;
 
@@ -44,13 +44,13 @@ template Ownership(){
     eddsa.M <== hashPubkeyMod;
     eddsa.Ax <== ax;
     eddsa.Ay <== ay;
-    eddsa.S <== S;
+    eddsa.S <== s;
     eddsa.R8x <== r8x;
     eddsa.R8y <== r8y;
 
     // check that the holder commitment matches the signature
     component hashSig = Poseidon(3);
-    hashSig.inputs[0] <== S;
+    hashSig.inputs[0] <== s;
     hashSig.inputs[1] <== r8x;
     hashSig.inputs[2] <== r8y;
 

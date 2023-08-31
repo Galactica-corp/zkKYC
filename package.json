@@ -22,7 +22,7 @@
     "type": "git",
     "url": "git+https://github.com/Galactica-corp/zkKYC.git"
   },
-  "author": "Galactica Corp",
+  "author": "Galactica Network",
   "license": "GPLv3",
   "bugs": {
     "url": "https://github.com/Galactica-corp/zkKYC/issues"
@@ -49,6 +49,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@galactica-net/galactica-types": "0.1.0",
     "@openzeppelin/contracts": "^4.0.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@typechain/ethers-v5": "^10.1.1",

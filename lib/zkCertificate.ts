@@ -1,22 +1,30 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { Scalar } from 'ffjavascript';
 
-import { eddsaPrimeFieldMod, formatPrivKeyForBabyJub } from './keyManagement';
-import { humanIDFieldOrder, zkKYCContentFields } from './zkCertStandards';
-import { ZkCertStandard } from './zkCertStandards';
+import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
 import { buildEddsa } from 'circomlibjs';
+import {
+  eddsaPrimeFieldMod,
+  OwnershipProofInput,
+  AuthorizationProofInput,
+  ProviderData,
+  FraudInvestigationDataEncryptionProofInput,
+  HumanIDProofInput,
+  ZkCertData,
+  ZkCertStandard,
+  humanIDFieldOrder,
+  zkKYCContentFields,
+} from "@galactica-net/galactica-types";
 
 /**
  * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * @dev specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac
  */
-export class ZKCertificate {
+export class ZKCertificate implements ZkCertData {
   // Field of the curve used by Poseidon
   protected poseidon: any;
   protected fieldPoseidon: any;
-
-  // fields of zkCert
 
   /**
    * @description Create a ZKCertificate
@@ -25,23 +33,23 @@ export class ZKCertificate {
    * @param zkCertStandard zkCert standard to use
    * @param eddsa eddsa instance to use for signing
    * @param randomSalt random salt randomizing the zkCert
-   * @param fields ZKCertificate parameters, can be set later
+   * @param content ZKCertificate parameters, can be set later
    * @param providerData provider data, can be set later
    *
-   * @param fields ZKCertificate parameters, can be set later
+   * @param content ZKCertificate parameters, can be set later
    */
   constructor(
     readonly holderCommitment: string,
     public zkCertStandard: ZkCertStandard, // TODO: move enum from snap here
     protected eddsa: any,
     public randomSalt: number,
-    public fields: Record<string, any> = {}, // standardize field definitions
+    public content: Record<string, any> = {}, // standardize field definitions
     public providerData: ProviderData = {
-      Ax: '0',
-      Ay: '0',
-      S: '0',
-      R8x: '0',
-      R8y: '0',
+      ax: '0',
+      ay: '0',
+      s: '0',
+      r8x: '0',
+      r8y: '0',
     }
   ) {
     this.poseidon = eddsa.poseidon;
@@ -51,7 +59,7 @@ export class ZKCertificate {
   get contentHash(): string {
     return this.poseidon.F.toObject(
       this.poseidon(
-        zkKYCContentFields.map((field) => this.fields[field]),
+        zkKYCContentFields.map((field) => this.content[field]),
         undefined,
         1
       )
@@ -63,11 +71,11 @@ export class ZKCertificate {
       this.poseidon(
         [
           this.contentHash,
-          this.providerData.Ax,
-          this.providerData.Ay,
-          this.providerData.S,
-          this.providerData.R8x,
-          this.providerData.R8y,
+          this.providerData.ax,
+          this.providerData.ay,
+          this.providerData.s,
+          this.providerData.r8x,
+          this.providerData.r8y,
           this.holderCommitment,
           this.randomSalt,
         ],
@@ -87,8 +95,8 @@ export class ZKCertificate {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setFields(fields: Record<string, any>) {
-    this.fields = fields;
+  public setContent(content: Record<string, any>) {
+    this.content = content;
   }
 
   /**
@@ -110,7 +118,7 @@ export class ZKCertificate {
       leafHash: this.leafHash,
       did: this.did,
       zkCertStandard: this.zkCertStandard,
-      content: this.fields,
+      content: this.content,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
     };
@@ -142,12 +150,12 @@ export class ZKCertificate {
     return {
       holderCommitment: this.holderCommitment,
       // public key of the holder
-      Ax: this.fieldPoseidon.toObject(holderPubKeyEddsa[0]).toString(),
-      Ay: this.fieldPoseidon.toObject(holderPubKeyEddsa[1]).toString(),
+      ax: this.fieldPoseidon.toObject(holderPubKeyEddsa[0]).toString(),
+      ay: this.fieldPoseidon.toObject(holderPubKeyEddsa[1]).toString(),
       // signature of the holder
-      S: sig.S.toString(),
-      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
-      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+      s: sig.S.toString(),
+      r8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      r8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     };
   }
   /**
@@ -174,12 +182,12 @@ export class ZKCertificate {
 
     this.providerData = {
       // public key of the provider
-      Ax: this.fieldPoseidon.toObject(providerPubKeyEddsa[0]).toString(),
-      Ay: this.fieldPoseidon.toObject(providerPubKeyEddsa[1]).toString(),
+      ax: this.fieldPoseidon.toObject(providerPubKeyEddsa[0]).toString(),
+      ay: this.fieldPoseidon.toObject(providerPubKeyEddsa[1]).toString(),
       // signature of the provider
-      S: sig.S.toString(),
-      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
-      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+      s: sig.S.toString(),
+      r8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      r8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     };
     return this.providerData;
   }
@@ -213,12 +221,12 @@ export class ZKCertificate {
     return {
       userAddress: userAddress,
       // public key of the holder
-      Ax: this.fieldPoseidon.toObject(holderPubKeyEddsa[0]).toString(),
-      Ay: this.fieldPoseidon.toObject(holderPubKeyEddsa[1]).toString(),
+      ax: this.fieldPoseidon.toObject(holderPubKeyEddsa[0]).toString(),
+      ay: this.fieldPoseidon.toObject(holderPubKeyEddsa[1]).toString(),
       // signature of the holder
-      S: sig.S.toString(),
-      R8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
-      R8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
+      s: sig.S.toString(),
+      r8x: this.fieldPoseidon.toObject(sig.R8[0]).toString(),
+      r8y: this.fieldPoseidon.toObject(sig.R8[1]).toString(),
     };
   }
 
@@ -250,7 +258,7 @@ export class ZKCertificate {
       encryptedData: await encryptFraudInvestigationData(
         institutionPub,
         userPrivKey,
-        this.providerData.Ax,
+        this.providerData.ax,
         this.leafHash
       ),
     };
@@ -262,11 +270,11 @@ export class ZKCertificate {
    * @param dAppAddress Address of the dApp.
    * @returns Human ID as string.
    */
-  public getHumanID(dAppAddress:string): string {    
+  public getHumanID(dAppAddress: string): string {
     return this.poseidon.F.toObject(
       this.poseidon(
         // fill needed fields from zkKYC with dAppAddress added at the correct place
-        humanIDFieldOrder.map((field) => field == "dAppAddress" ? dAppAddress : this.fields[field]),
+        humanIDFieldOrder.map((field) => field == "dAppAddress" ? dAppAddress : this.content[field]),
         undefined,
         1
       )
@@ -283,50 +291,4 @@ export class ZKCertificate {
       humanID: this.getHumanID(dAppAddress),
     };
   }
-}
-
-export interface OwnershipProofInput {
-  holderCommitment: string;
-  // public key
-  Ax: string;
-  Ay: string;
-  // signature
-  S: string;
-  R8x: string;
-  R8y: string;
-}
-
-export interface AuthorizationProofInput {
-  userAddress: string;
-  // public key
-  Ax: string;
-  Ay: string;
-  // signature
-  S: string;
-  R8x: string;
-  R8y: string;
-}
-
-export interface ProviderData {
-  // public eddsa key of provider
-  Ax: string;
-  Ay: string;
-  // signature of the zkCert content hash by the provider
-  S: string;
-  R8x: string;
-  R8y: string;
-}
-
-export interface FraudInvestigationDataEncryptionProofInput {
-  userPrivKey: string;
-  userPubKey: string[];
-
-  investigationInstitutionPubkey: string[];
-  encryptedData: string[];
-}
-
-export interface HumanIDProofInput {
-  passportID: string;
-  dAppAddress: string;
-  humanID: string;
 }

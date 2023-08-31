@@ -47,7 +47,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   );
 
   // set the fields in zkKYC object
-  zkKYC.setFields(fields);
+  zkKYC.setContent(fields);
 
   // some default provider private key
   // providerData needs to be created before leafHash computation
@@ -86,7 +86,7 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;
   zkKYCInput.providerAy = zkKYC.providerData.ay;
-  zkKYCInput.providerS = zkKYC.providerData.S;
+  zkKYCInput.providerS = zkKYC.providerData.s;
   zkKYCInput.providerR8x = zkKYC.providerData.r8x;
   zkKYCInput.providerR8y = zkKYC.providerData.r8y;
 
@@ -121,13 +121,13 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   // add ownership proof inputs
   zkKYCInput.ax = ownershipProofInput.ax;
   zkKYCInput.ay = ownershipProofInput.ay;
-  zkKYCInput.s = ownershipProofInput.S;
+  zkKYCInput.s = ownershipProofInput.s;
   zkKYCInput.r8x = ownershipProofInput.r8x;
   zkKYCInput.r8y = ownershipProofInput.r8y;
 
   // add authorization proof inputs
   zkKYCInput.userAddress = authorizationProofInput.userAddress;
-  zkKYCInput.S2 = authorizationProofInput.S;
+  zkKYCInput.s2 = authorizationProofInput.s;
   zkKYCInput.r8x2 = authorizationProofInput.r8x;
   zkKYCInput.r8y2 = authorizationProofInput.r8y;
 

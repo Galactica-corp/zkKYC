@@ -8,4 +8,4 @@ export * from './helpers';
 export * from './zkCertificate';
 export * from './mimcEncrypt';
 export * from './merkleTree';
-export * from './zkCertStandards';
+export { ZkCertStandard, ZkKYCContent } from '@galactica-net/galactica-types';

@@ -26,27 +26,27 @@ export class MimcEncrypt {
     F: any;
     cts: any[];
 
-    constructor (F: any) {
+    constructor(F: any) {
         this.F = F;
         this.cts = this.getConstants(SEED, NROUNDS);
     }
 
-    getIV (seed: any)  {
+    getIV(seed: any) {
         const F = this.F;
         if (typeof seed === "undefined") seed = SEED;
-        const c = utils.keccak256(utils.toUtf8Bytes(seed+"_iv"));
+        const c = utils.keccak256(utils.toUtf8Bytes(seed + "_iv"));
         const cn = Scalar.e(c);
         const iv = cn.mod(F.p);
         return iv;
     }
 
-    getConstants (seed: any, nRounds: number)  {
+    getConstants(seed: any, nRounds: number) {
         const F = this.F;
         if (typeof seed === "undefined") seed = SEED;
         if (typeof nRounds === "undefined") nRounds = NROUNDS;
         const cts = new Array(nRounds);
         let c = utils.keccak256(utils.toUtf8Bytes(SEED));;
-        for (let i=1; i<nRounds; i++) {
+        for (let i = 1; i < nRounds; i++) {
             c = utils.keccak256(c);
 
             cts[i] = F.e(c);
@@ -60,22 +60,22 @@ export class MimcEncrypt {
     hash(_xL_in: any, _xR_in: any, _k: any) {
         return this.permutation(_xL_in, _xR_in, _k, false)
     }
-    
+
     // The following is an implementation of MiMC in Feistel mode as introduced in
     // [1]: Albrecht, Martin, et al. "MiMC: Efficient encryption and cryptographic
     //      hashing with minimal multiplicative complexity." International 
     //      Conference on the Theory and Application of Cryptology and Information
     //      Security. Springer, Berlin, Heidelberg, 2016.
-    permutation (_xL_in: any, _xR_in: any, _k: any, _rev: any) {
+    permutation(_xL_in: any, _xR_in: any, _k: any, _rev: any) {
         const F = this.F;
         let xL = F.e(_xL_in);
         let xR = F.e(_xR_in);
         const k = F.e(_k);
-        for (let i=0; i<NROUNDS; i++) {
+        for (let i = 0; i < NROUNDS; i++) {
             // If we are in decryption mode, then we need to reverse the order of
             // round constants and also rerverse the round function application.
-            const c = _rev ? this.cts[NROUNDS-1-i] : this.cts[i];
-            const t = (i==0) ? F.add(xL, k) : F.add(F.add(xL, k), c);
+            const c = _rev ? this.cts[NROUNDS - 1 - i] : this.cts[i];
+            const t = (i == 0) ? F.add(xL, k) : F.add(F.add(xL, k), c);
             const xR_tmp = F.e(xR);
             // The round function is computed once and then either applied to the
             // left side, which is the typical Feistel network swap, or to the
@@ -86,46 +86,46 @@ export class MimcEncrypt {
             // gcd(5, F_r - 1) = 1
             const round = _rev ? F.sub(xR_tmp, F.exp(t, 5)) : F.add(xR_tmp, F.exp(t, 5));
             if (i < (NROUNDS - 1)) {
-              xR = xL;
-              xL = round;
+                xR = xL;
+                xL = round;
             } else {
-              xR = round;
+                xR = round;
             }
         }
         return {
-          xL: xL,
-          xR: xR,
+            xL: xL,
+            xR: xR,
         };
     }
 
     encrypt(_xL_in: any, _xR_in: any, _k: any) {
         return this.hash(_xL_in, _xR_in, _k);
     }
-    
-    decrypt (_xL_in: any, _xR_in: any, _k: any) {
+
+    decrypt(_xL_in: any, _xR_in: any, _k: any) {
         return this.permutation(_xL_in, _xR_in, _k, true);
     }
 
-    multiHash(arr: any[], key: any, numOutputs: number)  {
+    multiHash(arr: any[], key: any, numOutputs: number) {
         const F = this.F;
-        if (typeof(numOutputs) === "undefined") {
+        if (typeof (numOutputs) === "undefined") {
             numOutputs = 1;
         }
-        if (typeof(key) === "undefined") {
+        if (typeof (key) === "undefined") {
             key = F.zero;
         }
 
         let R = F.zero;
         let C = F.zero;
 
-        for (let i=0; i<arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             R = F.add(R, F.e(arr[i]));
             const S = this.hash(R, C, key);
             R = S.xL;
             C = S.xR;
         }
         let outputs = [R];
-        for (let i=1; i < numOutputs; i++) {
+        for (let i = 1; i < numOutputs; i++) {
             const S = this.hash(R, C, key);
             R = S.xL;
             C = S.xR;

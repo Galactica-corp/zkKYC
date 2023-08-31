@@ -1,6 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 const keccak256 = require('keccak256');
 import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
+import { MerkleProof } from "@galactica-net/galactica-types";
 
 
 /**
@@ -9,14 +10,14 @@ import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
 export class MerkleTree {
 
     // Field of the curve used by Poseidon
-    F : any;
+    F: any;
     // hash value placeholder for empty merkle tree leaves
-    emptyLeaf : string; 
+    emptyLeaf: string;
     // hashes of empty branches
-    emptyBranchLevels : string[];
+    emptyBranchLevels: string[];
 
     // nodes of the tree as array of levels each containing an array of hashes
-    tree : string[][];
+    tree: string[][];
 
     /**
      * @description Create a MerkleTree
@@ -35,7 +36,7 @@ export class MerkleTree {
         this.emptyBranchLevels = this.calculateEmptyBranchHashes(depth);
 
         // initialize tree arrays. Because the tree is sparse, non zero nodes can be ommitted
-        this.tree = Array(depth+1)
+        this.tree = Array(depth + 1)
         for (let i = 0; i < depth; i++) {
             this.tree[i] = [];
         }
@@ -50,7 +51,7 @@ export class MerkleTree {
      * @param right Right child of the node
      * @returns Hash of the node
     */
-    calculateNodeHash(left : string, right : string) : string {
+    calculateNodeHash(left: string, right: string): string {
         return this.F.toObject(this.poseidon([left, right])).toString();
     }
 
@@ -60,8 +61,8 @@ export class MerkleTree {
      * @param depth Max depth to calculate
      * @return Array of hashes for empty brancheswith [0] being an empty leaf and [depth] being the root
      */
-    calculateEmptyBranchHashes(depth : number) : string[] {
-        const levels : string[] = [];
+    calculateEmptyBranchHashes(depth: number): string[] {
+        const levels: string[] = [];
 
         // depth 0 is just the empty leaf
         levels.push(this.emptyLeaf);
@@ -82,18 +83,18 @@ export class MerkleTree {
      * 
      * @param leaves Array of leaf hashes to insert
      */
-    insertLeaves(leaves : string[]) : void {
-        if (leaves.length == 0) {return;}
+    insertLeaves(leaves: string[]): void {
+        if (leaves.length == 0) { return; }
         // insert leaves into new tree
         this.tree[0].push(...leaves);
-        
+
 
         // rebuild tree.
         for (let level = 0; level < this.depth; level += 1) {
             // recalculate level above
             // TODO: do not recalculate branches that are full and were not changed
             this.tree[level + 1] = [];
-    
+
             // here we can use the fact that the tree is sparse and just filled from the right
             // So we can use empty branch hashes if we are out of the used area
             for (let pos = 0; pos < this.tree[level].length; pos += 2) {
@@ -117,10 +118,10 @@ export class MerkleTree {
      * @param leaf Hash of the leaf to prove
      * @returns Merkle proof for the leaf
      */
-    createProof(leaf : string) : MerkleProof {
+    createProof(leaf: string): MerkleProof {
         const path = [];
         // indices as binary number. If a bit is set, it means that the path is the right part of the parent node.
-        let pathIndices : number = 0;
+        let pathIndices: number = 0;
 
         // Search for leaf position in the tree
         const leafIndex = this.tree[0].indexOf(leaf);
@@ -139,7 +140,7 @@ export class MerkleTree {
             } else {
                 path.push(this.tree[level][curIndex - 1]);
                 // set bit indicating that we are on the right side of the parent node
-                pathIndices |= 1 << level; 
+                pathIndices |= 1 << level;
             }
 
             // Get index for next level
@@ -153,16 +154,4 @@ export class MerkleTree {
             root: this.root,
         }
     }
-}
-
-/**
- * Simple struct for a merkle proof
- */
-export interface MerkleProof {
-    leaf: string;
-    // hashes of the branches on the side of the path
-    pathElements: string[];
-    // interpreted as binary number. If a bit is set, it means that the path is the right part of the parent node.
-    pathIndices: number;
-    root: string;
 }

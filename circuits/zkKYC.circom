@@ -57,7 +57,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input ax;
     signal input ay;
     // EdDSA signature of the pubkey
-    signal input S;
+    signal input s;
     signal input r8x;
     signal input r8y;
 
@@ -65,7 +65,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
     signal input userAddress;
     // EdDSA signature of the user address
-    signal input S2;
+    signal input s2;
     signal input r8x2;
     signal input r8y2;
 
@@ -97,7 +97,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     ownership.holderCommitment <== holderCommitment;
     ownership.ax <== ax;
     ownership.ay <== ay;
-    ownership.s <== S;
+    ownership.s <== s;
     ownership.r8x <== r8x;
     ownership.r8y <== r8y;
     
@@ -107,7 +107,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     authorization.userAddress <== userAddress;
     authorization.ax <== ax;
     authorization.ay <== ay;
-    authorization.s <== S2;
+    authorization.s <== s2;
     authorization.r8x <== r8x2;
     authorization.r8y <== r8y2; 
 

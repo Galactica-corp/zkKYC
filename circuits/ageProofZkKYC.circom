@@ -45,7 +45,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input ax;
     signal input ay;
     // EdDSA signature of the pubkey
-    signal input S;
+    signal input s;
     signal input r8x;
     signal input r8y;
 
@@ -53,7 +53,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
     signal input userAddress;
     // EdDSA signature of the user address
-    signal input S2;
+    signal input s2;
     signal input r8x2;
     signal input r8y2;
 
@@ -128,11 +128,11 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.currentTime <== currentTime;
     zkKYC.ax <== ax;
     zkKYC.ay <== ay;
-    zkKYC.s <== S;
+    zkKYC.s <== s;
     zkKYC.r8x <== r8x;
     zkKYC.r8y <== r8y;
     zkKYC.userAddress <== userAddress;
-    zkKYC.S2 <== S2;
+    zkKYC.s2 <== s2;
     zkKYC.r8x2 <== r8x2;
     zkKYC.r8y2 <== r8y2;
     zkKYC.humanID <== humanID;

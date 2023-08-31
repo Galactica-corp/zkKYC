@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
-import { zkCertCommonFields } from '../../lib/zkCertStandards';
+import { zkCertCommonFields } from '@galactica-net/galactica-types';
 
 describe('Calculate zkCert Hash Circuit Component', () => {
   let circuit: CircuitTestUtils;
