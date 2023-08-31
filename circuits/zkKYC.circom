@@ -54,20 +54,20 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // verify that proof creator indeed owns the pubkey behind the holdercommitment
     // public key of the signer
-    signal input Ax;
-    signal input Ay;
+    signal input ax;
+    signal input ay;
     // EdDSA signature of the pubkey
     signal input S;
-    signal input R8x;
-    signal input R8y;
+    signal input r8x;
+    signal input r8y;
 
     // verify that tx sender is authorized to use the proof
     // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
     signal input userAddress;
     // EdDSA signature of the user address
     signal input S2;
-    signal input R8x2;
-    signal input R8y2;
+    signal input r8x2;
+    signal input r8y2;
 
     //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
@@ -95,21 +95,21 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     // we don't need to check the output 'valid' of the ownership circuit because it is always 1
     component ownership = Ownership();
     ownership.holderCommitment <== holderCommitment;
-    ownership.Ax <== Ax;
-    ownership.Ay <== Ay;
-    ownership.S <== S;
-    ownership.R8x <== R8x;
-    ownership.R8y <== R8y;
+    ownership.ax <== ax;
+    ownership.ay <== ay;
+    ownership.s <== S;
+    ownership.r8x <== r8x;
+    ownership.r8y <== r8y;
     
     ownership.valid === 1;
 
     component authorization = Authorization();
     authorization.userAddress <== userAddress;
-    authorization.Ax <== Ax;
-    authorization.Ay <== Ay;
-    authorization.S <== S2;
-    authorization.R8x <== R8x2;
-    authorization.R8y <== R8y2; 
+    authorization.ax <== ax;
+    authorization.ay <== ay;
+    authorization.s <== S2;
+    authorization.r8x <== r8x2;
+    authorization.r8y <== r8y2; 
 
     // content hash for zkKYC data
     component contentHash = Poseidon(15);

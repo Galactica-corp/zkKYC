@@ -64,7 +64,7 @@ contract ZkKYC is Ownable {
         INDEX_PROVIDER_PUBKEY_AY = 10 + institutionKeyEntries;
 
         // The following indices are for the fraud investigation institutions and depend on the number of institutions
-        // It includes pubkeys Ax and Ay for each institution
+        // It includes pubkeys ax and ay for each institution
         START_INDEX_INVESTIGATION_INSTITUTIONS = 11 + institutionKeyEntries;
     }
 

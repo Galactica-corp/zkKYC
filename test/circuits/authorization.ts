@@ -36,7 +36,7 @@ describe('Authorization Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
+    assert.propertyVal(witness, 'main.ax', sampleInput.ax);
   });
 
   it('has verified the signature successfully', async () => {

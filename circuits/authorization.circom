@@ -15,12 +15,12 @@ template Authorization(){
     // message to be signed, this will be a public input so the SC can compare it with the onchain message sender
     signal input userAddress;
     // pubkey of the account behind holder commitment
-    signal input Ax;
-    signal input Ay;
+    signal input ax;
+    signal input ay;
     // EdDSA signature
-    signal input S;
-    signal input R8x;
-    signal input R8y;
+    signal input s;
+    signal input r8x;
+    signal input r8y;
 
 
     // circuit has no output, because adding constraints is enough to verify the signature
@@ -29,10 +29,10 @@ template Authorization(){
     component eddsa = EdDSAPoseidonVerifier();
     eddsa.enabled <== 1;
     eddsa.M <== userAddress;
-    eddsa.Ax <== Ax;
-    eddsa.Ay <== Ay;
-    eddsa.S <== S;
-    eddsa.R8x <== R8x;
-    eddsa.R8y <== R8y;
+    eddsa.Ax <== ax;
+    eddsa.Ay <== ay;
+    eddsa.S <== s;
+    eddsa.R8x <== r8x;
+    eddsa.R8y <== r8y;
 
 }

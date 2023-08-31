@@ -33,7 +33,7 @@ describe('Ownership Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
+    assert.propertyVal(witness, 'main.ax', sampleInput.ax);
     // check resulting output
     assert.propertyVal(witness, 'main.valid', '1');
   });
