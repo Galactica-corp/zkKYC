@@ -124,7 +124,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
 
   // create Merkle proof
-  const merkleProof = merkleTree.createProof(index);
+  const merkleProof = merkleTree.createProof(args.index);
   let output = zkKYC.export();
   output.merkleProof = {
     root: merkleTree.root,
@@ -133,7 +133,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
     
   // now we have the merkle proof to add a new leaf
-  let tx = await recordRegistry.addZkKYCRecord(index, newleafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  let tx = await recordRegistry.addZkKYCRecord(args.index, newLeafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
   console.log(chalk.green(`reissued the zkKYC certificate ${zkKYC.did} on chain at index ${index} with new expiration date ${args.newExpirationDate}`));
 
