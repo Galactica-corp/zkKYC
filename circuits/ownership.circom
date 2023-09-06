@@ -19,12 +19,12 @@ template Ownership(){
 
     // poseidon hash of the message to be signed
     // public key of the signer
-    signal input Ax;
-    signal input Ay;
+    signal input ax;
+    signal input ay;
     // EdDSA signature
-    signal input S;
-    signal input R8x;
-    signal input R8y;
+    signal input s;
+    signal input r8x;
+    signal input r8y;
 
     signal output valid;
 
@@ -32,8 +32,8 @@ template Ownership(){
 
     // the message to be signed is the hashed pubkey in the holder commitment
     component hashPubkey = Poseidon(2);
-    hashPubkey.inputs[0] <== Ax;
-    hashPubkey.inputs[1] <== Ay;
+    hashPubkey.inputs[0] <== ax;
+    hashPubkey.inputs[1] <== ay;
 
     // transforming hash into field element accepted by eddsa (smaller so take modulo)
     signal hashPubkeyMod <-- hashPubkey.out % 2736030358979909402780800718157159386076813972158567259200215660948447373040;
@@ -42,17 +42,17 @@ template Ownership(){
     component eddsa = EdDSAPoseidonVerifier();
     eddsa.enabled <== 1;
     eddsa.M <== hashPubkeyMod;
-    eddsa.Ax <== Ax;
-    eddsa.Ay <== Ay;
-    eddsa.S <== S;
-    eddsa.R8x <== R8x;
-    eddsa.R8y <== R8y;
+    eddsa.Ax <== ax;
+    eddsa.Ay <== ay;
+    eddsa.S <== s;
+    eddsa.R8x <== r8x;
+    eddsa.R8y <== r8y;
 
     // check that the holder commitment matches the signature
     component hashSig = Poseidon(3);
-    hashSig.inputs[0] <== S;
-    hashSig.inputs[1] <== R8x;
-    hashSig.inputs[2] <== R8y;
+    hashSig.inputs[0] <== s;
+    hashSig.inputs[1] <== r8x;
+    hashSig.inputs[2] <== r8y;
 
     component commitmentMatching = IsEqual();
     commitmentMatching.in[0] <== hashSig.out;

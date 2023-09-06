@@ -33,7 +33,7 @@ describe('Ownership Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
+    assert.propertyVal(witness, 'main.ax', sampleInput.ax);
     // check resulting output
     assert.propertyVal(witness, 'main.valid', '1');
   });
@@ -45,7 +45,7 @@ describe('Ownership Component', () => {
   });
 
   it('identifies invalid signatures correctly', async () => {
-    const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'holderCommitment'];
+    const fieldsToChange = ['ax', 'ay', 'r8x', 'r8y', 's', 'holderCommitment'];
     for (let field of fieldsToChange) {
       let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;

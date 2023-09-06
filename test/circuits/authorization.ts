@@ -36,7 +36,7 @@ describe('Authorization Component', () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, 'main.Ax', sampleInput.Ax);
+    assert.propertyVal(witness, 'main.ax', sampleInput.ax);
   });
 
   it('has verified the signature successfully', async () => {
@@ -44,7 +44,7 @@ describe('Authorization Component', () => {
   });
 
   it('identifies invalid signatures correctly', async () => {
-    const fieldsToChange = ['Ax', 'Ay', 'R8x', 'R8y', 'S', 'userAddress'];
+    const fieldsToChange = ['ax', 'ay', 'r8x', 'r8y', 's', 'userAddress'];
     for (let field of fieldsToChange) {
       let forgedInput = { ...sampleInput };
       forgedInput[field] += 1;

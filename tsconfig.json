@@ -20,8 +20,8 @@
     "./types/*",
     "./scripts/*",
     "./tasks/*",
-    // "./test/contracts/*",
-    // "./test/circuits/*",
+    // "./test/contracts/*", // needs to be commented out out to be able to compile and in to make VS Code find ethers in tests
+    // "./test/circuits/*", // needs to be commented out out to be able to compile and in to make VS Code find ethers in tests
     "index.ts"
   ],
 }

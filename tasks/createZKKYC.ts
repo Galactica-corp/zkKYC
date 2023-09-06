@@ -17,7 +17,7 @@ import { queryOnChainLeaves } from "../lib/queryMerkleTree";
 
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistry';
-import { ZkCertStandard, zkKYCContentFields } from '../lib/zkCertStandards';
+import { ZkCertStandard, zkKYCContentFields } from '@galactica-net/galactica-types';
 
 
 /**

@@ -20,7 +20,7 @@ template MiMCSponge(nInputs, nRounds, nOutputs) {
   signal input k;
   signal output outs[nOutputs];
 
-  // S = R||C
+  // s = R||C
   component S[nInputs + nOutputs - 1];
 
   for (var i = 0; i < nInputs; i++) {

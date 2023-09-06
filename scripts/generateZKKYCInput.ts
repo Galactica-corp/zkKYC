@@ -47,7 +47,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   );
 
   // set the fields in zkKYC object
-  zkKYC.setFields(fields);
+  zkKYC.setContent(fields);
 
   // some default provider private key
   // providerData needs to be created before leafHash computation
@@ -84,11 +84,11 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   //construct the zkKYC inputs
   let zkKYCInput: any = { ...fields };
 
-  zkKYCInput.providerAx = zkKYC.providerData.Ax;
-  zkKYCInput.providerAy = zkKYC.providerData.Ay;
-  zkKYCInput.providerS = zkKYC.providerData.S;
-  zkKYCInput.providerR8x = zkKYC.providerData.R8x;
-  zkKYCInput.providerR8y = zkKYC.providerData.R8y;
+  zkKYCInput.providerAx = zkKYC.providerData.ax;
+  zkKYCInput.providerAy = zkKYC.providerData.ay;
+  zkKYCInput.providerS = zkKYC.providerData.s;
+  zkKYCInput.providerR8x = zkKYC.providerData.r8x;
+  zkKYCInput.providerR8y = zkKYC.providerData.r8y;
 
   // calculate zkKYC leaf hash
   let leafHash = zkKYC.leafHash;
@@ -119,17 +119,17 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   zkKYCInput.currentTime = currentTimestamp;
 
   // add ownership proof inputs
-  zkKYCInput.Ax = ownershipProofInput.Ax;
-  zkKYCInput.Ay = ownershipProofInput.Ay;
-  zkKYCInput.S = ownershipProofInput.S;
-  zkKYCInput.R8x = ownershipProofInput.R8x;
-  zkKYCInput.R8y = ownershipProofInput.R8y;
+  zkKYCInput.ax = ownershipProofInput.ax;
+  zkKYCInput.ay = ownershipProofInput.ay;
+  zkKYCInput.s = ownershipProofInput.s;
+  zkKYCInput.r8x = ownershipProofInput.r8x;
+  zkKYCInput.r8y = ownershipProofInput.r8y;
 
   // add authorization proof inputs
   zkKYCInput.userAddress = authorizationProofInput.userAddress;
-  zkKYCInput.S2 = authorizationProofInput.S;
-  zkKYCInput.R8x2 = authorizationProofInput.R8x;
-  zkKYCInput.R8y2 = authorizationProofInput.R8y;
+  zkKYCInput.s2 = authorizationProofInput.s;
+  zkKYCInput.r8x2 = authorizationProofInput.r8x;
+  zkKYCInput.r8y2 = authorizationProofInput.r8y;
 
   // add fraud investigation data
   zkKYCInput.userPrivKey = formatPrivKeyForBabyJub(encryptionPrivKey, eddsa).toString();
