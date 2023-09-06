@@ -7,8 +7,8 @@ const log = console.log;
 
 async function main() {
   // parameters
-  const zkKYCRegistry = '0xA27bDB666ec0A9C1Fc5f3476bf2325Fa80394790';
-  const verificationSBT = '0x43E750811FE7F3c18068e19D861F873F0709B6cb';
+  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
+  const zkKYCRegistry = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();

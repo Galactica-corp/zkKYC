@@ -9,7 +9,7 @@ chai.config.includeStack = true;
 const { expect } = chai;
 
 import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
-import { RepeatableZKPTest } from '../../typechain-types/contracts/mock/RepeatableZKPTest';
+import { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
@@ -23,18 +23,17 @@ import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/gene
 import { ZKCertificate } from '../../lib/zkCertificate';
 
 
-describe('RepeatableZKPTest', async () => {
+describe('BasicKYCExampleDApp', async () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKycSC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
   let mockKYCRegistry: MockKYCRegistry;
   let verificationSBT: VerificationSBT;
-  let repeatableZKPTest: RepeatableZKPTest;
+  let basicExampleDApp: BasicKYCExampleDApp;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let randomUser: SignerWithAddress;
   let zkKYC: ZKCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
@@ -43,7 +42,7 @@ describe('RepeatableZKPTest', async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, randomUser] = await hre.ethers.getSigners();
+    [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
@@ -57,7 +56,6 @@ describe('RepeatableZKPTest', async () => {
       'ZkKYCVerifier',
       deployer
     );
-
     zkKYCVerifier =
       await zkKYCVerifierFactory.deploy() as ZkKYCVerifier;
 
@@ -79,19 +77,20 @@ describe('RepeatableZKPTest', async () => {
     );
     verificationSBT = await verificationSBTFactory.deploy() as VerificationSBT;
 
+
     const repeatableZKPTestFactory = await ethers.getContractFactory(
-      'RepeatableZKPTest',
+      'BasicKYCExampleDApp',
       deployer
     );
-    repeatableZKPTest = await repeatableZKPTestFactory.deploy(
+    basicExampleDApp = await repeatableZKPTestFactory.deploy(
       verificationSBT.address,
       zkKycSC.address,
-    ) as RepeatableZKPTest;
+    ) as BasicKYCExampleDApp;
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0, repeatableZKPTest.address);
-    sampleInput.dAppAddress = repeatableZKPTest.address;
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, basicExampleDApp.address);
+    sampleInput.dAppAddress = basicExampleDApp.address;
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
@@ -103,7 +102,7 @@ describe('RepeatableZKPTest', async () => {
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
   });
 
-  it('should issue VerificationSBT on correct proof and accept ZKP multiple times', async () => {
+  it('should issue VerificationSBT on correct proof and refuse to re-register before expiration', async () => {
     let { proof, publicSignals } = await snarkjs.groth16.fullProve(
       sampleInput,
       circuitWasmPath,
@@ -124,11 +123,31 @@ describe('RepeatableZKPTest', async () => {
     let [a, b, c] = processProof(proof);
 
     let publicInputs = processPublicSignals(publicSignals);
-    await repeatableZKPTest.connect(user).submitZKP(a, b, c, publicInputs);
+    await basicExampleDApp.connect(user).registerKYC(a, b, c, publicInputs);
 
-    expect(await verificationSBT.isVerificationSBTValid(user.address, repeatableZKPTest.address)).to.be.true;
+    expect(await verificationSBT.isVerificationSBTValid(user.address, basicExampleDApp.address)).to.be.true;
 
-    await repeatableZKPTest.connect(user).submitZKP(a, b, c, publicInputs);
+    expect(basicExampleDApp.connect(user).registerKYC(a, b, c, publicInputs)).to.be.revertedWith("user already has a verification SBT");
+
+    // wait until verification SBT expires to renew it
+    const sbt = await verificationSBT.getVerificationSBTInfo(user.address, basicExampleDApp.address);
+    let laterProofInput = { ...sampleInput };
+    laterProofInput.currentTime = sbt.expirationTime.toNumber() + 1;
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [laterProofInput.currentTime]);
+    await hre.network.provider.send('evm_mine');
+
+    expect(await verificationSBT.isVerificationSBTValid(user.address, basicExampleDApp.address)).to.be.false;
+
+    let laterProof = await snarkjs.groth16.fullProve(
+      laterProofInput,
+      circuitWasmPath,
+      circuitZkeyPath
+    );
+    [a, b, c] = processProof(laterProof.proof);
+    publicInputs = processPublicSignals(laterProof.publicSignals);
+    await basicExampleDApp.connect(user).registerKYC(a, b, c, laterProof.publicSignals);
+
+    expect(await verificationSBT.isVerificationSBTValid(user.address, basicExampleDApp.address)).to.be.true;
   });
 
   it('should catch incorrect proof', async () => {
@@ -150,7 +169,7 @@ describe('RepeatableZKPTest', async () => {
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
-    await expect(repeatableZKPTest.connect(user).submitZKP(c, b, a, publicInputs))
+    await expect(basicExampleDApp.connect(user).registerKYC(c, b, a, publicInputs))
       .to.be.reverted;
   });
 });

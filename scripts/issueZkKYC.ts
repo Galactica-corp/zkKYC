@@ -5,15 +5,15 @@ import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x529ab188ecf1fA75FA5cA99c46ABb8a69e470075';
-  const recordRegistryAddr = '0x855d8DeF49d550df733Afb848aC723AEEBa58adF';
+  const centerRegistryAddr = '0x4De49e2047eE726B833fa815bf7392958245832d';
+  const recordRegistryAddr = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
   const zkKYCLeafHashes = [
-    '19630604862894493237865119507631642105595355222686969752403793856928034143008',
+    '13553445873695920927397403858740937949838667812849138092988169793799956616387',
     '913338630289763938167212770624253461411251029088142596559861590717003723041',
   ];
 
   // wallets
-  const [ deployer ] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
   console.log(`Using account ${deployer.address} as KYC provider`);
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
   console.log();
