@@ -21,8 +21,8 @@ import { ZkCertStandard, zkKYCContentFields } from '../lib/zkCertStandards';
 
 
 /**
- * @description Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
- * @param args See task definition below or 'npx hardhat createZkKYC --help'
+ * @description Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
+ * @param args See task definition below or 'npx hardhat reissuenZkKYC --help'
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log("Creating zkKYC certificate");
@@ -107,7 +107,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
   const leafHashes = leafLogResults.map(x => x.leafHash);
   const leafIndices = leafLogResults.map(x => x.index);
-  console.log(`leafLogResult is ${leafLogResults}`);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
   console.log(`Adding leaves to the merkle tree`);
@@ -134,29 +133,29 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     }
   }
 
+  console.log(`found index ${index}`);
+  console.log(`offchain merkle root is ${merkleTree.root}`);
+  console.log(`onchain merkle root is ${await recordRegistry.merkleRoot()}`);
+
   // create Merkle proof
-  let merkleProof = merkleTree.createProof(index);
-
-  // now we have the merkle proof to add a new leaf
-  let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
-  await tx.wait();
-  console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
-
-  // update the merkle tree according to the new leaf
-  merkleTree.insertLeaves([zkKYC.leafHash], [index]);
-  merkleProof = merkleTree.createProof(index);
-
-  console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
-  console.log(zkKYC.exportJson());
-  console.log(chalk.green("This ZkKYC can be imported in a wallet"));
-
-  // write output to file
+  const merkleProof = merkleTree.createProof(index);
   let output = zkKYC.export();
   output.merkleProof = {
     root: merkleTree.root,
     pathIndices: merkleProof.pathIndices,
     pathElements: merkleProof.path,
   }
+
+  // now we have the merkle proof to add a new leaf
+  let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  await tx.wait();
+  console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
+
+  console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
+  console.log(zkKYC.exportJson());
+  console.log(chalk.green("This ZkKYC can be imported in a wallet"));
+
+  // write output to file
   const outputFileName = args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
@@ -165,7 +164,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green("done"));
 }
 
-task("createZkKYC", "Task to create a zkKYC certificate with input parameters")
+task("reissuekKYC", "Task to create a zkKYC certificate with input parameters")
   .addParam("holderCommitment", "The holder commitment fixing the address of the holder without disclosing it to the provider", undefined, string, false)
   .addParam("randomSalt", "Random salt to input into zkCert hashing", 0, types.int, true)
   .addParam("kycDataFile", "The file containing the KYC data", undefined, types.string, false)

@@ -7,6 +7,7 @@ import 'hardhat-circom';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
+import './tasks/revokeZKKYC';
 
 
 const config: HardhatUserConfig = {
