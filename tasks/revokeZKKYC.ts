@@ -32,17 +32,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     return;
   }
 
-  console.log("Issuing zkKYC...");
+  console.log("Revoking zkKYC...");
   const recordRegistry = await hre.ethers.getContractAt('KYCRecordRegistry', args.registryAddress) as KYCRecordRegistry;
   const guardianRegistry = await hre.ethers.getContractAt('KYCCenterRegistry', await recordRegistry._KYCCenterRegistry()) as KYCCenterRegistry;
 
   if (!(await guardianRegistry.KYCCenters(provider.address))) {
     throw new Error(`Provider ${provider.address} is not a guardian yet. Please register it first using the script .`);
-  }
-
-  if (!args.merkleProof) {
-    console.log(chalk.yellow("Merkle proof generation is disabled. Before using the zkKYC, you need to generate the merkle proof."));
-    return;
   }
 
   console.log("Generating merkle proof. This might take a while because it needs to query on-chain data...");
@@ -67,7 +62,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const merkleProof = merkleTree.createProof(args.index);
 
   // now we have the merkle proof to add a new leaf
-  let tx = await recordRegistry.revokeZkKYCRecord(args.index, fromHexToBytes32(fromDecToHex(args.leafHash)), merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  let tx = await recordRegistry.revokeZkKYCRecord(args.index, fromDecToHex(args.leafHash, true), merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
   console.log(chalk.green(`Revoked the zkKYC certificate ${args.leafHash} on chain at index ${args.index}`));
 
@@ -78,7 +73,6 @@ task("revokeZkKYC", "Task to revoke a zkKYC certificate with leaf hash and merkl
   .addParam("leafHash", "leaf hash of the zkKYC record in the merkle tree", undefined, string, false)
   .addParam("index", "index of the leaf in the merkle tree", 0, types.int, true)
   .addParam("registryAddress", "The smart contract address where zkKYCs are registered", undefined, types.string, true)
-  .addParam("merkleProof", "Should the script also create a merkle proof?", true, types.boolean, true)
   .setAction(async (taskArgs, hre) => {
     await main(taskArgs, hre).catch((error) => {
       console.error(error);
