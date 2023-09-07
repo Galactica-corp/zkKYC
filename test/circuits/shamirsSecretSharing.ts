@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
@@ -32,9 +32,9 @@ describe('Shamir\'s secret sharing', () => {
 
   it('computes fragments that can reconstruct the secret', async () => {
     const testInputs = [
-      {secret: 3, salt: 15649468315},
-      {secret: 0, salt: 48946548941654},
-      {secret: 486481648, salt: 16841814841235345},
+      { secret: 3, salt: 15649468315 },
+      { secret: 0, salt: 48946548941654 },
+      { secret: 486481648, salt: 16841814841235345 },
     ];
     for (const testInput of testInputs) {
 
@@ -49,7 +49,7 @@ describe('Shamir\'s secret sharing', () => {
   });
 
   it('fails to reconstruct with invalid fragments', async () => {
-    const testInput = {secret: 3, salt: 15649468315};
+    const testInput = { secret: 3, salt: 15649468315 };
     const { _, publicSignals } = await groth16.fullProve(testInput, wasmPath, zkeyPath);
     expect(reconstructShamirSecret(eddsa.F, 3, [
       [1, publicSignals[0]],
@@ -59,7 +59,7 @@ describe('Shamir\'s secret sharing', () => {
   });
 
   it('same secret no matter which fragments are used', async () => {
-    const testInput = {secret: 468146, salt: 45648916549816548};
+    const testInput = { secret: 468146, salt: 45648916549816548 };
     const { _, publicSignals } = await groth16.fullProve(testInput, wasmPath, zkeyPath);
     expect(reconstructShamirSecret(eddsa.F, 3, [
       [1, publicSignals[0]],

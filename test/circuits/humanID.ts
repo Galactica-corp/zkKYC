@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
-import { humanIDFieldOrder } from '../../lib/zkCertStandards';
+import { humanIDFieldOrder } from '@galactica-net/galactica-types';
 describe('HumanID Component', () => {
   let circuit: CircuitTestUtils;
 

@@ -10,14 +10,12 @@ import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/M
 import { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
 import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-import { humanIDFieldOrder } from '../../lib/zkCertStandards';
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { generateZkKYCProofInput, generateSampleZkKYC } from '../../scripts/generateZKKYCInput';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
 
 const snarkjs = require('snarkjs');
-import { buildPoseidon } from 'circomlibjs';
 const hre = require('hardhat');
 import {
   fromDecToHex,

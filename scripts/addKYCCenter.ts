@@ -5,13 +5,13 @@ import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 
 async function main() {
   // wallets
-  const [ deployer ] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
   console.log(`Using account ${deployer.address} as KYC provider`);
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
   console.log();
-    
+
   // parameters
-  const centerRegistryAddr = '0xd7Ee5841cA290EB7b4eB418e566C7Ddb154713Ac';
+  const centerRegistryAddr = '0x91505781da1E7AFaCcE258f33d407F32897f84A9';
   const kycCenterAddr = deployer.address;
 
 

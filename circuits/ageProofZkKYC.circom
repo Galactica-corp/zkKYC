@@ -42,20 +42,20 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // verify that proof creator indeed owns the pubkey behind the holdercommitment
     // public key of the signer
-    signal input Ax;
-    signal input Ay;
+    signal input ax;
+    signal input ay;
     // EdDSA signature of the pubkey
-    signal input S;
-    signal input R8x;
-    signal input R8y;
+    signal input s;
+    signal input r8x;
+    signal input r8y;
 
     // verify that tx sender is authorized to use the proof
     // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
     signal input userAddress;
     // EdDSA signature of the user address
-    signal input S2;
-    signal input R8x2;
-    signal input R8y2;
+    signal input s2;
+    signal input r8x2;
+    signal input r8y2;
 
     // public variables related to age proof circuit
     signal input currentYear;
@@ -126,15 +126,15 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.pathIndices <== pathIndices;
     zkKYC.root <== root;
     zkKYC.currentTime <== currentTime;
-    zkKYC.Ax <== Ax;
-    zkKYC.Ay <== Ay;
-    zkKYC.S <== S;
-    zkKYC.R8x <== R8x;
-    zkKYC.R8y <== R8y;
+    zkKYC.ax <== ax;
+    zkKYC.ay <== ay;
+    zkKYC.s <== s;
+    zkKYC.r8x <== r8x;
+    zkKYC.r8y <== r8y;
     zkKYC.userAddress <== userAddress;
-    zkKYC.S2 <== S2;
-    zkKYC.R8x2 <== R8x2;
-    zkKYC.R8y2 <== R8y2;
+    zkKYC.s2 <== s2;
+    zkKYC.r8x2 <== r8x2;
+    zkKYC.r8y2 <== r8y2;
     zkKYC.humanID <== humanID;
     zkKYC.dAppAddress <== dAppAddress;
     userPubKey[0] <== zkKYC.userPubKey[0];

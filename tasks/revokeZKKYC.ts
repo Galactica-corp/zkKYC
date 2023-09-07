@@ -1,6 +1,4 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import fs from 'fs'
-import path from 'path';
 import chalk from "chalk";
 
 import { task, types } from "hardhat/config";
@@ -9,15 +7,12 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 
 import { buildEddsa, buildPoseidon } from "circomlibjs";
 
-import { ZKCertificate } from "../lib/zkCertificate";
-import { getEddsaKeyFromEthSigner } from "../lib/keyManagement";
-import { fromDecToHex, fromHexToBytes32, hashStringToFieldNumber } from "../lib/helpers";
+import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 import { SparseMerkleTree } from "../lib/sparseMerkleTree";
 import { queryOnChainLeaves } from "../lib/queryMerkleTree";
 
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistry';
-import { ZkCertStandard, zkKYCContentFields } from '../lib/zkCertStandards';
 
 
 /**
@@ -56,17 +51,17 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const merkleDepth = 32;
   const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
   const leafHashes = leafLogResults.map(x => x.leafHash);
-  const leafIndices = leafLogResults.map(x => x.index);
+  const leafIndices = leafLogResults.map(x => Number(x.index));
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
-  for (let i = 0; i < leafLogResults.length; i += batchSize) {  
+  for (let i = 0; i < leafLogResults.length; i += batchSize) {
     merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
   }
 
   if (merkleTree.retrieveLeaf(0, args.index) !== args.leafHash) {
     console.log(chalk.yellow("Incorrect leaf hash at the input index."));
     return;
-  } 
+  }
 
   // create Merkle proof
   const merkleProof = merkleTree.createProof(args.index);

@@ -8,14 +8,14 @@ import { SNARK_SCALAR_FIELD, arrayToBigInt, fromDecToHex, fromHexToBytes32 } fro
 export class SparseMerkleTree {
 
     // Field of the curve used by Poseidon
-    F : any;
+    F: any;
     // hash value placeholder for empty merkle tree leaves
-    emptyLeaf : string; 
+    emptyLeaf: string;
     // hashes of empty branches
-    emptyBranchLevels : string[];
+    emptyBranchLevels: string[];
 
     // nodes of the tree as two layers dictionary
-    tree : any;
+    tree: any;
 
     /**
      * @description Create a MerkleTree
@@ -49,10 +49,10 @@ export class SparseMerkleTree {
      * @param index index of the leaf in that level
      * @returns content of the leaf
     */
-    retrieveLeaf(level : number, index : number) : string {
+    retrieveLeaf(level: number, index: number): string {
         if (level < 0 || level > this.depth) {
             throw new Error(`invalid level ${level} inside a tree of depth ${this.depth}`);
-        } 
+        }
 
         if (index < 0 || index > 2 ** (this.depth - level) - 1) {
             throw new Error(`invalid index ${index} at level ${level} inside a tree of depth ${this.depth}`)
@@ -72,7 +72,7 @@ export class SparseMerkleTree {
      * @param right Right child of the node
      * @returns Hash of the node
     */
-    calculateNodeHash(left : string, right : string) : string {
+    calculateNodeHash(left: string, right: string): string {
         return this.F.toObject(this.poseidon([left, right])).toString();
     }
 
@@ -82,8 +82,8 @@ export class SparseMerkleTree {
      * @param depth Max depth to calculate
      * @return Array of hashes for empty brancheswith [0] being an empty leaf and [depth] being the root
      */
-    calculateEmptyBranchHashes(depth : number) : string[] {
-        const levels : string[] = [];
+    calculateEmptyBranchHashes(depth: number): string[] {
+        const levels: string[] = [];
 
         // depth 0 is just the empty leaf
         levels.push(this.emptyLeaf);
@@ -108,12 +108,12 @@ export class SparseMerkleTree {
         if (leaves.length != indices.length) {
             throw new Error('lenghts of leaves and indices have to be equal');
         }
-        if (leaves.length == 0) {return;}
+        if (leaves.length == 0) { return; }
         // insert leaves into new tree
         for (let i = 0; i < leaves.length; i++) {
             this.tree[0][indices[i]] = leaves[i];
         }
-        
+
         // rebuild tree.
         for (let level = 0; level < this.depth; level += 1) {
             // recalculate level above
@@ -130,11 +130,10 @@ export class SparseMerkleTree {
                         this.retrieveLeaf(level, index),
                     );
                 }
-                
+
             }
         }
     }
-
 
     get root() {
         return this.tree[this.depth][0];
@@ -146,9 +145,9 @@ export class SparseMerkleTree {
      * @param leaf Hash of the leaf to prove
      * @returns Merkle proof for the leaf
      */
-    createProof(index: number) : MerkleProof {
+    createProof(index: number): MerkleProof {
         const path = [];
-        let pathIndices : number = 0;
+        let pathIndices: number = 0;
         let leaf = this.retrieveLeaf(0, index);
 
         // Walk up the tree to the root
@@ -160,7 +159,7 @@ export class SparseMerkleTree {
             } else {
                 path.push(this.retrieveLeaf(level, index - 1));
                 // set bit indicating that we are on the right side of the parent node
-                pathIndices |= 1 << level; 
+                pathIndices |= 1 << level;
             }
 
             // Get index for next level

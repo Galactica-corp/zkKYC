@@ -1,13 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { Signer } from "ethers";
 import createBlakeHash from "blake-hash";
-import { Scalar, utils }  from "ffjavascript";
+import { Scalar, utils } from "ffjavascript";
 import { Buffer } from 'buffer';
+import { eddsaKeyGenerationMessage, eddsaPrimeFieldMod } from "@galactica-net/galactica-types";
 
-
-export const eddsaKeyGenerationMessage = "Signing this message generates your EdDSA private key. Only do this on pages you trust to manage your zkCertificates.";
-
-export const eddsaPrimeFieldMod = "2736030358979909402780800718157159386076813972158567259200215660948447373040";
 
 /**
  * @description Generates the eddsa private key from the ethereum private key signing a fixed message
@@ -29,7 +26,7 @@ export async function getEddsaKeyFromEthSigner(signer: Signer): Promise<string> 
  * @param eddsa eddsa instance from circomlibjs
  * @return The ECDH shared key.
  */
- export function generateEcdhSharedKey(privKey: string, pubKey: string[], eddsa: any): string[] {
+export function generateEcdhSharedKey(privKey: string, pubKey: string[], eddsa: any): string[] {
   const keyBuffers = eddsa.babyJub.mulPointEscalar(pubKey, formatPrivKeyForBabyJub(privKey, eddsa));
   return keyBuffers.map((buffer: any) => eddsa.F.toObject(buffer).toString());
 }
@@ -40,9 +37,9 @@ export async function getEddsaKeyFromEthSigner(signer: Signer): Promise<string> 
  */
 export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
   const sBuff = eddsa.pruneBuffer(
-      createBlakeHash("blake512").update(
-          Buffer.from(privKey),
-      ).digest().slice(0,32)
+    createBlakeHash("blake512").update(
+      Buffer.from(privKey),
+    ).digest().slice(0, 32)
   )
   const s = utils.leBuff2int(sBuff)
   return Scalar.shr(s, 3)
@@ -73,7 +70,7 @@ export function createHolderCommitment(eddsa: any, privateKey: string): string {
   if (!eddsa.verifyPoseidon(hashPubkeyMsg, sig, pubKey)) {
     throw new Error('Self check on EdDSA signature failed');
   }
-  
+
   return poseidon.F
     .toObject(
       poseidon([
