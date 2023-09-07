@@ -22,7 +22,7 @@ import { ZkCertStandard, zkKYCContentFields } from '@galactica-net/galactica-typ
 
 /**
  * @description Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
- * @param args See task definition below or 'npx hardhat reissuenZkKYC --help'
+ * @param args See task definition below or 'npx hardhat reissueZkKYC --help'
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log("Creating zkKYC certificate");
@@ -125,32 +125,18 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     return;
   }
 
-  // find the smallest index of an empty list
-  let index = 0;
-  // firstly we sort the list of indices
-  leafIndices.sort();
-  // if the list is not empty and the first index is 0 then we proceed to find the gap
-  // otherwise the index remains 0
-  if (leafIndices.length >= 1 && leafIndices[0] == 0) {
-    for (let i = 0; i < (leafIndices.length - 1); i++) {
-      if (leafIndices[i + 1] - leafIndices[i] >= 2) {
-        index = leafIndices[i] + 1;
-        break;
-      }
-    }
-    // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
-    if (index == 0) {
-      index = leafIndices[leafIndices.length - 1] + 1;
-    }
-  }
-
-  // create Merkle proof
+  // now we update the tree by revoking the previous entry and adding a new one
   const oldMerkleProof = merkleTree.createProof(args.index);
-
-  // now we have the merkle proof to add a new leaf
-  let tx = await recordRegistry.addZkKYCRecord(args.index, newLeafBytes, oldMerkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  let tx = await recordRegistry.revokeZkKYCRecord(args.index, oldLeafBytes, oldMerkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
-  console.log(chalk.green(`reissued the zkKYC certificate ${newZkKYC.did} (previously ${oldZkKYC.did}) on chain at index ${index} with new expiration date ${args.newExpirationDate}`));
+  console.log(chalk.green(`revoked old zkKYC certificate ${oldZkKYC.did}`));
+
+  merkleTree.insertLeaves([merkleTree.emptyLeaf], [args.index]);
+  const emptiedMerkleProof = merkleTree.createProof(args.index);
+
+  tx = await recordRegistry.addZkKYCRecord(args.index, newLeafBytes, emptiedMerkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  await tx.wait();
+  console.log(chalk.green(`reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index} with new expiration date ${args.newExpirationDate}`));
   console.log(chalk.green("ZkKYC (reissued, including merkle proof)"));
 
   console.log(newZkKYC.exportJson());
@@ -158,8 +144,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // write output to file
   let output = newZkKYC.export();
-  merkleTree.insertLeaves([newZkKYC.leafHash], [index]);
-  const newMerkleProof = merkleTree.createProof(index);
+  merkleTree.insertLeaves([newZkKYC.leafHash], [args.index]);
+  const newMerkleProof = merkleTree.createProof(args.index);
   output.merkleProof = {
     root: merkleTree.root,
     pathIndices: newMerkleProof.pathIndices,
