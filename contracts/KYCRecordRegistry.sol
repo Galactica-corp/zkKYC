@@ -16,7 +16,7 @@ import {IKYCRegistry} from "./interfaces/IKYCRegistry.sol";
 /**
  * @title KYCRecordRegistry
  * @author Galactica dev team
- * @notice Batch Incremental Merkle Tree for zkKYC records
+ * @notice Sparse Merkle Tree for revokable ZK certificates records
  * Relevant external contract calls should be in those functions, not here
  */
 contract KYCRecordRegistry is Initializable, IKYCRegistry {

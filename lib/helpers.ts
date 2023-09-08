@@ -49,7 +49,7 @@ export function fromHexToBytes32(hex: string): string {
   }
 }
 
-export function generateRandomBytes32Array(length: number): String[] {
+export function generateRandomBytes32Array(length: number): string[] {
   const result = [];
   for (let i = 0; i < length; i++) {
     result.push(fromHexToBytes32(fromDecToHex(ethers.BigNumber.from(utils.randomBytes(32)).toString())));
@@ -58,11 +58,11 @@ export function generateRandomBytes32Array(length: number): String[] {
 }
 
 export function generateRandomNumberArray(length: number): any[] {
-    const result = [];
-    for (let i = 0; i < length; i++) {
-        result.push(ethers.BigNumber.from(utils.randomBytes(2)));
+  const result = [];
+  for (let i = 0; i < length; i++) {
+    result.push(ethers.BigNumber.from(utils.randomBytes(2)));
 
-    }
+  }
   return result;
 }
 

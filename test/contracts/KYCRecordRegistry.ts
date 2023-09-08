@@ -13,7 +13,6 @@ import {
   fromHexToBytes32,
   generateRandomBytes32Array,
   generateRandomNumberArray,
-  arrayToBigInt,
 } from '../../lib/helpers';
 import { poseidonContract } from 'circomlibjs';
 
@@ -109,23 +108,21 @@ describe('KYCRecordRegistry', () => {
     const leafHashes = generateRandomBytes32Array(5);
     const leafIndices = generateRandomNumberArray(5);
     for (let i = 0; i < loops; i += 1) {
-        console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
+      console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
 
-        // add new zkKYCRecord and check the root
-        let merkleProof = merkleTree.createProof(leafIndices[i]);
-        let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
-        await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
-        merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
+      // add new zkKYCRecord and check the root
+      let merkleProof = merkleTree.createProof(leafIndices[i]);
+      let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+      await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
+      merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
 
-        // Check roots match
-        expect(await KYCRecordRegistry.merkleRoot()).to.equal(
-            fromHexToBytes32(fromDecToHex(merkleTree.root))
-        );
-
+      // Check roots match
+      expect(await KYCRecordRegistry.merkleRoot()).to.equal(
+        fromHexToBytes32(fromDecToHex(merkleTree.root))
+      );
     }
   });
-    
-    
+
   it('Should be able to nullify a leaf', async function () {
     let loops = 5;
 
@@ -138,44 +135,44 @@ describe('KYCRecordRegistry', () => {
     const treeDepth = 32;
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    const leafHashes = generateRandomBytes32Array(5);
-    const leafIndices = generateRandomNumberArray(5);
+    const leafHashes = generateRandomBytes32Array(loops);
+    const leafIndices = generateRandomNumberArray(loops);
     for (let i = 0; i < loops; i += 1) {
-        console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
+      console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
 
-        // add new zkKYCRecord 
-        let merkleProof = merkleTree.createProof(leafIndices[i]);
-        let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
-        await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
-        merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
+      // add new zkKYCRecord 
+      let merkleProof = merkleTree.createProof(leafIndices[i]);
+      let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+      await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
+      merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
     }
-      
+
     // now we will try to nullify the first added leaf
     let merkleProof = merkleTree.createProof(leafIndices[0]);
     let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
     await KYCRecordRegistry.revokeZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath);
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[0]]);
-    
+
     // Check roots match
     expect(await KYCRecordRegistry.merkleRoot()).to.equal(
-        fromHexToBytes32(fromDecToHex(merkleTree.root))
+      fromHexToBytes32(fromDecToHex(merkleTree.root))
     );
   });
 
 
-    it('Only KYC Center can add leaf', async function () {
+  it('Only KYC Center can add leaf', async function () {
 
-        const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
-        const eddsa = await buildEddsa();
-        const treeDepth = 32;
-        const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
+    const eddsa = await buildEddsa();
+    const treeDepth = 32;
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-        const leafHashes = generateRandomBytes32Array(1);
-        const leafIndices = generateRandomNumberArray(1);
-        // add new zkKYCRecord and check the root
-        let merkleProof = merkleTree.createProof(leafIndices[0]);
-        let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
-        await expect(KYCRecordRegistry.addZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath)).to.be.revertedWith("KYCRecordRegistry: not a KYC Center");
-    });
+    const leafHashes = generateRandomBytes32Array(1);
+    const leafIndices = generateRandomNumberArray(1);
+    // add new zkKYCRecord and check the root
+    let merkleProof = merkleTree.createProof(leafIndices[0]);
+    let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+    await expect(KYCRecordRegistry.addZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath)).to.be.revertedWith("KYCRecordRegistry: not a KYC Center");
+  });
 });
