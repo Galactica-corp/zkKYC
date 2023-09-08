@@ -5,7 +5,7 @@ import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { string } from 'hardhat/internal/core/params/argumentTypes';
 
-import { buildEddsa, buildPoseidon } from "circomlibjs";
+import { buildPoseidon } from "circomlibjs";
 
 import { fromDecToHex, fromHexToBytes32 } from "../lib/helpers";
 import { SparseMerkleTree } from "../lib/sparseMerkleTree";
@@ -24,8 +24,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   const [provider] = await hre.ethers.getSigners();
   console.log(`Using provider ${chalk.yellow(provider.address.toString())} to revoke the zkKYC certificate`);
-
-  const eddsa = await buildEddsa();
 
   if (args.registryAddress === undefined) {
     console.log(chalk.yellow("Parameter 'registry-address' is missing. The zkKYC has not been issued on chain"));

@@ -135,8 +135,8 @@ describe('KYCRecordRegistry', () => {
     const treeDepth = 32;
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    const leafHashes = generateRandomBytes32Array(5);
-    const leafIndices = generateRandomNumberArray(5);
+    const leafHashes = generateRandomBytes32Array(loops);
+    const leafIndices = generateRandomNumberArray(loops);
     for (let i = 0; i < loops; i += 1) {
       console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
 

@@ -107,13 +107,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
   const leafHashes = leafLogResults.map(x => x.leafHash);
   const leafIndices = leafLogResults.map(x => Number(x.index));
-  console.log(`leafLogResult is ${leafLogResults}`);
+  // console.log(`leafHashes ${JSON.stringify(leafHashes)}`);
+  // console.log(`leafIndices ${JSON.stringify(leafIndices)}`);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
-  console.log(`Adding leaves to the merkle tree`);
   for (let i = 0; i < leafLogResults.length; i += batchSize) {
     merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
   }
+  // console.log(`merkle root is ${merkleTree.root}`);
 
   // find the smallest index of an empty list
   let index = 0;
@@ -136,6 +137,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // create Merkle proof
   let merkleProof = merkleTree.createProof(index);
+  // console.log(`Merkle proof for index ${index} is ${JSON.stringify(merkleProof)}`);
 
   // now we have the merkle proof to add a new leaf
   let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
