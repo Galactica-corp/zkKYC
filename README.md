@@ -1,3 +1,5 @@
+Archived this repository after moving the package into the new monorepo: https://github.com/Galactica-corp/galactica-monorepo
+
 # zkKYC
 Repository for Galactica Network's zero-knowledge Know Your Customer (zkKYC) solution.
 
